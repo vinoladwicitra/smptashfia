@@ -14,6 +14,8 @@ import PopupBanner from './components/PopupBanner'
 import AboutPage from './components/AboutPage'
 import ContactPage from './components/ContactPage'
 import ProgramPage from './components/ProgramPage'
+import PublicBlogList from './components/PublicBlogList'
+import PublicBlogSingle from './components/PublicBlogSingle'
 import TeacherDashboard from './components/TeacherDashboard'
 import StudentDashboard from './components/StudentDashboard'
 import StaffDashboard from './components/StaffDashboard'
@@ -108,7 +110,8 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/program" element={<ProgramPageWrapper />} />
         <Route path="/ppdb" element={<PlaceholderPage title="PPDB" />} />
-        <Route path="/blog/" element={<PlaceholderPage title="Blog" />} />
+        <Route path="/blog/" element={<PublicBlogList />} />
+        <Route path="/blog/:slug" element={<PublicBlogSingle />} />
         <Route path="/hubungi-kami" element={<ContactPageWrapper />} />
         <Route path="/tentang-kami" element={<AboutPageWrapper />} />
         <Route path="/acara/" element={<PlaceholderPage title="Acara" />} />
