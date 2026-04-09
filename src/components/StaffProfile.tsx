@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { useToast } from '../context/ToastContext';
@@ -26,6 +26,15 @@ export default function StaffProfile() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load avatar URL from user metadata on mount
+  useEffect(() => {
+    if (user) {
+      const meta = user.user_metadata as Record<string, any> | undefined;
+      setDisplayName(meta?.display_name || '');
+      setAvatarUrl(meta?.avatar_url || null);
+    }
+  }, [user]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +75,8 @@ export default function StaffProfile() {
     setIsUploading(true);
     try {
       const url = await uploadAvatar(user.id, file);
+      // Save to user metadata immediately
+      await supabase.auth.updateUser({ data: { avatar_url: url } });
       setAvatarUrl(url);
       toast({ type: 'success', title: 'Avatar Diperbarui', description: 'Foto profil Anda berhasil diunggah.' });
     } catch (error: any) {

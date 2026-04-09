@@ -18,6 +18,9 @@ import TeacherDashboard from './components/TeacherDashboard'
 import StudentDashboard from './components/StudentDashboard'
 import StaffDashboard from './components/StaffDashboard'
 import StaffProfile from './components/StaffProfile'
+import StaffLayout from './components/StaffLayout'
+import StaffBlogList from './components/StaffBlogList'
+import StaffBlogEditor from './components/StaffBlogEditor'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function HomePage() {
@@ -90,18 +93,10 @@ function StudentDashboardWrapper() {
   )
 }
 
-function StaffDashboardWrapper() {
+function StaffLayoutWrapper() {
   return (
     <ProtectedRoute>
-      <StaffDashboard />
-    </ProtectedRoute>
-  )
-}
-
-function StaffProfileWrapper() {
-  return (
-    <ProtectedRoute>
-      <StaffProfile />
+      <StaffLayout />
     </ProtectedRoute>
   )
 }
@@ -123,8 +118,14 @@ function App() {
         <Route path="/login/staff" element={<LoginPage role="staff" />} />
         <Route path="/teacher" element={<TeacherDashboardWrapper />} />
         <Route path="/student" element={<StudentDashboardWrapper />} />
-        <Route path="/staff" element={<StaffDashboardWrapper />} />
-        <Route path="/staff/profile" element={<StaffProfileWrapper />} />
+        <Route path="/staff" element={<StaffLayoutWrapper />}>
+          <Route index element={<StaffDashboard />} />
+          <Route path="blog" element={<StaffBlogList />} />
+          <Route path="blog/new" element={<StaffBlogEditor />} />
+          <Route path="blog/edit/:id" element={<StaffBlogEditor isNew={false} />} />
+          <Route path="profile" element={<StaffProfile />} />
+          <Route path="settings" element={<PlaceholderPage title="Pengaturan" />} />
+        </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>

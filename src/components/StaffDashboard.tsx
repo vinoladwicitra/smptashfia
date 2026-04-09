@@ -1,80 +1,84 @@
 import { useAuth } from '../lib/auth';
-import { IconLogout, IconUser, IconUsers, IconCalendar, IconClock, IconSettings } from '@tabler/icons-react';
-import { useNavigate } from 'react-router-dom';
+import { IconUsers, IconBook, IconCalendar, IconClock, IconTrendingUp, IconMessageCircle } from '@tabler/icons-react';
+
+const stats = [
+  { icon: IconBook, label: 'Total Artikel', value: '--', color: 'bg-blue-100 text-blue-600', trend: '+0 bulan ini' },
+  { icon: IconClock, label: 'Draft', value: '--', color: 'bg-amber-100 text-amber-600', trend: 'Menunggu review' },
+  { icon: IconTrendingUp, label: 'Published', value: '--', color: 'bg-green-100 text-green-600', trend: 'Aktif' },
+  { icon: IconMessageCircle, label: 'Komentar', value: '--', color: 'bg-purple-100 text-purple-600', trend: 'Menunggu' },
+];
 
 export default function StaffDashboard() {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
-  };
+  const { user } = useAuth();
+  const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Staff';
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Top Bar */}
-      <header className="bg-white border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <IconUser size={20} className="text-primary" />
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold text-text">{user?.email}</h2>
-            <p className="text-xs text-text-light">Staff Portal</p>
-          </div>
-        </div>
-        <button
-          onClick={handleSignOut}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors"
-        >
-          <IconLogout size={16} />
-          Logout
-        </button>
-      </header>
+    <div>
+      {/* Welcome Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl lg:text-3xl font-bold text-text">Selamat Datang, {displayName}!</h1>
+        <p className="text-text-light mt-1">Kelola artikel dan informasi sekolah dari sini.</p>
+      </div>
 
-      {/* Dashboard Content */}
-      <main className="max-w-5xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold text-text mb-6">Dashboard Staff</h1>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <div key={stat.label} className="bg-white rounded-xl p-5 shadow-sm border border-border hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <div className={`w-10 h-10 rounded-lg ${stat.color} flex items-center justify-center`}>
+                  <Icon size={20} />
+                </div>
+                <span className="text-xs text-text-light bg-gray-50 px-2 py-1 rounded-full">{stat.trend}</span>
+              </div>
+              <p className="text-2xl font-bold text-text">{stat.value}</p>
+              <p className="text-sm text-text-light">{stat.label}</p>
+            </div>
+          );
+        })}
+      </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-border">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                <IconUsers size={20} className="text-blue-600" />
-              </div>
+      {/* Quick Actions */}
+      <div className="bg-white rounded-xl shadow-sm border border-border p-6">
+        <h2 className="text-lg font-semibold text-text mb-4">Aksi Cepat</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <a href="/staff/blog/new" className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-all group">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+              <IconBook size={20} className="text-primary" />
             </div>
-            <p className="text-2xl font-bold text-text">--</p>
-            <p className="text-sm text-text-light">Total Siswa</p>
-          </div>
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-border">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                <IconCalendar size={20} className="text-green-600" />
-              </div>
+            <div>
+              <p className="text-sm font-semibold text-text">Tulis Artikel</p>
+              <p className="text-xs text-text-light">Buat artikel baru</p>
             </div>
-            <p className="text-2xl font-bold text-text">--</p>
-            <p className="text-sm text-text-light">Kegiatan Bulan Ini</p>
-          </div>
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-border">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                <IconSettings size={20} className="text-purple-600" />
-              </div>
+          </a>
+          <a href="/staff/blog" className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-all group">
+            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition-colors">
+              <IconCalendar size={20} className="text-green-600" />
             </div>
-            <p className="text-2xl font-bold text-text">--</p>
-            <p className="text-sm text-text-light">Pengaturan Sistem</p>
-          </div>
+            <div>
+              <p className="text-sm font-semibold text-text">Kelola Artikel</p>
+              <p className="text-xs text-text-light">Lihat semua artikel</p>
+            </div>
+          </a>
+          <a href="/staff/profile" className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-all group">
+            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+              <IconUsers size={20} className="text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-text">Edit Profil</p>
+              <p className="text-xs text-text-light">Ubah data diri</p>
+            </div>
+          </a>
         </div>
+      </div>
 
-        {/* Placeholder */}
-        <div className="bg-white rounded-xl p-8 shadow-sm border border-border text-center">
-          <IconClock size={48} className="mx-auto text-text-light/30 mb-4" />
-          <h3 className="text-lg font-semibold text-text mb-2">Halaman dalam pengembangan</h3>
-          <p className="text-text-light text-sm">Fitur dashboard staff akan segera tersedia.</p>
-        </div>
-      </main>
+      {/* Placeholder */}
+      <div className="bg-white rounded-xl shadow-sm border border-border p-12 text-center mt-8">
+        <IconClock size={48} className="mx-auto text-text-light/30 mb-4" />
+        <h3 className="text-lg font-semibold text-text mb-2">Aktivitas Terbaru</h3>
+        <p className="text-text-light text-sm">Belum ada aktivitas. Mulai tulis artikel pertamamu!</p>
+      </div>
     </div>
   );
 }
