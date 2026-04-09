@@ -1,10 +1,10 @@
 import { IconUserPlus, IconBulb, IconCalendar, IconNews, IconBook, IconHeadset, IconSchool, IconBriefcase } from '@tabler/icons-react';
 
 const quickAccessItems = [
-  { title: 'PPDB', href: '/ppdb', icon: IconUserPlus, bg: '#dbeafe', color: '#2563eb' },
+  { title: 'PMB', href: '/ppdb', icon: IconUserPlus, bg: '#dbeafe', color: '#2563eb' },
   { title: 'Program', href: '/program/', icon: IconBulb, bg: '#fef3c7', color: '#d97706' },
+  { title: 'Artikel', href: '/blog/', icon: IconNews, bg: '#e0e7ff', color: '#4f46e5' },
   { title: 'Acara', href: '/acara/', icon: IconCalendar, bg: '#fce7f3', color: '#db2777' },
-  { title: 'Artikel', href: '/artikel/', icon: IconNews, bg: '#e0e7ff', color: '#4f46e5' },
 ];
 
 const quickAccessItems2 = [

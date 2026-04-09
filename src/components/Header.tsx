@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { IconHome, IconHomeFilled, IconBriefcase, IconBriefcaseFilled, IconBulb, IconBulbFilled, IconBook, IconBookFilled, IconHeadset, IconHeadsetFilled, IconX, IconPhone, IconClock, IconMapPin, IconUser, IconUserCheck, IconUsersGroup, IconUsers } from '@tabler/icons-react';
+import { IconHome, IconHomeFilled, IconBriefcase, IconBriefcaseFilled, IconBulb, IconBulbFilled, IconBook, IconBookFilled, IconHeadset, IconHeadsetFilled, IconX, IconPhone, IconClock, IconMapPin, IconUser, IconUserCheck, IconUsersGroup, IconUsers, IconNews } from '@tabler/icons-react';
 
 const menuItems = [
   { label: 'Home', href: '/', icon: IconHome, iconFilled: IconHomeFilled, match: '/' },
   { label: 'Tentang Kami', href: '/tentang-kami', icon: IconBriefcase, iconFilled: IconBriefcaseFilled, match: '/tentang-kami' },
   { label: 'Program', href: '/program', icon: IconBulb, iconFilled: IconBulbFilled, match: '/program' },
-  { label: 'Blog', href: '/blog/', icon: IconBook, iconFilled: IconBookFilled, match: '/blog' },
+  { label: 'Blog', href: '/blog/', icon: IconNews, iconFilled: IconNews, match: '/blog' },
   { label: 'Perpustakaan', href: 'https://mahad-attashfiyyah.perpus.id/', icon: IconBook, iconFilled: IconBookFilled, match: '' },
   { label: 'Hubungi Kami', href: '/hubungi-kami', icon: IconHeadset, iconFilled: IconHeadsetFilled, match: '/hubungi-kami' },
 ];
@@ -116,7 +116,7 @@ export default function Header() {
         <div className="max-w-5xl mx-auto px-8">
           <nav className="flex items-center justify-center gap-2">
             {menuItems.map((item) => {
-              const isActive = item.match && location.pathname === item.match;
+              const isActive = item.match && (location.pathname === item.match || location.pathname.startsWith(item.match + '/'));
               const Icon = isActive ? item.iconFilled : item.icon;
               return (
                 <a
