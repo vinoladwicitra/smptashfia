@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import Header from './Header';
 import MobileHeader from './MobileHeader';
@@ -45,10 +45,7 @@ export default function PublicBlogList() {
   const [activeCategory, setActiveCategory] = useState<string>(urlCategory);
   const [categories, setCategories] = useState<{ name: string; slug: string }[]>([]);
 
-  // Sync URL param with active category
-  useEffect(() => {
-    setActiveCategory(urlCategory);
-  }, [urlCategory]);
+  useEffect(() => { setActiveCategory(urlCategory); }, [urlCategory]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -96,7 +93,6 @@ export default function PublicBlogList() {
     fetchArticles();
   }, [activeCategory]);
 
-  // Featured article (first one)
   const featured = articles[0];
   const rest = articles.slice(1);
 
@@ -106,16 +102,16 @@ export default function PublicBlogList() {
       <MobileHeader />
       <main className="min-h-screen bg-background pb-20 lg:pb-0">
         {/* Hero Header */}
-        <section className="bg-primary/5 border-b border-border">
+        <section className="border-b border-border">
           <div className="max-w-6xl mx-auto px-5 py-10 lg:py-16 text-center">
             <h1 className="text-3xl lg:text-5xl font-bold text-text mb-3">Blog & Artikel</h1>
             <p className="text-text-light max-w-xl mx-auto">Kumpulan berita, tips, dan informasi terkini dari SMP Tashfia.</p>
           </div>
         </section>
 
-        {/* Category Filter */}
-        <div className="sticky top-0 lg:top-[120px] z-30 bg-white/80 backdrop-blur-md border-b border-border">
-          <div className="max-w-6xl mx-auto px-5 py-3">
+        <div className="max-w-6xl mx-auto px-5 py-8">
+          {/* Category Filter - Not Sticky */}
+          <div className="mb-6">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
               <button
                 onClick={() => { setActiveCategory('all'); navigate('/blog/'); }}
@@ -142,9 +138,7 @@ export default function PublicBlogList() {
               ))}
             </div>
           </div>
-        </div>
 
-        <div className="max-w-6xl mx-auto px-5 py-8">
           {/* Loading State */}
           {loading && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -163,20 +157,20 @@ export default function PublicBlogList() {
 
           {/* Featured Article */}
           {!loading && featured && (
-            <Link to={`/blog/${featured.slug}`} className="block mb-10 group">
+            <div onClick={() => navigate(`/blog/${featured.slug}`)} className="block mb-10 group cursor-pointer">
               <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-md transition-shadow">
                 <div className="grid grid-cols-1 lg:grid-cols-2">
                   <div className="relative overflow-hidden">
                     {featured.featured_image ? (
-                      <img src={featured.featured_image} alt={featured.title} className="w-full h-64 lg:h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
+                      <img src={featured.featured_image} alt={featured.title} className="w-full h-64 lg:h-full object-cover group-hover:scale-[1.02] transition-transform duration-300 rounded-t-2xl lg:rounded-l-2xl lg:rounded-tr-none" />
                     ) : (
-                      <div className="w-full h-64 lg:h-full bg-primary/5 flex items-center justify-center" />
+                      <div className="w-full h-64 lg:h-full bg-primary/5 flex items-center justify-center rounded-t-2xl lg:rounded-l-2xl lg:rounded-tr-none" />
                     )}
                   </div>
                   <div className="p-6 lg:p-10 flex flex-col justify-center">
                     <div className="flex flex-wrap gap-1.5 mb-4">
                       {featured.article_categories?.map((cat) => (
-                        <span key={cat.slug} onClick={(e) => { e.preventDefault(); navigate(`/blog/?category=${cat.slug}`); }} className={`inline-flex px-3 py-1 font-medium text-xs rounded-full ring-1 ring-inset cursor-pointer ${badgeColors[cat.slug] || 'bg-gray-100 text-gray-700 ring-gray-600/20'}`}>
+                        <span key={cat.slug} onClick={(e) => { e.stopPropagation(); setActiveCategory(cat.slug); navigate(`/blog/?category=${cat.slug}`); }} className={`inline-flex px-3 py-1 font-medium text-xs rounded-full ring-1 ring-inset cursor-pointer ${badgeColors[cat.slug] || 'bg-gray-100 text-gray-700 ring-gray-600/20'}`}>
                           {cat.name}
                         </span>
                       ))}
@@ -195,7 +189,7 @@ export default function PublicBlogList() {
                   </div>
                 </div>
               </div>
-            </Link>
+            </div>
           )}
 
           {/* Articles Grid */}
@@ -204,7 +198,7 @@ export default function PublicBlogList() {
               <h3 className="text-lg font-semibold text-text mb-5">Artikel Terbaru</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {rest.map((article) => (
-                  <Link key={article.id} to={`/blog/${article.slug}`} className="group block bg-white rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-md transition-shadow">
+                  <div key={article.id} onClick={() => navigate(`/blog/${article.slug}`)} className="group block bg-white rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-md transition-shadow cursor-pointer">
                     <div className="relative overflow-hidden">
                       {article.featured_image ? (
                         <img src={article.featured_image} alt={article.title} className="w-full h-48 object-cover group-hover:scale-[1.02] transition-transform duration-300" />
@@ -215,7 +209,7 @@ export default function PublicBlogList() {
                     <div className="p-5">
                       <div className="flex flex-wrap gap-1.5 mb-3">
                         {article.article_categories?.map((cat) => (
-                          <span key={cat.slug} onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/blog/?category=${cat.slug}`); }} className={`inline-flex px-2.5 py-1 font-medium text-xs rounded-full ring-1 ring-inset cursor-pointer ${badgeColors[cat.slug] || 'bg-gray-100 text-gray-700 ring-gray-600/20'}`}>
+                          <span key={cat.slug} onClick={(e) => { e.stopPropagation(); setActiveCategory(cat.slug); navigate(`/blog/?category=${cat.slug}`); }} className={`inline-flex px-2.5 py-1 font-medium text-xs rounded-full ring-1 ring-inset cursor-pointer ${badgeColors[cat.slug] || 'bg-gray-100 text-gray-700 ring-gray-600/20'}`}>
                             {cat.name}
                           </span>
                         ))}
@@ -231,7 +225,7 @@ export default function PublicBlogList() {
                         <span className="flex items-center gap-1"><IconEye size={13} />{formatViews(article.views)}</span>
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             </>

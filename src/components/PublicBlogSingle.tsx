@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import Header from './Header';
@@ -6,7 +6,8 @@ import MobileHeader from './MobileHeader';
 import Footer from './Footer';
 import StickyMobileBottomBar from './StickyMobileBottomBar';
 import {
-  IconHeart, IconShare3, IconBookmark, IconBookmarkFilled, IconDots,
+  IconArrowLeft, IconEye, IconHeart,
+  IconShare3, IconBookmark, IconBookmarkFilled,
   IconLink, IconCopy,
   IconBrandWhatsapp, IconBrandFacebook, IconBrandX,
 } from '@tabler/icons-react';
@@ -25,6 +26,11 @@ function formatDate(dateStr: string | null): string {
   return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function formatViews(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}rb`;
+  return n.toString();
+}
+
 function estimateReadTime(html: string): number {
   const text = html.replace(/<[^>]*>/g, ' ');
   const words = text.trim().split(/\s+/).length;
@@ -40,10 +46,11 @@ export default function PublicBlogSingle() {
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [likeCount, setLikeCount] = useState(2);
+  const [likeCount, setLikeCount] = useState(0);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [showMobileShare, setShowMobileShare] = useState(false);
 
+  // Load article
   useEffect(() => {
     const fetchArticle = async () => {
       setLoading(true);
@@ -54,30 +61,76 @@ export default function PublicBlogSingle() {
           article_category_mappings (
             article_categories (id, name, slug)
           ),
-          profiles!articles_author_id_fkey (display_name)
+          profiles!articles_author_id_fkey (display_name, avatar_url)
         `)
         .eq('slug', slug)
         .eq('status', 'published')
         .single();
 
       if (error || !data) {
-        navigate('/blog');
+        navigate('/blog/');
         return;
       }
 
       // Increment views
-      await supabase.from('articles').update({ views: (data.views || 0) + 1 }).eq('id', data.id);
-      data.views = (data.views || 0) + 1;
+      const newViews = (data.views || 0) + 1;
+      await supabase.from('articles').update({ views: newViews }).eq('id', data.id);
+      data.views = newViews;
 
       setArticle({
         ...data,
         categories: data.article_category_mappings?.map((m: any) => m.article_categories).filter(Boolean) || [],
         authorName: data.profiles?.display_name || 'SMP Tashfia',
+        authorAvatar: data.profiles?.avatar_url || null,
       });
       setLoading(false);
     };
     fetchArticle();
   }, [slug]);
+
+  // Load like/bookmark state from localStorage
+  useEffect(() => {
+    if (article?.id) {
+      const likes = JSON.parse(localStorage.getItem('blog-likes') || '{}');
+      const bookmarks = JSON.parse(localStorage.getItem('blog-bookmarks') || '{}');
+      setLiked(!!likes[article.id]);
+      setSaved(!!bookmarks[article.id]);
+      setLikeCount(article.likes_count || 0);
+    }
+  }, [article]);
+
+  const handleLike = useCallback(async () => {
+    if (!article?.id) return;
+    const newLiked = !liked;
+    setLiked(newLiked);
+    const newCount = newLiked ? likeCount + 1 : likeCount - 1;
+    setLikeCount(newCount);
+
+    // Persist
+    const likes = JSON.parse(localStorage.getItem('blog-likes') || '{}');
+    if (newLiked) likes[article.id] = true;
+    else delete likes[article.id];
+    localStorage.setItem('blog-likes', JSON.stringify(likes));
+
+    // Update DB counter
+    await supabase.from('articles').update({ likes_count: newCount }).eq('id', article.id);
+  }, [article, liked, likeCount]);
+
+  const handleBookmark = useCallback(() => {
+    if (!article?.id) return;
+    const newSaved = !saved;
+    setSaved(newSaved);
+
+    const bookmarks = JSON.parse(localStorage.getItem('blog-bookmarks') || '{}');
+    if (newSaved) {
+      bookmarks[article.id] = { title: article.title, slug: article.slug, savedAt: Date.now() };
+      toast({ type: 'success', title: 'Artikel Disimpan', description: 'Artikel ditambahkan ke bookmark.' });
+    } else {
+      delete bookmarks[article.id];
+      toast({ type: 'info', title: 'Bookmark Dihapus', description: 'Artikel dihapus dari bookmark.' });
+    }
+    localStorage.setItem('blog-bookmarks', JSON.stringify(bookmarks));
+  }, [article, saved, toast]);
 
   const handleShare = (platform: string) => {
     const url = window.location.href;
@@ -105,8 +158,7 @@ export default function PublicBlogSingle() {
   if (loading) {
     return (
       <>
-        <Header />
-        <MobileHeader />
+        <Header /><MobileHeader />
         <div className="min-h-screen bg-background">
           <div className="max-w-screen-md mx-auto px-5 py-16 lg:pt-24 animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-32 mb-4" />
@@ -132,16 +184,25 @@ export default function PublicBlogSingle() {
     <>
       <Header />
       <MobileHeader />
-      <main className="min-h-screen bg-background pb-20 lg:pb-0">
+      <main className="min-h-screen bg-background pb-16 lg:pb-0">
         {/* Article Header */}
         <header className="max-w-screen-md mx-auto px-5 pt-8 lg:pt-16">
+          {/* Back Button (Mobile) */}
+          <button
+            onClick={() => navigate('/blog/')}
+            className="lg:hidden flex items-center gap-2 text-text-light hover:text-text mb-6 transition-colors"
+          >
+            <IconArrowLeft size={20} />
+            <span className="text-sm font-medium">Kembali</span>
+          </button>
+
           {/* Category Badges */}
           <div className="flex flex-wrap gap-1.5 mb-4">
             {article.categories?.map((cat: any) => (
               <span
                 key={cat.slug}
                 onClick={() => navigate(`/blog?category=${cat.slug}`)}
-                className={`transition-colors duration-300 inline-flex px-3 py-1 font-medium text-xs rounded-full ring-1 ring-inset ${badgeColors[cat.slug] || 'bg-gray-50 text-gray-700 ring-gray-600/20'} hover:opacity-80`}
+                className={`transition-colors duration-300 inline-flex px-3 py-1 font-medium text-xs rounded-full ring-1 ring-inset cursor-pointer ${badgeColors[cat.slug] || 'bg-gray-50 text-gray-700 ring-gray-600/20'} hover:opacity-80`}
               >
                 {cat.name}
               </span>
@@ -153,13 +214,6 @@ export default function PublicBlogSingle() {
             {article.title}
           </h1>
 
-          {/* Excerpt */}
-          {article.excerpt && (
-            <div className="max-w-screen-md break-words pb-4 text-base text-neutral-500 lg:text-lg">
-              <p>{article.excerpt}</p>
-            </div>
-          )}
-
           {/* Divider */}
           <div className="w-full border-b border-neutral-200" />
 
@@ -169,7 +223,11 @@ export default function PublicBlogSingle() {
             <div className="flex flex-wrap items-center text-left text-neutral-700 text-base flex-shrink-0 leading-none">
               <div className="flex items-center space-x-2">
                 <div className="relative inline-flex flex-shrink-0 items-center justify-center overflow-hidden font-semibold uppercase text-neutral-100 shadow-inner rounded-full h-10 w-10 sm:h-11 sm:w-11 text-xl bg-primary">
-                  {article.authorName?.[0]?.toUpperCase() || 'S'}
+                  {article.authorAvatar ? (
+                    <img src={article.authorAvatar} alt={article.authorName} className="absolute inset-0 h-full w-full object-cover rounded-full" />
+                  ) : (
+                    <span>{article.authorName?.[0]?.toUpperCase() || 'S'}</span>
+                  )}
                 </div>
                 <div className="ms-3">
                   <div className="flex items-center">
@@ -188,7 +246,7 @@ export default function PublicBlogSingle() {
             <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
               {/* Like */}
               <button
-                onClick={() => { setLiked(!liked); setLikeCount(prev => liked ? prev - 1 : prev + 1); }}
+                onClick={handleLike}
                 className={`group relative flex items-center text-xs transition-colors ${liked ? 'text-rose-600' : 'text-text hover:text-rose-600'}`}
               >
                 <div className={`h-9 w-9 flex flex-shrink-0 items-center justify-center rounded-full transition-colors ${liked ? 'bg-rose-50' : 'bg-neutral-50 hover:bg-rose-50'}`}>
@@ -196,6 +254,14 @@ export default function PublicBlogSingle() {
                 </div>
                 <span className="ms-2 min-w-[1.125rem] flex-shrink-0 text-start text-text">{likeCount}</span>
               </button>
+
+              {/* Views */}
+              <div className="flex items-center text-xs text-text-light">
+                <div className="h-9 w-9 flex flex-shrink-0 items-center justify-center rounded-full bg-neutral-50">
+                  <IconEye size={18} />
+                </div>
+                <span className="ms-2 min-w-[1.125rem] flex-shrink-0 text-start">{formatViews(article.views)}</span>
+              </div>
 
               {/* Share (Desktop) */}
               <div className="hidden sm:block relative">
@@ -215,7 +281,7 @@ export default function PublicBlogSingle() {
                       <IconBrandFacebook size={18} className="text-blue-600" /> Facebook
                     </button>
                     <button onClick={() => handleShare('x')} className="flex items-center gap-3 px-4 py-2.5 text-sm text-text hover:bg-gray-50 w-full">
-                      <IconBrandX size={18} className="text-sky-500" /> X
+                      <IconBrandX size={18} className="text-gray-900" /> X (Twitter)
                     </button>
                     <div className="border-t border-border my-1" />
                     <button onClick={() => handleShare('copy')} className="flex items-center gap-3 px-4 py-2.5 text-sm text-text hover:bg-gray-50 w-full">
@@ -227,33 +293,28 @@ export default function PublicBlogSingle() {
 
               {/* Bookmark */}
               <button
-                onClick={() => setSaved(!saved)}
+                onClick={handleBookmark}
                 className="flex items-center justify-center rounded-full h-9 w-9 bg-neutral-50 hover:bg-neutral-100 transition-colors"
               >
                 {saved ? <IconBookmarkFilled size={18} className="text-primary" /> : <IconBookmark size={18} className="text-text" />}
-              </button>
-
-              {/* More */}
-              <button className="flex items-center justify-center rounded-full text-text-light h-9 w-9 bg-neutral-50 hover:bg-neutral-100 transition-colors">
-                <IconDots size={20} />
               </button>
             </div>
           </div>
         </header>
 
-        {/* Featured Image */}
+        {/* Featured Image - Content Width, Rounded */}
         {article.featured_image && (
-          <div className="max-w-screen-lg mx-auto my-10 sm:my-12 px-5">
+          <div className="max-w-screen-md mx-auto mt-10 sm:mt-12 px-5">
             <img
               src={article.featured_image}
               alt={article.title}
-              className="mx-auto rounded-xl w-full max-h-[500px] object-cover"
+              className="mx-auto rounded-xl w-full object-cover shadow-sm"
             />
           </div>
         )}
 
         {/* Article Content */}
-        <article className="max-w-screen-md mx-auto px-5">
+        <article className="max-w-screen-md mx-auto px-5 py-8">
           <div
             className="prose prose-lg sm:prose-xl max-w-none
               prose-headings:font-bold prose-headings:text-text
@@ -263,22 +324,21 @@ export default function PublicBlogSingle() {
               prose-ul:text-text prose-ol:text-text
               prose-li:marker:text-primary
               prose-blockquote:border-l-primary prose-blockquote:bg-primary/5 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg
-              prose-img:rounded-xl prose-img:shadow-md
-              prose-hr:border-border"
+              prose-img:rounded-xl prose-img:shadow-md"
             dangerouslySetInnerHTML={{ __html: article.content }}
           />
         </article>
 
-        {/* Mobile Share Bar */}
+        {/* Mobile Bottom Bar */}
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-border px-5 py-3 flex items-center justify-around z-50" style={{ paddingBottom: 'calc(0.75rem + 3.5rem)' }}>
-          <button onClick={() => { setLiked(!liked); setLikeCount(prev => liked ? prev - 1 : prev + 1); }} className={`flex items-center gap-1.5 text-xs ${liked ? 'text-rose-600' : 'text-text-light'}`}>
+          <button onClick={handleLike} className={`flex items-center gap-1.5 text-xs ${liked ? 'text-rose-600' : 'text-text-light'}`}>
             {liked ? <IconHeart size={18} className="fill-rose-500" /> : <IconHeart size={18} />} {likeCount}
           </button>
           <button onClick={() => setShowMobileShare(true)} className="flex items-center gap-1.5 text-xs text-text-light">
             <IconShare3 size={18} /> Bagikan
           </button>
-          <button onClick={() => setSaved(!saved)} className="flex items-center gap-1.5 text-xs text-text-light">
-            {saved ? <IconBookmarkFilled size={18} className="text-primary" /> : <IconBookmark size={18} />} Simpan
+          <button onClick={handleBookmark} className={`flex items-center gap-1.5 text-xs ${saved ? 'text-primary' : 'text-text-light'}`}>
+            {saved ? <IconBookmarkFilled size={18} /> : <IconBookmark size={18} />} Simpan
           </button>
         </div>
 
@@ -297,7 +357,7 @@ export default function PublicBlogSingle() {
                   <span className="text-xs text-text">Facebook</span>
                 </button>
                 <button onClick={() => handleShare('x')} className="flex flex-col items-center gap-2">
-                  <div className="w-12 h-12 rounded-full bg-sky-100 flex items-center justify-center"><IconBrandX size={24} className="text-sky-500" /></div>
+                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center"><IconBrandX size={24} className="text-gray-900" /></div>
                   <span className="text-xs text-text">X</span>
                 </button>
                 <button onClick={() => handleShare('copy')} className="flex flex-col items-center gap-2">
