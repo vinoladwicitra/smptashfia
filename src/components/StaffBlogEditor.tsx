@@ -394,7 +394,7 @@ export default function StaffBlogEditor() {
               <ToolbarButton onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="Kutipan"><IconQuote size={18} /></ToolbarButton>
               <ToolbarButton onClick={() => editor.chain().focus().toggleCodeBlock().run()} active={editor.isActive('codeBlock')} title="Kode"><IconCode size={18} /></ToolbarButton>
               <ToolbarSeparator />
-              <ToolbarButton onClick={() => { const url = window.prompt('Masukkan URL:'); if (url) editor.chain().focus().setLink({ href: url }).run(); }} active={editor.isActive('link')} title="Sisipkan Link"><IconLink size={18} /></ToolbarButton>
+              <ToolbarButton onClick={() => { const url = window.prompt('Masukkan URL (harus http:// atau https://):'); if (url && /^https?:\/\//.test(url)) { editor.chain().focus().setLink({ href: url, target: '_blank', rel: 'noopener noreferrer' }).run(); } else if (url) { /* invalid URL */ } }} active={editor.isActive('link')} title="Sisipkan Link"><IconLink size={18} /></ToolbarButton>
               <ToolbarButton onClick={() => editor.chain().focus().unsetLink().run()} disabled={!editor.isActive('link')} title="Hapus Link"><IconUnlink size={18} /></ToolbarButton>
               <ToolbarSeparator />
               <ToolbarButton onClick={() => fileInputRef.current?.click()} title="Sisipkan Gambar">

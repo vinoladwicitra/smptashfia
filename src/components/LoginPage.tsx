@@ -44,6 +44,7 @@ export default function LoginPage({ role }: { role: keyof typeof roleLabels }) {
         const from = location.state?.from?.pathname;
         const dashboardPath = role === 'teacher' ? '/teacher'
           : role === 'student' ? '/student'
+          : role === 'parent' ? '/parents'
           : '/staff';
         setTimeout(() => navigate(from || dashboardPath), 1000);
       }

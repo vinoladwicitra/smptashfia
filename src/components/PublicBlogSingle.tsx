@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import DOMPurify from 'dompurify';
 import Header from './Header';
 import MobileHeader from './MobileHeader';
 import Footer from './Footer';
@@ -346,7 +347,7 @@ export default function PublicBlogSingle() {
               prose-li:marker:text-primary
               prose-blockquote:border-l-primary prose-blockquote:bg-primary/5 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg
               prose-img:rounded-xl prose-img:shadow-md"
-            dangerouslySetInnerHTML={{ __html: article.content }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content) }}
           />
         </article>
 

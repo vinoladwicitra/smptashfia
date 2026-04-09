@@ -21,9 +21,7 @@ export default function StaffProfile() {
   const [displayName, setDisplayName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -135,7 +133,6 @@ export default function StaffProfile() {
       }
 
       toast({ type: 'success', title: 'Password Diubah', description: 'Password baru Anda berhasil disimpan.' });
-      setCurrentPassword('');
       setNewPassword('');
     } catch {
       toast({ type: 'error', title: 'Terjadi Kesalahan', description: 'Silakan coba lagi.' });
@@ -234,13 +231,9 @@ export default function StaffProfile() {
 
             {/* Change Password */}
             <ChangePasswordForm
-              currentPassword={currentPassword}
-              setCurrentPassword={setCurrentPassword}
               newPassword={newPassword}
               setNewPassword={setNewPassword}
-              showCurrentPassword={showCurrentPassword}
               showNewPassword={showNewPassword}
-              setShowCurrentPassword={setShowCurrentPassword}
               setShowNewPassword={setShowNewPassword}
               isLoading={isLoading}
               onSubmit={handleChangePassword}
@@ -309,13 +302,9 @@ export default function StaffProfile() {
 
           {/* Change Password */}
           <ChangePasswordForm
-            currentPassword={currentPassword}
-            setCurrentPassword={setCurrentPassword}
             newPassword={newPassword}
             setNewPassword={setNewPassword}
-            showCurrentPassword={showCurrentPassword}
             showNewPassword={showNewPassword}
-            setShowCurrentPassword={setShowCurrentPassword}
             setShowNewPassword={setShowNewPassword}
             isLoading={isLoading}
             onSubmit={handleChangePassword}
@@ -402,24 +391,16 @@ function ProfileForm({
 
 // Change Password Form Component
 function ChangePasswordForm({
-  currentPassword,
-  setCurrentPassword,
   newPassword,
   setNewPassword,
-  showCurrentPassword,
   showNewPassword,
-  setShowCurrentPassword,
   setShowNewPassword,
   isLoading,
   onSubmit,
 }: {
-  currentPassword: string;
-  setCurrentPassword: (v: string) => void;
   newPassword: string;
   setNewPassword: (v: string) => void;
-  showCurrentPassword: boolean;
   showNewPassword: boolean;
-  setShowCurrentPassword: (v: boolean) => void;
   setShowNewPassword: (v: boolean) => void;
   isLoading: boolean;
   onSubmit: (e: React.FormEvent) => void;
@@ -433,31 +414,6 @@ function ChangePasswordForm({
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-text mb-1.5">Password Saat Ini</label>
-          <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light">
-              <IconLock size={16} />
-            </div>
-            <input
-              type={showCurrentPassword ? 'text' : 'password'}
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="Masukkan password saat ini"
-              className="w-full pl-10 pr-10 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-text"
-              required
-              disabled={isLoading}
-            />
-            <button
-              type="button"
-              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-light hover:text-text transition-colors"
-              disabled={isLoading}
-            >
-              {showCurrentPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
-            </button>
-          </div>
-        </div>
-        <div>
           <label className="block text-sm font-medium text-text mb-1.5">Password Baru</label>
           <div className="relative">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light">
@@ -470,6 +426,7 @@ function ChangePasswordForm({
               placeholder="Minimal 6 karakter"
               className="w-full pl-10 pr-10 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-text"
               required
+              minLength={6}
               disabled={isLoading}
             />
             <button

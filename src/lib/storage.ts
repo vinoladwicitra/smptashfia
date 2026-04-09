@@ -1,67 +1,47 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { supabase } from './supabase';
 
-const s3Client = new S3Client({
-  region: import.meta.env.VITE_SUPABASE_STORAGE_REGION || 'ap-southeast-1',
-  endpoint: import.meta.env.VITE_SUPABASE_STORAGE_ENDPOINT,
-  credentials: {
-    accessKeyId: import.meta.env.VITE_SUPABASE_STORAGE_ACCESS_KEY_ID,
-    secretAccessKey: import.meta.env.VITE_SUPABASE_STORAGE_SECRET_ACCESS_KEY,
-  },
-  forcePathStyle: true,
-});
-
-const BUCKET = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'smptashfia';
+const BUCKET = 'smptashfia';
 const AVATAR_FOLDER = 'avatars';
 
 /**
- * Upload avatar to Supabase Storage (S3 compatible)
+ * Upload file to Supabase Storage (no S3 credentials needed)
  * Returns the public URL of the uploaded file
+ */
+export async function uploadToStorage(key: string, file: File): Promise<string> {
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(key, file, { upsert: true });
+
+  if (error) throw error;
+
+  const { data: { publicUrl } } = supabase.storage
+    .from(BUCKET)
+    .getPublicUrl(key);
+
+  return publicUrl;
+}
+
+/**
+ * Upload avatar image
  */
 export async function uploadAvatar(userId: string, file: File): Promise<string> {
   const ext = file.name.split('.').pop() || 'jpg';
   const key = `${AVATAR_FOLDER}/${userId}/avatar.${ext}`;
-
-  const arrayBuffer = await file.arrayBuffer();
-
-  const command = new PutObjectCommand({
-    Bucket: BUCKET,
-    Key: key,
-    Body: arrayBuffer,
-    ContentType: file.type,
-    ACL: 'public-read',
-  });
-
-  await s3Client.send(command);
-
-  // Construct public URL
-  const baseUrl = import.meta.env.VITE_SUPABASE_STORAGE_ENDPOINT?.replace('/storage/v1/s3', '');
-  return `${baseUrl}/storage/v1/object/public/${BUCKET}/${key}`;
+  return uploadToStorage(key, file);
 }
 
 /**
- * Delete avatar from Supabase Storage
+ * Delete avatar from storage
  */
 export async function deleteAvatar(userId: string): Promise<void> {
-  // Try to delete all possible avatar extensions
   const extensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
   
-  for (const ext of extensions) {
-    const key = `${AVATAR_FOLDER}/${userId}/avatar.${ext}`;
-    try {
-      await s3Client.send(new DeleteObjectCommand({
-        Bucket: BUCKET,
-        Key: key,
-      }));
-    } catch {
-      // Ignore if file doesn't exist
-    }
-  }
-}
+  const filesToDelete = extensions.map(ext => `${AVATAR_FOLDER}/${userId}/avatar.${ext}`);
+  
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .remove(filesToDelete);
 
-/**
- * Get current avatar URL for a user
- */
-export function getAvatarUrl(userId: string, format: string = 'webp'): string {
-  const baseUrl = import.meta.env.VITE_SUPABASE_STORAGE_ENDPOINT?.replace('/storage/v1/s3', '');
-  return `${baseUrl}/storage/v1/object/public/${BUCKET}/${AVATAR_FOLDER}/${userId}/avatar.${format}`;
+  // Ignore "not found" errors
+  if (error && !error.message.includes('not found')) throw error;
 }

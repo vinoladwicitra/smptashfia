@@ -151,15 +151,6 @@ export default function BlogSection() {
         </div>
 
         {/* Desktop Pagination - Removed */}
-        <div className="hidden">
-          <button className="px-4 py-2.5 text-sm font-medium text-text bg-white border border-border rounded hover:bg-primary hover:text-white hover:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-            « Prev
-          </button>
-          <button className="px-4 py-2.5 text-sm font-medium text-white bg-primary border border-primary rounded transition-colors">1</button>
-          <button className="px-4 py-2.5 text-sm font-medium text-text bg-white border border-border rounded hover:bg-primary hover:text-white hover:border-primary transition-colors">2</button>
-          <button className="px-4 py-2.5 text-sm font-medium text-text bg-white border border-border rounded hover:bg-primary hover:text-white hover:border-primary transition-colors">3</button>
-          <button className="px-4 py-2.5 text-sm font-medium text-text bg-white border border-border rounded hover:bg-primary hover:text-white hover:border-primary transition-colors">Next »</button>
-        </div>
       </div>
     </section>
   );
