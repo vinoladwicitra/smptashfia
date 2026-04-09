@@ -20,6 +20,7 @@ const ContactPage = lazy(() => import('./components/ContactPage'))
 const ProgramPage = lazy(() => import('./components/ProgramPage'))
 const PublicBlogList = lazy(() => import('./components/PublicBlogList'))
 const PublicBlogSingle = lazy(() => import('./components/PublicBlogSingle'))
+const PPDBPage = lazy(() => import('./components/PPDBPage'))
 const TeacherDashboard = lazy(() => import('./components/TeacherDashboard'))
 const StudentDashboard = lazy(() => import('./components/StudentDashboard'))
 const StaffDashboard = lazy(() => import('./components/StaffDashboard'))
@@ -87,7 +88,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/program" element={<PublicPageLayout><ProgramPage /></PublicPageLayout>} />
-          <Route path="/ppdb" element={<PlaceholderPage title="PPDB" />} />
+          <Route path="/ppdb" element={<PublicPageLayout><PPDBPage /></PublicPageLayout>} />
           <Route path="/blog/" element={<PublicPageLayout><PublicBlogList /></PublicPageLayout>} />
           <Route path="/blog/:slug" element={<PublicPageLayout><PublicBlogSingle /></PublicPageLayout>} />
           <Route path="/hubungi-kami" element={<PublicPageLayout><ContactPage /></PublicPageLayout>} />
