@@ -143,8 +143,8 @@ export default function LoginPage({ role }: { role: keyof typeof roleLabels }) {
         {/* Back to Home */}
         <p className="text-center mt-6">
           <button 
-            onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-1 text-sm text-text-light hover:text-primary transition-colors"
+            onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate('/'); }}
+            className="inline-flex items-center gap-1 text-sm text-text-light hover:text-primary transition-colors cursor-pointer"
           >
             <IconArrowLeft size={16} />
             Kembali ke Beranda

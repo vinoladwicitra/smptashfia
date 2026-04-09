@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { IconX } from '@tabler/icons-react';
 
 export default function PopupBanner() {
   const [visible, setVisible] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), 1000);
@@ -30,22 +32,22 @@ export default function PopupBanner() {
         </button>
 
         {/* Banner Image */}
-        <a href="/ppdb" className="block">
+        <Link to="/ppdb" onClick={() => { setVisible(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="block">
           <img
             src="/assets/ppdb-banner.webp"
             alt="PPDB SMP Tashfia"
             className="w-full"
           />
-        </a>
+        </Link>
 
         {/* CTA Button */}
         <div className="p-4 bg-primary/5">
-          <a
-            href="/ppdb"
-            className="block w-full py-3 text-center text-sm font-semibold text-white bg-primary rounded-xl hover:bg-primary-dark transition-colors"
+          <button
+            onClick={() => { setVisible(false); window.scrollTo({ top: 0, behavior: 'smooth' }); navigate('/ppdb'); }}
+            className="block w-full py-3 text-center text-sm font-semibold text-white bg-primary rounded-xl hover:bg-primary-dark transition-colors cursor-pointer"
           >
             Daftar Sekarang
-          </a>
+          </button>
         </div>
       </div>
     </div>

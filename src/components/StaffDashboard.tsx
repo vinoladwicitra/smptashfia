@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { IconUsers, IconBook, IconCalendar, IconClock, IconTrendingUp, IconMessageCircle } from '@tabler/icons-react';
 
@@ -9,6 +10,7 @@ const stats = [
 ];
 
 export default function StaffDashboard() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Staff';
 
@@ -43,7 +45,7 @@ export default function StaffDashboard() {
       <div className="bg-white rounded-xl shadow-sm border border-border p-6">
         <h2 className="text-lg font-semibold text-text mb-4">Aksi Cepat</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <a href="/staff/blog/new" className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-all group">
+          <div onClick={() => navigate('/staff/blog/new')} className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-all group cursor-pointer">
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
               <IconBook size={20} className="text-primary" />
             </div>
@@ -51,8 +53,8 @@ export default function StaffDashboard() {
               <p className="text-sm font-semibold text-text">Tulis Artikel</p>
               <p className="text-xs text-text-light">Buat artikel baru</p>
             </div>
-          </a>
-          <a href="/staff/blog" className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-all group">
+          </div>
+          <div onClick={() => navigate('/staff/blog')} className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-all group cursor-pointer">
             <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition-colors">
               <IconCalendar size={20} className="text-green-600" />
             </div>
@@ -60,8 +62,8 @@ export default function StaffDashboard() {
               <p className="text-sm font-semibold text-text">Kelola Artikel</p>
               <p className="text-xs text-text-light">Lihat semua artikel</p>
             </div>
-          </a>
-          <a href="/staff/profile" className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-all group">
+          </div>
+          <div onClick={() => navigate('/staff/profile')} className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-all group cursor-pointer">
             <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
               <IconUsers size={20} className="text-blue-600" />
             </div>
@@ -69,7 +71,7 @@ export default function StaffDashboard() {
               <p className="text-sm font-semibold text-text">Edit Profil</p>
               <p className="text-xs text-text-light">Ubah data diri</p>
             </div>
-          </a>
+          </div>
         </div>
       </div>
 

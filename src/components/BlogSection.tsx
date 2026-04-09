@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { IconCalendar, IconUser } from '@tabler/icons-react';
 
 const blogPosts = [
@@ -71,6 +72,7 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function BlogSection() {
+  const navigate = useNavigate();
   const displayPosts = blogPosts.slice(0, 10);
 
   return (
@@ -136,16 +138,16 @@ export default function BlogSection() {
 
         {/* Desktop: View All Button */}
         <div className="hidden lg:flex lg:justify-center lg:mt-10">
-          <a href="/blog/" className="inline-flex items-center px-8 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors shadow-sm cursor-pointer">
+          <button onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate('/blog/'); }} className="inline-flex items-center px-8 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors shadow-sm cursor-pointer">
             Lihat Semua Artikel →
-          </a>
+          </button>
         </div>
 
         {/* View All Button (Mobile) */}
         <div className="lg:hidden">
-          <a href="/blog/" className="block w-full py-3 text-center text-sm font-semibold text-white bg-primary rounded-xl hover:bg-primary-dark transition-colors cursor-pointer">
+          <button onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate('/blog/'); }} className="block w-full py-3 text-center text-sm font-semibold text-white bg-primary rounded-xl hover:bg-primary-dark transition-colors cursor-pointer">
             Lihat Semua Artikel
-          </a>
+          </button>
         </div>
 
         {/* Desktop Pagination - Removed */}

@@ -2,7 +2,16 @@ import { Link } from 'react-router-dom';
 import { IconBrandInstagram, IconBrandFacebook, IconBrandYoutube, IconMapPin, IconPhone, IconChevronRight } from '@tabler/icons-react';
 
 function InternalLink({ to, children, className, ...props }: any) {
-  return <Link to={to} className={className} {...props}>{children}</Link>;
+  return (
+    <Link
+      to={to}
+      className={className}
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      {...props}
+    >
+      {children}
+    </Link>
+  );
 }
 
 export default function Footer() {
