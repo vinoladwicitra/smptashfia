@@ -6,6 +6,7 @@ const facilities = [
     category: 'Asrama',
     icon: IconBuilding,
     images: [
+      '/assets/asrama-1.webp',
       '/assets/asrama-2.webp',
       '/assets/asrama-3.webp',
       '/assets/asrama-4.webp',

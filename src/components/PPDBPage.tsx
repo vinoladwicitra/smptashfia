@@ -100,11 +100,11 @@ export default function PPDBPage() {
         <div className="max-w-4xl mx-auto px-5 py-8 space-y-8">
           <div className="text-center">
             <h3 className="text-xl font-bold text-text mb-4">Rincian Biaya Tashfia Boarding</h3>
-            <img src="https://file.smptashfia.sch.id/2025/08/1-2.png" alt="Biaya Boarding" className="w-full max-w-sm mx-auto rounded-xl" loading="lazy" />
+            <img src="/assets/rincian-biaya-tashfia-boarding.webp" alt="Biaya Boarding" className="w-full max-w-sm mx-auto rounded-xl" loading="lazy" />
           </div>
           <div className="text-center">
             <h3 className="text-xl font-bold text-text mb-4">Rincian Biaya Tashfia Fullday</h3>
-            <img src="https://file.smptashfia.sch.id/2025/08/2-2.png" alt="Biaya Fullday" className="w-full max-w-sm mx-auto rounded-xl" loading="lazy" />
+            <img src="/assets/rincian-biaya-tashfia-fullday.webp" alt="Biaya Fullday" className="w-full max-w-sm mx-auto rounded-xl" loading="lazy" />
           </div>
         </div>
       </section>
