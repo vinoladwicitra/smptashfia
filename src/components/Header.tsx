@@ -128,7 +128,11 @@ export default function Header() {
                   key={item.label}
                   component={item.external ? 'a' : Link}
                   {...linkProps}
-                  className={`flex items-center gap-2 px-4 py-3 text-[15px] font-medium text-text rounded transition-colors hover:text-primary hover:bg-gray-100 cursor-pointer ${isActive ? 'text-primary relative after:absolute after:bottom-0 after:left-4 after:right-4 after:h-0.5 after:bg-primary' : ''}`}
+                  className={`flex items-center gap-2 px-4 py-3 text-[15px] font-medium rounded transition-colors cursor-pointer ${
+                    isActive
+                      ? 'text-primary relative after:absolute after:bottom-0 after:left-4 after:right-4 after:h-0.5 after:bg-primary bg-primary/5'
+                      : 'text-text hover:text-primary hover:bg-gray-100'
+                  }`}
                 >
                   <Icon size={24} />
                   <span>{item.label}</span>

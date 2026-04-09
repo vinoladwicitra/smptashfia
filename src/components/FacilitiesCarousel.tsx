@@ -159,7 +159,7 @@ export default function FacilitiesCarousel() {
           </div>
 
           {/* Image Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {currentFacility.images.map((image, index) => (
               <div
                 key={index}
@@ -186,24 +186,6 @@ export default function FacilitiesCarousel() {
               </div>
             ))}
           </div>
-
-          {/* Navigation Arrows */}
-          {currentFacility.images.length > 1 && (
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={() => setActiveImage((prev) => (prev - 1 + currentFacility.images.length) % currentFacility.images.length)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-white border border-border rounded-xl hover:border-primary hover:text-primary transition-colors text-sm font-medium cursor-pointer"
-              >
-                <IconChevronLeft size={18} /> Sebelumnya
-              </button>
-              <button
-                onClick={() => setActiveImage((prev) => (prev + 1) % currentFacility.images.length)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-white border border-border rounded-xl hover:border-primary hover:text-primary transition-colors text-sm font-medium cursor-pointer"
-              >
-                Selanjutnya <IconChevronRight size={18} />
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
