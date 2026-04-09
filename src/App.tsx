@@ -1,0 +1,67 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Header from './components/Header'
+import MobileHeader from './components/MobileHeader'
+import QuickAccessSection from './components/QuickAccessSection'
+import WelcomeSection from './components/WelcomeSection'
+import BlogSection from './components/BlogSection'
+import FacilitiesCarousel from './components/FacilitiesCarousel'
+import Footer from './components/Footer'
+import StickyMobileBottomBar from './components/StickyMobileBottomBar'
+import NotFoundPage from './components/NotFoundPage'
+import LoginPage from './components/LoginPage'
+import PlaceholderPage from './components/PlaceholderPage'
+import PopupBanner from './components/PopupBanner'
+import AboutPage from './components/AboutPage'
+
+function HomePage() {
+  return (
+    <>
+      <PopupBanner />
+      <Header />
+      <MobileHeader />
+      <main>
+        <QuickAccessSection />
+        <WelcomeSection />
+        <BlogSection />
+        <FacilitiesCarousel />
+      </main>
+      <Footer />
+      <StickyMobileBottomBar />
+    </>
+  )
+}
+
+function AboutPageWrapper() {
+  return (
+    <>
+      <Header />
+      <MobileHeader />
+      <AboutPage />
+      <Footer />
+      <StickyMobileBottomBar />
+    </>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/program" element={<PlaceholderPage title="Program" />} />
+        <Route path="/ppdb" element={<PlaceholderPage title="PPDB" />} />
+        <Route path="/blog/" element={<PlaceholderPage title="Blog" />} />
+        <Route path="/hubungi-kami" element={<PlaceholderPage title="Hubungi Kami" />} />
+        <Route path="/tentang-kami" element={<AboutPageWrapper />} />
+        <Route path="/acara/" element={<PlaceholderPage title="Acara" />} />
+        <Route path="/karir/" element={<PlaceholderPage title="Karir / Loker" />} />
+        <Route path="/teacher" element={<LoginPage role="teacher" />} />
+        <Route path="/student" element={<LoginPage role="student" />} />
+        <Route path="/staff" element={<LoginPage role="staff" />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </BrowserRouter>
+  )
+}
+
+export default App

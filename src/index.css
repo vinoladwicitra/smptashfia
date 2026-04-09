@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url(/fonts/plus-jakarta-sans-300.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(/fonts/plus-jakarta-sans-400.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(/fonts/plus-jakarta-sans-500.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(/fonts/plus-jakarta-sans-600.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(/fonts/plus-jakarta-sans-700.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url(/fonts/plus-jakarta-sans-800.ttf) format('truetype');
+}
+
+@theme {
+  /* Colors */
+  --color-primary: #795c93;
+  --color-primary-dark: #6a4f82;
+  --color-secondary: #8b6fa3;
+  --color-accent: #e74c3c;
+  --color-background: #FCFCFC;
+  --color-text: #333333;
+  --color-text-light: #797979;
+  --color-white: #ffffff;
+  --color-gray: #f0f1f2;
+  --color-border: #e0e0e0;
+  
+  /* Override default font */
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+}
+
+@layer base {
+  *, ::before, ::after {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+  }
+  
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@utility animate-fadeIn {
+  animation: fadeIn 0.2s ease;
+}
+
+@utility animate-slideDown {
+  animation: slideDown 0.3s ease;
+}
+
+@utility animate-slideInRight {
+  animation: slideInRight 0.3s ease;
+}
+
+@utility animate-slideUp {
+  animation: slideUp 0.3s ease;
+}
