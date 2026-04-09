@@ -32,10 +32,10 @@ export default function PopupBanner() {
         </button>
 
         {/* Banner Image */}
-        <Link to="/ppdb" onClick={() => { setVisible(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="block">
+        <Link to="/pmb" onClick={() => { setVisible(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="block">
           <img
             src="/assets/ppdb-banner.webp"
-            alt="PPDB SMP Tashfia"
+            alt="PMB SMP Tashfia"
             className="w-full"
           />
         </Link>
@@ -43,7 +43,7 @@ export default function PopupBanner() {
         {/* CTA Button */}
         <div className="p-4 bg-primary/5">
           <button
-            onClick={() => { setVisible(false); window.scrollTo({ top: 0, behavior: 'smooth' }); navigate('/ppdb'); }}
+            onClick={() => { setVisible(false); window.scrollTo({ top: 0, behavior: 'smooth' }); navigate('/pmb'); }}
             className="block w-full py-3 text-center text-sm font-semibold text-white bg-primary rounded-xl hover:bg-primary-dark transition-colors cursor-pointer"
           >
             Daftar Sekarang

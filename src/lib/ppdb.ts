@@ -1,4 +1,6 @@
-import { IconFileUpload, IconUser, IconUsers, IconCheck } from '@tabler/icons-react';
+import {
+  IconFileUpload, IconUser, IconUsers, IconCheck,
+} from '@tabler/icons-react';
 
 export const STEPS = [
   { title: 'Pembayaran', icon: IconFileUpload },
@@ -48,3 +50,20 @@ export const initialFormData: PPDBFormData = {
   pendidikanIbu: '', pekerjaanIbu: '',
   sumberInfo: '', sumberInfoLainnya: '',
 };
+
+const STORAGE_KEY = 'pmb-form-draft';
+
+export function saveFormDraft(data: PPDBFormData) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch {}
+}
+
+export function loadFormDraft(): PPDBFormData | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+export function clearFormDraft() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch {}
+}

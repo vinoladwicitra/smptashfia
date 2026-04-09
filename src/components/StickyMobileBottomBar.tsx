@@ -4,7 +4,7 @@ import { IconHome, IconHomeFilled, IconBulb, IconBulbFilled, IconFileText, IconF
 const items = [
   { label: 'Home', href: '/', icon: IconHome, iconFilled: IconHomeFilled },
   { label: 'Program', href: '/program', icon: IconBulb, iconFilled: IconBulbFilled },
-  { label: 'PPDB', href: '/ppdb', icon: IconFileText, iconFilled: IconFileTextFilled },
+  { label: 'PMB', href: '/pmb', icon: IconFileText, iconFilled: IconFileTextFilled },
   { label: 'Artikel', href: '/blog/', icon: IconPencil, iconFilled: IconPencilFilled },
   { label: 'Kontak', href: '/hubungi-kami', icon: IconPhone, iconFilled: IconPhoneFilled },
 ];

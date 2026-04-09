@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { IconUserPlus, IconBulb, IconCalendar, IconNews, IconBook, IconHeadset, IconSchool, IconBriefcase } from '@tabler/icons-react';
 
 const quickAccessItems = [
-  { title: 'PMB', to: '/ppdb', icon: IconUserPlus, bg: '#dbeafe', color: '#2563eb', external: false },
+  { title: 'PMB', to: '/pmb', icon: IconUserPlus, bg: '#dbeafe', color: '#2563eb', external: false },
   { title: 'Program', to: '/program/', icon: IconBulb, bg: '#fef3c7', color: '#d97706', external: false },
   { title: 'Artikel', to: '/blog/', icon: IconNews, bg: '#e0e7ff', color: '#4f46e5', external: false },
   { title: 'Acara', to: '/acara/', icon: IconCalendar, bg: '#fce7f3', color: '#db2777', external: false },

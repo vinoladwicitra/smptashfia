@@ -88,7 +88,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/program" element={<PublicPageLayout><ProgramPage /></PublicPageLayout>} />
-          <Route path="/ppdb" element={<PublicPageLayout><PPDBPage /></PublicPageLayout>} />
+          <Route path="/pmb" element={<PublicPageLayout><PPDBPage /></PublicPageLayout>} />
           <Route path="/blog/" element={<PublicPageLayout><PublicBlogList /></PublicPageLayout>} />
           <Route path="/blog/:slug" element={<PublicPageLayout><PublicBlogSingle /></PublicPageLayout>} />
           <Route path="/hubungi-kami" element={<PublicPageLayout><ContactPage /></PublicPageLayout>} />
