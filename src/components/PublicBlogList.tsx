@@ -60,11 +60,12 @@ export default function PublicBlogList() {
   useEffect(() => {
     const fetchArticles = async () => {
       setLoading(true);
-      let query = supabase
+      
+      // Fetch all published articles with author and category
+      const { data, error } = await supabase
         .from('articles')
         .select(`
           id, title, slug, excerpt, featured_image, published_at, views,
-          author:profiles!articles_author_id_fkey (display_name, avatar_url),
           article_category_mappings (
             article_categories (name, slug)
           )
@@ -72,14 +73,8 @@ export default function PublicBlogList() {
         .eq('status', 'published')
         .order('published_at', { ascending: false });
 
-      if (activeCategory !== 'all') {
-        query = query.contains('article_category_mappings', [{ article_categories: { slug: activeCategory } }]);
-      }
-
-      const { data, error } = await query;
-
       if (!error && data) {
-        const formatted = data.map((a: any) => ({
+        let formatted = data.map((a: any) => ({
           id: a.id,
           title: a.title,
           slug: a.slug,
@@ -87,10 +82,16 @@ export default function PublicBlogList() {
           featured_image: a.featured_image,
           published_at: a.published_at,
           views: a.views || 0,
-          author_name: a.author?.display_name || null,
-          author_avatar: a.author?.avatar_url || null,
           article_categories: a.article_category_mappings?.map((m: any) => m.article_categories).filter(Boolean) || [],
         }));
+
+        // Filter by category manually since nested contains doesn't work reliably
+        if (activeCategory !== 'all') {
+          formatted = formatted.filter((article: Article) =>
+            article.article_categories?.some((cat: any) => cat.slug === activeCategory)
+          );
+        }
+
         setArticles(formatted);
       }
       setLoading(false);
@@ -114,7 +115,7 @@ export default function PublicBlogList() {
           </div>
         </section>
 
-        <div className="max-w-6xl mx-auto px-5 py-8">
+        <div className="max-w-6xl mx-auto px-5 lg:px-8 py-8">
           {/* Category Filter - Not Sticky */}
           <div className="mb-6">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">

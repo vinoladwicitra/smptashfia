@@ -54,34 +54,51 @@ export default function PublicBlogSingle() {
   useEffect(() => {
     const fetchArticle = async () => {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Fetch article with author info
+      const { data: articleData, error } = await supabase
         .from('articles')
         .select(`
           *,
           article_category_mappings (
             article_categories (id, name, slug)
-          ),
-          author:profiles!articles_author_id_fkey (display_name, avatar_url)
+          )
         `)
         .eq('slug', slug)
         .eq('status', 'published')
         .single();
 
-      if (error || !data) {
+      if (error || !articleData) {
         navigate('/blog/');
         return;
       }
 
+      // Fetch author info separately
+      let authorName = 'SMP Tashfia';
+      let authorAvatar: string | null = null;
+      if (articleData.author_id) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('display_name, avatar_url')
+          .eq('id', articleData.author_id)
+          .single();
+        
+        if (profileData) {
+          authorName = profileData.display_name || 'SMP Tashfia';
+          authorAvatar = profileData.avatar_url || null;
+        }
+      }
+
       // Increment views
-      const newViews = (data.views || 0) + 1;
-      await supabase.from('articles').update({ views: newViews }).eq('id', data.id);
-      data.views = newViews;
+      const newViews = (articleData.views || 0) + 1;
+      await supabase.from('articles').update({ views: newViews }).eq('id', articleData.id);
 
       setArticle({
-        ...data,
-        categories: data.article_category_mappings?.map((m: any) => m.article_categories).filter(Boolean) || [],
-        authorName: data.author?.display_name || 'SMP Tashfia',
-        authorAvatar: data.author?.avatar_url || null,
+        ...articleData,
+        categories: articleData.article_category_mappings?.map((m: any) => m.article_categories).filter(Boolean) || [],
+        authorName,
+        authorAvatar,
+        views: newViews,
       });
       setLoading(false);
     };
