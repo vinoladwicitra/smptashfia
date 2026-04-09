@@ -1,5 +1,5 @@
 {
-  "name": "my-react-app",
+  "name": "smptashfia",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@tabler/icons-react": "^3.41.1",
+    "pg": "^8.20.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.14.0"
@@ -22,6 +23,7 @@
     "@eslint/js": "^9.39.1",
     "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^24.12.2",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",

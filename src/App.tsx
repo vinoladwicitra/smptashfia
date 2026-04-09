@@ -12,6 +12,8 @@ import LoginPage from './components/LoginPage'
 import PlaceholderPage from './components/PlaceholderPage'
 import PopupBanner from './components/PopupBanner'
 import AboutPage from './components/AboutPage'
+import ContactPage from './components/ContactPage'
+import ProgramPage from './components/ProgramPage'
 
 function HomePage() {
   return (
@@ -43,15 +45,39 @@ function AboutPageWrapper() {
   )
 }
 
+function ContactPageWrapper() {
+  return (
+    <>
+      <Header />
+      <MobileHeader />
+      <ContactPage />
+      <Footer />
+      <StickyMobileBottomBar />
+    </>
+  )
+}
+
+function ProgramPageWrapper() {
+  return (
+    <>
+      <Header />
+      <MobileHeader />
+      <ProgramPage />
+      <Footer />
+      <StickyMobileBottomBar />
+    </>
+  )
+}
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/program" element={<PlaceholderPage title="Program" />} />
+        <Route path="/program" element={<ProgramPageWrapper />} />
         <Route path="/ppdb" element={<PlaceholderPage title="PPDB" />} />
         <Route path="/blog/" element={<PlaceholderPage title="Blog" />} />
-        <Route path="/hubungi-kami" element={<PlaceholderPage title="Hubungi Kami" />} />
+        <Route path="/hubungi-kami" element={<ContactPageWrapper />} />
         <Route path="/tentang-kami" element={<AboutPageWrapper />} />
         <Route path="/acara/" element={<PlaceholderPage title="Acara" />} />
         <Route path="/karir/" element={<PlaceholderPage title="Karir / Loker" />} />

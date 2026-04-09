@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { IconChevronDown, IconChevronUp, IconBuilding, IconShieldCheck, IconUsers, IconScale, IconFileText, IconMapPin, IconTarget, IconListCheck } from '@tabler/icons-react';
+import { IconChevronUp, IconChevronRight, IconBuilding, IconShieldCheck, IconUsers, IconScale, IconFileText, IconMapPin, IconTarget, IconListCheck } from '@tabler/icons-react';
 
 const accordionItems = [
   {
@@ -94,10 +94,10 @@ function AccordionItem({ item, isOpen, onToggle }: { item: typeof accordionItems
           <Icon size={20} className="text-primary" />
           <span className="font-semibold text-text">{item.title}</span>
         </div>
-        {isOpen ? <IconChevronUp size={20} className="text-text-light" /> : <IconChevronDown size={20} className="text-text-light" />}
+        {isOpen ? <IconChevronUp size={20} className="text-text-light" /> : <IconChevronRight size={20} className="text-text-light" />}
       </button>
       {isOpen && (
-        <div className="px-4 pb-4 text-sm text-text-light bg-white leading-relaxed">
+        <div className="px-4 pt-4 pb-4 text-sm text-text-light bg-white leading-relaxed">
           {item.content}
         </div>
       )}
@@ -106,7 +106,11 @@ function AccordionItem({ item, isOpen, onToggle }: { item: typeof accordionItems
 }
 
 export default function AboutPage() {
-  const [openAccordion, setOpenAccordion] = useState(2); // Default open "Dewan Pengurus"
+  const [openSections, setOpenSections] = useState<Record<number, boolean>>({ 2: true });
+
+  const toggleSection = (index: number) => {
+    setOpenSections((prev) => ({ ...prev, [index]: !prev[index] }));
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20 lg:pb-0">
@@ -132,14 +136,14 @@ export default function AboutPage() {
               Badan Penyelenggara Pesantren Tashfia adalah Yayasan Islam Salsabila. Yayasan tersebut didirikan pada Tahun 2001. Dengan diterbitkannya Undang-Undang Yayasan, pada Tahun 2006 Yayasan Islam Salsabila mengubah namanya menjadi Yayasan Tashfia. Perubahan nama ini karena undang-undang tidak memperkenankan adanya nama yayasan yang sama di seluruh wilayah Indonesia.
             </p>
 
-            {/* Accordion */}
+            {/* Toggle */}
             <div className="mb-16">
               {accordionItems.map((item, index) => (
                 <AccordionItem
                   key={item.title}
                   item={item}
-                  isOpen={openAccordion === index}
-                  onToggle={() => setOpenAccordion(openAccordion === index ? -1 : index)}
+                  isOpen={!!openSections[index]}
+                  onToggle={() => toggleSection(index)}
                 />
               ))}
             </div>

@@ -16,7 +16,8 @@ export default function StickyMobileBottomBar() {
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border shadow-lg lg:hidden z-[1000]">
       <nav className="flex items-center justify-around py-1.5">
         {items.map((item) => {
-          const isActive = location.pathname === item.href;
+          const normalizePath = (path: string) => path === '/' ? '/' : path.replace(/\/+$/, '');
+          const isActive = normalizePath(location.pathname) === normalizePath(item.href);
           const Icon = isActive ? item.iconFilled : item.icon;
           return (
             <a
