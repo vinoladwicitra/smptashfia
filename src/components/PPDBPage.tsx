@@ -87,16 +87,24 @@ export default function PPDBPage() {
 
   return (
     <div className="min-h-screen bg-background pb-20 lg:pb-0">
+      {/* Hero Header */}
+      <section className="bg-primary text-white">
+        <div className="max-w-4xl mx-auto px-5 py-10 lg:py-16 text-center">
+          <h1 className="text-3xl lg:text-5xl font-bold mb-3">PMB Tahun Ajaran 2026/2027</h1>
+          <p className="text-white/80 max-w-xl mx-auto">Penerimaan Murid Baru SMP Tashfia — Mari bergabung menjadi bagian dari generasi muslimah terbaik.</p>
+        </div>
+      </section>
+
       {/* Cost Banners */}
       <section className="bg-gray-50 border-b border-border">
         <div className="max-w-4xl mx-auto px-5 py-8 space-y-8">
           <div className="text-center">
             <h3 className="text-xl font-bold text-text mb-4">Rincian Biaya Tashfia Boarding</h3>
-            <img src="https://file.smptashfia.sch.id/2025/08/1-2.png" alt="Biaya Boarding" className="w-full max-w-sm mx-auto" loading="lazy" />
+            <img src="https://file.smptashfia.sch.id/2025/08/1-2.png" alt="Biaya Boarding" className="w-full max-w-sm mx-auto rounded-xl" loading="lazy" />
           </div>
           <div className="text-center">
             <h3 className="text-xl font-bold text-text mb-4">Rincian Biaya Tashfia Fullday</h3>
-            <img src="https://file.smptashfia.sch.id/2025/08/2-2.png" alt="Biaya Fullday" className="w-full max-w-sm mx-auto" loading="lazy" />
+            <img src="https://file.smptashfia.sch.id/2025/08/2-2.png" alt="Biaya Fullday" className="w-full max-w-sm mx-auto rounded-xl" loading="lazy" />
           </div>
         </div>
       </section>
