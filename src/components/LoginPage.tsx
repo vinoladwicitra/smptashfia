@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { IconSchool, IconMail, IconLock, IconEye, IconEyeOff, IconArrowLeft } from '@tabler/icons-react';
+import { supabase } from '../lib/supabase';
+import { useToast } from '../context/ToastContext';
 
 const roleLabels: Record<string, string> = {
   teacher: 'Teacher',
@@ -8,18 +10,47 @@ const roleLabels: Record<string, string> = {
   staff: 'Staff',
 };
 
+interface LocationState {
+  from?: { pathname: string };
+}
+
 export default function LoginPage({ role }: { role: keyof typeof roleLabels }) {
   const navigate = useNavigate();
+  const location = useLocation() as { state?: LocationState };
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Backend logic nanti
-    setTimeout(() => setIsLoading(false), 1500);
+
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (authError) {
+        toast({ type: 'error', title: 'Gagal Masuk', description: authError.message });
+        return;
+      }
+
+      if (data.user) {
+        toast({ type: 'success', title: 'Login Berhasil', description: 'Mengalihkan ke dashboard...' });
+        const from = location.state?.from?.pathname;
+        const dashboardPath = role === 'teacher' ? '/teacher'
+          : role === 'student' ? '/student'
+          : '/staff';
+        setTimeout(() => navigate(from || dashboardPath), 1000);
+      }
+    } catch {
+      toast({ type: 'error', title: 'Terjadi Kesalahan', description: 'Silakan coba lagi.' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -53,6 +84,7 @@ export default function LoginPage({ role }: { role: keyof typeof roleLabels }) {
                 placeholder="nama@smptashfia.sch.id"
                 className="w-full pl-10 pr-4 py-3 border border-border rounded-xl outline-none focus:border-primary transition-colors text-text placeholder:text-text-light"
                 required
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -74,11 +106,13 @@ export default function LoginPage({ role }: { role: keyof typeof roleLabels }) {
                 placeholder="Masukkan password"
                 className="w-full pl-10 pr-12 py-3 border border-border rounded-xl outline-none focus:border-primary transition-colors text-text placeholder:text-text-light"
                 required
+                disabled={isLoading}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-text-light hover:text-text transition-colors"
+                disabled={isLoading}
               >
                 {showPassword ? <IconEyeOff size={20} /> : <IconEye size={20} />}
               </button>

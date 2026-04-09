@@ -14,6 +14,11 @@ import PopupBanner from './components/PopupBanner'
 import AboutPage from './components/AboutPage'
 import ContactPage from './components/ContactPage'
 import ProgramPage from './components/ProgramPage'
+import TeacherDashboard from './components/TeacherDashboard'
+import StudentDashboard from './components/StudentDashboard'
+import StaffDashboard from './components/StaffDashboard'
+import StaffProfile from './components/StaffProfile'
+import ProtectedRoute from './components/ProtectedRoute'
 
 function HomePage() {
   return (
@@ -69,6 +74,38 @@ function ProgramPageWrapper() {
   )
 }
 
+function TeacherDashboardWrapper() {
+  return (
+    <ProtectedRoute>
+      <TeacherDashboard />
+    </ProtectedRoute>
+  )
+}
+
+function StudentDashboardWrapper() {
+  return (
+    <ProtectedRoute>
+      <StudentDashboard />
+    </ProtectedRoute>
+  )
+}
+
+function StaffDashboardWrapper() {
+  return (
+    <ProtectedRoute>
+      <StaffDashboard />
+    </ProtectedRoute>
+  )
+}
+
+function StaffProfileWrapper() {
+  return (
+    <ProtectedRoute>
+      <StaffProfile />
+    </ProtectedRoute>
+  )
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -81,9 +118,13 @@ function App() {
         <Route path="/tentang-kami" element={<AboutPageWrapper />} />
         <Route path="/acara/" element={<PlaceholderPage title="Acara" />} />
         <Route path="/karir/" element={<PlaceholderPage title="Karir / Loker" />} />
-        <Route path="/teacher" element={<LoginPage role="teacher" />} />
-        <Route path="/student" element={<LoginPage role="student" />} />
-        <Route path="/staff" element={<LoginPage role="staff" />} />
+        <Route path="/login/teacher" element={<LoginPage role="teacher" />} />
+        <Route path="/login/student" element={<LoginPage role="student" />} />
+        <Route path="/login/staff" element={<LoginPage role="staff" />} />
+        <Route path="/teacher" element={<TeacherDashboardWrapper />} />
+        <Route path="/student" element={<StudentDashboardWrapper />} />
+        <Route path="/staff" element={<StaffDashboardWrapper />} />
+        <Route path="/staff/profile" element={<StaffProfileWrapper />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
