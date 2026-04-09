@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import Header from './Header';
 import MobileHeader from './MobileHeader';
 import Footer from './Footer';
 import StickyMobileBottomBar from './StickyMobileBottomBar';
-import { IconCalendar, IconEye, IconArrowRight, IconSearch } from '@tabler/icons-react';
+import { IconCalendar, IconEye, IconSearch } from '@tabler/icons-react';
 
 interface Article {
   id: string;
@@ -28,6 +28,8 @@ const badgeColors: Record<string, string> = {
   'pengumuman': 'bg-rose-100 text-rose-700 ring-rose-600/20',
 };
 
+const PAGE_SIZE = 5;
+
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return '';
   return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -42,12 +44,18 @@ export default function PublicBlogList() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlCategory = searchParams.get('category') || 'all';
+  
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>(urlCategory);
   const [categories, setCategories] = useState<{ name: string; slug: string }[]>([]);
+  const [page, setPage] = useState(0);
 
-  useEffect(() => { setActiveCategory(urlCategory); }, [urlCategory]);
+  const observerTarget = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setActiveCategory(urlCategory); setPage(0); setArticles([]); setHasMore(true); }, [urlCategory]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -57,47 +65,72 @@ export default function PublicBlogList() {
     fetchCategories();
   }, []);
 
-  useEffect(() => {
-    const fetchArticles = async () => {
-      setLoading(true);
-      
-      // Fetch all published articles with author and category
-      const { data, error } = await supabase
-        .from('articles')
-        .select(`
-          id, title, slug, excerpt, featured_image, published_at, views,
-          article_category_mappings (
-            article_categories (name, slug)
-          )
-        `)
-        .eq('status', 'published')
-        .order('published_at', { ascending: false });
+  const fetchArticles = useCallback(async (pageNum: number, reset = false) => {
+    if (reset) setLoading(true);
+    else setLoadingMore(true);
+    
+    const from = pageNum * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
 
-      if (!error && data) {
-        let formatted = data.map((a: any) => ({
-          id: a.id,
-          title: a.title,
-          slug: a.slug,
-          excerpt: a.excerpt,
-          featured_image: a.featured_image,
-          published_at: a.published_at,
-          views: a.views || 0,
-          article_categories: a.article_category_mappings?.map((m: any) => m.article_categories).filter(Boolean) || [],
-        }));
+    const { data, error } = await supabase
+      .from('articles')
+      .select(`
+        id, title, slug, excerpt, featured_image, published_at, views,
+        article_category_mappings (
+          article_categories (name, slug)
+        )
+      `, { count: 'exact' })
+      .eq('status', 'published')
+      .order('published_at', { ascending: false })
+      .range(from, to);
 
-        // Filter by category manually since nested contains doesn't work reliably
-        if (activeCategory !== 'all') {
-          formatted = formatted.filter((article: Article) =>
-            article.article_categories?.some((cat: any) => cat.slug === activeCategory)
-          );
-        }
+    if (!error && data) {
+      let formatted = data.map((a: any) => ({
+        id: a.id,
+        title: a.title,
+        slug: a.slug,
+        excerpt: a.excerpt,
+        featured_image: a.featured_image,
+        published_at: a.published_at,
+        views: a.views || 0,
+        article_categories: a.article_category_mappings?.map((m: any) => m.article_categories).filter(Boolean) || [],
+      }));
 
-        setArticles(formatted);
+      // Filter by category manually
+      if (activeCategory !== 'all') {
+        formatted = formatted.filter((article: Article) =>
+          article.article_categories?.some((cat: any) => cat.slug === activeCategory)
+        );
       }
-      setLoading(false);
-    };
-    fetchArticles();
+
+      if (reset) setArticles(formatted);
+      else setArticles(prev => [...prev, ...formatted]);
+
+      // Check if we have more data
+      if (data.length < PAGE_SIZE) setHasMore(false);
+    }
+    
+    if (reset) setLoading(false);
+    else setLoadingMore(false);
   }, [activeCategory]);
+
+  useEffect(() => {
+    fetchArticles(0, true);
+  }, [fetchArticles]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore && !loadingMore) {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchArticles(nextPage);
+      }
+    }, { threshold: 0.1 });
+
+    if (observerTarget.current) observer.observe(observerTarget.current);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, page, fetchArticles]);
 
   const featured = articles[0];
   const rest = articles.slice(1);
@@ -107,16 +140,16 @@ export default function PublicBlogList() {
       <Header />
       <MobileHeader />
       <main className="min-h-screen bg-background pb-20 lg:pb-0">
-        {/* Hero Header */}
-        <section className="bg-primary text-white border-b border-primary">
-          <div className="max-w-6xl mx-auto px-5 py-10 lg:py-16 text-center">
-            <h1 className="text-3xl lg:text-5xl font-bold mb-3">Blog & Artikel</h1>
-            <p className="text-white/80 max-w-xl mx-auto">Kumpulan berita, tips, dan informasi terkini dari SMP Tashfia.</p>
+        {/* Hero Header - Dark text on light bg */}
+        <section className="border-b border-border">
+          <div className="max-w-6xl mx-auto px-5 lg:px-8 py-10 lg:py-16 text-center">
+            <h1 className="text-3xl lg:text-5xl font-bold text-text mb-3">Blog & Artikel</h1>
+            <p className="text-text-light max-w-xl mx-auto">Kumpulan berita, tips, dan informasi terkini dari SMP Tashfia.</p>
           </div>
         </section>
 
         <div className="max-w-6xl mx-auto px-5 lg:px-8 py-8">
-          {/* Category Filter - Not Sticky */}
+          {/* Category Filter */}
           <div className="mb-6">
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
               <button
@@ -148,7 +181,7 @@ export default function PublicBlogList() {
           {/* Loading State */}
           {loading && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
+              {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse">
                   <div className="h-48 bg-gray-200" />
                   <div className="p-5 space-y-3">
@@ -181,29 +214,17 @@ export default function PublicBlogList() {
                         </span>
                       ))}
                     </div>
-                    <h2 className="text-2xl lg:text-3xl font-bold text-white mb-3 leading-tight group-hover:text-white/80 transition-colors line-clamp-3">
+                    <h2 className="text-2xl lg:text-3xl font-bold text-text mb-3 leading-tight group-hover:text-primary transition-colors line-clamp-3">
                       {featured.title}
                     </h2>
                     {featured.excerpt && (
-                      <p className="text-white/80 line-clamp-3 mb-5">{featured.excerpt}</p>
+                      <p className="text-text-light line-clamp-3 mb-5">{featured.excerpt}</p>
                     )}
-                    <div className="flex items-center gap-4 text-xs text-white/70 mb-5">
+                    <div className="flex items-center gap-4 text-xs text-text-light mb-5">
                       <span className="flex items-center gap-1"><IconCalendar size={14} />{formatDate(featured.published_at)}</span>
                       <span className="flex items-center gap-1"><IconEye size={14} />{formatViews(featured.views)} views</span>
-                      {featured.author_name && (
-                        <span className="flex items-center gap-2">
-                          {featured.author_avatar ? (
-                            <img src={featured.author_avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
-                          ) : (
-                            <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px] font-bold text-white">
-                              {featured.author_name[0]?.toUpperCase()}
-                            </span>
-                          )}
-                          {featured.author_name}
-                        </span>
-                      )}
                     </div>
-                    <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-primary font-semibold rounded-xl hover:bg-white/90 transition-colors">
+                    <button className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors">
                       Baca Selengkapnya
                     </button>
                   </div>
@@ -240,30 +261,30 @@ export default function PublicBlogList() {
                       {article.excerpt && (
                         <p className="text-sm text-text-light line-clamp-2 mb-3">{article.excerpt}</p>
                       )}
-                      <div className="flex items-center gap-3 text-xs text-text-light mb-3">
+                      <div className="flex items-center gap-3 text-xs text-text-light">
                         <span className="flex items-center gap-1"><IconCalendar size={13} />{formatDate(article.published_at)}</span>
                         <span className="flex items-center gap-1"><IconEye size={13} />{formatViews(article.views)}</span>
                       </div>
-                      {article.author_name && (
-                        <div className="flex items-center gap-2 mb-3">
-                          {article.author_avatar ? (
-                            <img src={article.author_avatar} alt="" className="w-6 h-6 rounded-full object-cover" />
-                          ) : (
-                            <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
-                              {article.author_name[0]?.toUpperCase()}
-                            </span>
-                          )}
-                          <span className="text-xs text-text-light">{article.author_name}</span>
-                        </div>
-                      )}
-                      <button className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition-colors">
-                        Baca <IconArrowRight size={14} />
-                      </button>
                     </div>
                   </div>
                 ))}
               </div>
             </>
+          )}
+
+          {/* Infinite Scroll Trigger */}
+          {!loading && hasMore && (
+            <div ref={observerTarget} className="flex justify-center py-8">
+              {loadingMore && (
+                <div className="flex items-center gap-2 text-text-light">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Memuat artikel lainnya...
+                </div>
+              )}
+            </div>
           )}
 
           {/* Empty State */}

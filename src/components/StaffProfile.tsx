@@ -27,23 +27,35 @@ export default function StaffProfile() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load avatar URL from user metadata on mount
+  // Load avatar URL from profiles table on mount
   useEffect(() => {
     if (user) {
-      const meta = user.user_metadata as Record<string, any> | undefined;
-      setDisplayName(meta?.display_name || '');
-      setAvatarUrl(meta?.avatar_url || null);
+      const loadProfile = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('display_name, avatar_url')
+          .eq('id', user.id)
+          .single();
+        
+        if (data) {
+          setDisplayName(data.display_name || '');
+          setAvatarUrl(data.avatar_url || null);
+        }
+      };
+      loadProfile();
     }
   }, [user]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
+    if (!user) return;
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: { display_name: displayName || undefined, avatar_url: avatarUrl || undefined },
-      });
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ display_name: displayName || undefined })
+        .eq('id', user.id);
 
       if (updateError) {
         toast({ type: 'error', title: 'Gagal Memperbarui Profil', description: updateError.message });
@@ -75,8 +87,9 @@ export default function StaffProfile() {
     setIsUploading(true);
     try {
       const url = await uploadAvatar(user.id, file);
-      // Save to user metadata immediately
+      // Save to user metadata AND profiles table
       await supabase.auth.updateUser({ data: { avatar_url: url } });
+      await supabase.from('profiles').update({ avatar_url: url }).eq('id', user.id);
       setAvatarUrl(url);
       toast({ type: 'success', title: 'Avatar Diperbarui', description: 'Foto profil Anda berhasil diunggah.' });
     } catch (error: any) {
@@ -91,6 +104,7 @@ export default function StaffProfile() {
     setIsUploading(true);
     try {
       await deleteAvatar(user.id);
+      await supabase.from('profiles').update({ avatar_url: null }).eq('id', user.id);
       setAvatarUrl(null);
       toast({ type: 'success', title: 'Avatar Dihapus', description: 'Foto profil Anda berhasil dihapus.' });
     } catch (error: any) {

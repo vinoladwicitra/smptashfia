@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { IconHome, IconHomeFilled, IconBriefcase, IconBriefcaseFilled, IconBulb, IconBulbFilled, IconBook, IconBookFilled, IconHeadset, IconHeadsetFilled, IconX, IconPhone, IconClock, IconMapPin, IconUser, IconUserCheck, IconUsersGroup, IconUsers, IconNews } from '@tabler/icons-react';
+import { IconHome, IconHomeFilled, IconBriefcase, IconBriefcaseFilled, IconBulb, IconBulbFilled, IconBook, IconBookFilled, IconHeadset, IconHeadsetFilled, IconX, IconPhone, IconClock, IconMapPin, IconUser, IconUserCheck, IconUsersGroup, IconUsers, IconFileCv, IconFileCvFilled } from '@tabler/icons-react';
 
 const menuItems = [
   { label: 'Home', href: '/', icon: IconHome, iconFilled: IconHomeFilled, match: '/' },
   { label: 'Tentang Kami', href: '/tentang-kami', icon: IconBriefcase, iconFilled: IconBriefcaseFilled, match: '/tentang-kami' },
   { label: 'Program', href: '/program', icon: IconBulb, iconFilled: IconBulbFilled, match: '/program' },
-  { label: 'Blog', href: '/blog/', icon: IconNews, iconFilled: IconNews, match: '/blog', hasNoFilled: true },
+  { label: 'Blog', href: '/blog/', icon: IconFileCv, iconFilled: IconFileCvFilled, match: '/blog' },
   { label: 'Perpustakaan', href: 'https://mahad-attashfiyyah.perpus.id/', icon: IconBook, iconFilled: IconBookFilled, match: '' },
   { label: 'Hubungi Kami', href: '/hubungi-kami', icon: IconHeadset, iconFilled: IconHeadsetFilled, match: '/hubungi-kami' },
 ];
@@ -124,10 +124,7 @@ export default function Header() {
                   href={item.href}
                   target={item.label === 'Perpustakaan' ? '_blank' : undefined}
                   rel={item.label === 'Perpustakaan' ? 'noopener noreferrer' : undefined}
-                  className={`flex items-center gap-2 px-4 py-3 text-[15px] font-medium text-text rounded transition-colors hover:text-primary hover:bg-gray-100 cursor-pointer
-                    ${isActive ? 'text-primary relative after:absolute after:bottom-0 after:left-4 after:right-4 after:h-0.5 after:bg-primary' : ''}
-                    ${isActive && (item as any).hasNoFilled ? 'bg-primary/5' : ''}
-                  `}
+                  className={`flex items-center gap-2 px-4 py-3 text-[15px] font-medium text-text rounded transition-colors hover:text-primary hover:bg-gray-100 cursor-pointer ${isActive ? 'text-primary relative after:absolute after:bottom-0 after:left-4 after:right-4 after:h-0.5 after:bg-primary' : ''}`}
                 >
                   <Icon size={24} />
                   <span>{item.label}</span>
