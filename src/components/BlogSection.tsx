@@ -6,6 +6,7 @@ const blogPosts = [
   { id: 2, title: 'Cyberbullying: Bahaya Terbesar Media Sosial', excerpt: 'Pada zaman digital sekarang media sosial tidak seaman yang kita bayangkan.', image: 'https://file.smptashfia.sch.id/2025/12/WhatsApp-Image-2025-12-12-at-11.13.19-1-232x300.jpeg', category: 'Edukasi', date: '12 Des 2025' },
   { id: 3, title: 'Cerdas Bermedia Sosial: Dampak Psikologis Cyberbullying', excerpt: 'Cyberbullying ialah salah satu bentuk perundungan dengan teknologi digital.', image: 'https://file.smptashfia.sch.id/2025/12/WhatsApp-Image-2025-12-12-at-11.13.19-246x300.jpeg', category: 'Edukasi', date: '12 Des 2025' },
   { id: 4, title: 'Serangan Tanpa Wajah SLN 2025', excerpt: 'Hati-hati dengan setiap ketikan agar tidak tergelincir menjadi Cyberbullying.', image: 'https://file.smptashfia.sch.id/2025/12/1-300x150.png', category: 'Literasi Digital', date: '12 Des 2025' },
+  { id: 5, title: 'Netizen Asik Bukan Toxic SLN 2025', excerpt: 'Perundungan yang dilakukan menggunakan teknologi digital melalui berbagai platform.', image: 'https://file.smptashfia.sch.id/2025/12/WhatsApp-Image-2025-12-12-at-08.07.33-2-300x300.jpeg', category: 'Literasi Digital', date: '12 Des 2025' },
 ];
 
 const categoryStyles: Record<string, string> = {
@@ -17,6 +18,7 @@ const categoryStyles: Record<string, string> = {
 
 export default function BlogSection() {
   const navigate = useNavigate();
+  const display = blogPosts.slice(0, 5);
 
   return (
     <section className="py-8 bg-background lg:py-16 lg:bg-white">
@@ -30,28 +32,24 @@ export default function BlogSection() {
           <p className="text-text-light max-w-xl mx-auto">Informasi terkini, kegiatan, dan edukasi dari SMP Tashfia.</p>
         </div>
 
-        {/* Desktop: Bento Grid */}
+        {/* Desktop: Square Bento Grid (1 large + 4 small) */}
         <div className="hidden lg:grid lg:grid-cols-4 lg:gap-4 lg:mb-10">
-          {blogPosts.map((post, index) => (
+          {display.map((post, index) => (
             <div
               key={post.id}
               onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate('/blog/'); }}
               className={`relative rounded-xl overflow-hidden shadow-md group cursor-pointer ${
-                index === 0 ? 'col-span-2 row-span-2' : ''
+                index === 0 ? 'col-span-2 row-span-2' : 'aspect-square'
               }`}
             >
               <img
                 src={post.image}
                 alt={post.title}
-                className={`w-full object-cover transition-transform duration-300 group-hover:scale-105 ${
-                  index === 0 ? 'h-full min-h-[300px]' : 'aspect-square'
-                }`}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 loading="lazy"
               />
-              {/* Gradient Overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-black/90 transition-colors" />
-              {/* Content */}
-              <div className="absolute bottom-0 left-0 right-0 p-5">
+              <div className={`absolute bottom-0 left-0 right-0 p-5 ${index === 0 ? '' : ''}`}>
                 <span className={`inline-flex px-2.5 py-0.5 font-medium text-xs rounded-full ring-1 ring-inset mb-2 ${categoryStyles[post.category] || 'bg-white/20 text-white ring-white/30'}`}>{post.category}</span>
                 <h3 className={`font-bold text-white mb-1 leading-tight ${index === 0 ? 'text-xl line-clamp-3' : 'text-sm line-clamp-2'}`}>{post.title}</h3>
                 {index === 0 && (

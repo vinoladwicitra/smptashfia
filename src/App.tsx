@@ -73,6 +73,17 @@ function PublicPageLayout({ children }: { children: ReactNode }) {
   )
 }
 
+function PmbPageLayout({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <Header />
+      <MobileHeader />
+      <main>{children}</main>
+      <Footer />
+    </>
+  )
+}
+
 function DashboardWrapper({ children }: { children: ReactNode }) {
   return (
     <ProtectedRoute>
@@ -88,7 +99,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/program" element={<PublicPageLayout><ProgramPage /></PublicPageLayout>} />
-          <Route path="/pmb" element={<PublicPageLayout><PPDBPage /></PublicPageLayout>} />
+          <Route path="/pmb" element={<PmbPageLayout><PPDBPage /></PmbPageLayout>} />
           <Route path="/blog/" element={<PublicPageLayout><PublicBlogList /></PublicPageLayout>} />
           <Route path="/blog/:slug" element={<PublicPageLayout><PublicBlogSingle /></PublicPageLayout>} />
           <Route path="/hubungi-kami" element={<PublicPageLayout><ContactPage /></PublicPageLayout>} />

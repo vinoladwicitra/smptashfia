@@ -86,7 +86,7 @@ export default function PPDBPage() {
   const FormComponent = FORM_COMPONENTS[step] as any;
 
   return (
-    <div className="min-h-screen bg-background pb-20 lg:pb-0">
+    <div className="min-h-screen bg-background">
       {/* Hero Header */}
       <section className="bg-primary text-white">
         <div className="max-w-4xl mx-auto px-5 py-10 lg:py-16 text-center">
