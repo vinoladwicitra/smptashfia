@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { IconHome, IconHomeFilled, IconBriefcase, IconBriefcaseFilled, IconBulb, IconBulbFilled, IconBook, IconBookFilled, IconHeadset, IconHeadsetFilled, IconX, IconPhone, IconClock, IconMapPin, IconUser, IconUserCheck, IconUsersGroup, IconUsers, IconFileCv, IconFileCvFilled } from '@tabler/icons-react';
+import { IconHome, IconHomeFilled, IconBriefcase, IconBriefcaseFilled, IconBulb, IconBulbFilled, IconBook, IconBookFilled, IconHeadset, IconHeadsetFilled, IconX, IconPhone, IconClock, IconMapPin, IconUser, IconUserCheck, IconUsersGroup, IconUsers, IconPencil, IconPencilFilled } from '@tabler/icons-react';
 
 const menuItems = [
   { label: 'Home', href: '/', icon: IconHome, iconFilled: IconHomeFilled, match: '/' },
   { label: 'Tentang Kami', href: '/tentang-kami', icon: IconBriefcase, iconFilled: IconBriefcaseFilled, match: '/tentang-kami' },
   { label: 'Program', href: '/program', icon: IconBulb, iconFilled: IconBulbFilled, match: '/program' },
-  { label: 'Blog', href: '/blog/', icon: IconFileCv, iconFilled: IconFileCvFilled, match: '/blog' },
+  { label: 'Blog', href: '/blog/', icon: IconPencil, iconFilled: IconPencilFilled, match: '/blog' },
   { label: 'Perpustakaan', href: 'https://mahad-attashfiyyah.perpus.id/', icon: IconBook, iconFilled: IconBookFilled, match: '' },
   { label: 'Hubungi Kami', href: '/hubungi-kami', icon: IconHeadset, iconFilled: IconHeadsetFilled, match: '/hubungi-kami' },
 ];

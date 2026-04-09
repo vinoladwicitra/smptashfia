@@ -75,7 +75,7 @@ export default function PublicBlogList() {
     const { data, error } = await supabase
       .from('articles')
       .select(`
-        id, title, slug, excerpt, featured_image, published_at, views,
+        id, title, slug, excerpt, featured_image, published_at, views, author_id,
         article_category_mappings (
           article_categories (name, slug)
         )
@@ -85,16 +85,37 @@ export default function PublicBlogList() {
       .range(from, to);
 
     if (!error && data) {
-      let formatted = data.map((a: any) => ({
-        id: a.id,
-        title: a.title,
-        slug: a.slug,
-        excerpt: a.excerpt,
-        featured_image: a.featured_image,
-        published_at: a.published_at,
-        views: a.views || 0,
-        article_categories: a.article_category_mappings?.map((m: any) => m.article_categories).filter(Boolean) || [],
-      }));
+      // Fetch author info for all articles
+      const authorIds = [...new Set(data.map(a => a.author_id).filter(Boolean))];
+      let authorMap: Record<string, { display_name: string | null; avatar_url: string | null }> = {};
+      
+      if (authorIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, display_name, avatar_url')
+          .in('id', authorIds);
+        
+        if (profiles) {
+          authorMap = {};
+          profiles.forEach(p => { authorMap[p.id] = { display_name: p.display_name, avatar_url: p.avatar_url }; });
+        }
+      }
+
+      let formatted = data.map((a: any) => {
+        const author = a.author_id ? authorMap[a.author_id] : null;
+        return {
+          id: a.id,
+          title: a.title,
+          slug: a.slug,
+          excerpt: a.excerpt,
+          featured_image: a.featured_image,
+          published_at: a.published_at,
+          views: a.views || 0,
+          author_name: author?.display_name || 'SMP Tashfia',
+          author_avatar: author?.avatar_url || null,
+          article_categories: a.article_category_mappings?.map((m: any) => m.article_categories).filter(Boolean) || [],
+        };
+      });
 
       // Filter by category manually
       if (activeCategory !== 'all') {
@@ -140,11 +161,11 @@ export default function PublicBlogList() {
       <Header />
       <MobileHeader />
       <main className="min-h-screen bg-background pb-20 lg:pb-0">
-        {/* Hero Header - Dark text on light bg */}
-        <section className="border-b border-border">
+        {/* Hero Header - Main color background */}
+        <section className="bg-primary text-white border-b border-primary">
           <div className="max-w-6xl mx-auto px-5 lg:px-8 py-10 lg:py-16 text-center">
-            <h1 className="text-3xl lg:text-5xl font-bold text-text mb-3">Blog & Artikel</h1>
-            <p className="text-text-light max-w-xl mx-auto">Kumpulan berita, tips, dan informasi terkini dari SMP Tashfia.</p>
+            <h1 className="text-3xl lg:text-5xl font-bold mb-3">Blog & Artikel</h1>
+            <p className="text-white/80 max-w-xl mx-auto">Kumpulan berita, tips, dan informasi terkini dari SMP Tashfia.</p>
           </div>
         </section>
 
@@ -154,7 +175,7 @@ export default function PublicBlogList() {
             <div className="flex gap-2 overflow-x-auto scrollbar-hide">
               <button
                 onClick={() => { setActiveCategory('all'); navigate('/blog/'); }}
-                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ring-1 ring-inset
+                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ring-1 ring-inset cursor-pointer
                   ${activeCategory === 'all'
                     ? 'bg-primary text-white ring-primary'
                     : 'bg-white text-text-light ring-border hover:bg-gray-50'
@@ -166,7 +187,7 @@ export default function PublicBlogList() {
                 <button
                   key={cat.slug}
                   onClick={() => { setActiveCategory(cat.slug); navigate(`/blog/?category=${cat.slug}`); }}
-                  className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ring-1 ring-inset
+                  className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ring-1 ring-inset cursor-pointer
                     ${activeCategory === cat.slug
                       ? 'bg-primary text-white ring-primary'
                       : 'bg-white text-text-light ring-border hover:bg-gray-50'
@@ -223,10 +244,24 @@ export default function PublicBlogList() {
                     <div className="flex items-center gap-4 text-xs text-text-light mb-5">
                       <span className="flex items-center gap-1"><IconCalendar size={14} />{formatDate(featured.published_at)}</span>
                       <span className="flex items-center gap-1"><IconEye size={14} />{formatViews(featured.views)} views</span>
+                      {featured.author_name && (
+                        <span className="flex items-center gap-2">
+                          {featured.author_avatar ? (
+                            <img src={featured.author_avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+                          ) : (
+                            <span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                              {featured.author_name[0]?.toUpperCase()}
+                            </span>
+                          )}
+                          {featured.author_name}
+                        </span>
+                      )}
                     </div>
-                    <button className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors">
-                      Baca Selengkapnya
-                    </button>
+                    <div className="flex justify-center">
+                      <button className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors cursor-pointer">
+                        Baca Selengkapnya
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -255,11 +290,23 @@ export default function PublicBlogList() {
                           </span>
                         ))}
                       </div>
-                      <h4 className="text-base font-semibold text-text mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                      <h4 className="text-base font-semibold text-text mb-2 line-clamp-2 group-hover:text-primary transition-colors cursor-pointer">
                         {article.title}
                       </h4>
                       {article.excerpt && (
                         <p className="text-sm text-text-light line-clamp-2 mb-3">{article.excerpt}</p>
+                      )}
+                      {article.author_name && (
+                        <div className="flex items-center gap-2 mb-2">
+                          {article.author_avatar ? (
+                            <img src={article.author_avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+                          ) : (
+                            <span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                              {article.author_name[0]?.toUpperCase()}
+                            </span>
+                          )}
+                          <span className="text-xs text-text-light">{article.author_name}</span>
+                        </div>
                       )}
                       <div className="flex items-center gap-3 text-xs text-text-light">
                         <span className="flex items-center gap-1"><IconCalendar size={13} />{formatDate(article.published_at)}</span>
