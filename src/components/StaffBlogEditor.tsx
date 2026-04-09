@@ -98,14 +98,14 @@ export default function StaffBlogEditor() {
           .select(`
             *,
             article_category_mappings (
-              article_category_mappings (category_id)
+              article_categories (id, slug)
             )
           `)
           .eq('id', id)
           .single();
 
         if (error || !data) {
-          toast({ type: 'error', title: 'Artikel Tidak Ditemukan' });
+          toast({ type: 'error', title: 'Artikel Tidak Ditemukan', description: error?.message || 'Artikel tidak ditemukan di database.' });
           navigate('/staff/blog');
           return;
         }
@@ -114,16 +114,13 @@ export default function StaffBlogEditor() {
         setSlug(data.slug);
         setAutoSlug(false);
         setFeaturedImageUrl(data.featured_image);
-        if (data.article_category_mappings?.[0]?.article_category_mappings?.[0]) {
-          const catId = data.article_category_mappings[0].article_category_mappings[0].category_id;
-          // Fetch category slug to set the value
-          const { data: catData } = await supabase
-            .from('article_categories')
-            .select('slug')
-            .eq('id', catId)
-            .single();
-          if (catData) setCategory(catData.slug);
+
+        // Extract category from join
+        const mappings = data.article_category_mappings as any[] | undefined;
+        if (mappings?.[0]?.article_categories?.slug) {
+          setCategory(mappings[0].article_categories.slug);
         }
+
         editor?.commands.setContent(data.content || '');
       };
       loadArticle();

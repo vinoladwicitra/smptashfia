@@ -48,7 +48,7 @@ export default function StaffBlogList() {
       .from('articles')
       .select(`
         id, title, slug, excerpt, featured_image, status, published_at, views, created_at,
-        article_category_mappings!inner (
+        article_category_mappings (
           article_categories (id, name, slug)
         )
       `)
