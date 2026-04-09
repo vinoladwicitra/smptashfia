@@ -15,6 +15,8 @@ interface Article {
   featured_image: string | null;
   published_at: string | null;
   views: number;
+  author_name?: string | null;
+  author_avatar?: string | null;
   article_categories?: { name: string; slug: string }[];
 }
 
@@ -62,6 +64,7 @@ export default function PublicBlogList() {
         .from('articles')
         .select(`
           id, title, slug, excerpt, featured_image, published_at, views,
+          author:profiles!articles_author_id_fkey (display_name, avatar_url),
           article_category_mappings (
             article_categories (name, slug)
           )
@@ -84,6 +87,8 @@ export default function PublicBlogList() {
           featured_image: a.featured_image,
           published_at: a.published_at,
           views: a.views || 0,
+          author_name: a.author?.display_name || null,
+          author_avatar: a.author?.avatar_url || null,
           article_categories: a.article_category_mappings?.map((m: any) => m.article_categories).filter(Boolean) || [],
         }));
         setArticles(formatted);
@@ -102,10 +107,10 @@ export default function PublicBlogList() {
       <MobileHeader />
       <main className="min-h-screen bg-background pb-20 lg:pb-0">
         {/* Hero Header */}
-        <section className="border-b border-border">
+        <section className="bg-primary text-white border-b border-primary">
           <div className="max-w-6xl mx-auto px-5 py-10 lg:py-16 text-center">
-            <h1 className="text-3xl lg:text-5xl font-bold text-text mb-3">Blog & Artikel</h1>
-            <p className="text-text-light max-w-xl mx-auto">Kumpulan berita, tips, dan informasi terkini dari SMP Tashfia.</p>
+            <h1 className="text-3xl lg:text-5xl font-bold mb-3">Blog & Artikel</h1>
+            <p className="text-white/80 max-w-xl mx-auto">Kumpulan berita, tips, dan informasi terkini dari SMP Tashfia.</p>
           </div>
         </section>
 
@@ -175,17 +180,31 @@ export default function PublicBlogList() {
                         </span>
                       ))}
                     </div>
-                    <h2 className="text-2xl lg:text-3xl font-bold text-text mb-3 leading-tight group-hover:text-primary transition-colors line-clamp-3">
+                    <h2 className="text-2xl lg:text-3xl font-bold text-white mb-3 leading-tight group-hover:text-white/80 transition-colors line-clamp-3">
                       {featured.title}
                     </h2>
                     {featured.excerpt && (
-                      <p className="text-text-light line-clamp-3 mb-5">{featured.excerpt}</p>
+                      <p className="text-white/80 line-clamp-3 mb-5">{featured.excerpt}</p>
                     )}
-                    <div className="flex items-center gap-4 text-xs text-text-light">
+                    <div className="flex items-center gap-4 text-xs text-white/70 mb-5">
                       <span className="flex items-center gap-1"><IconCalendar size={14} />{formatDate(featured.published_at)}</span>
                       <span className="flex items-center gap-1"><IconEye size={14} />{formatViews(featured.views)} views</span>
-                      <span className="flex items-center gap-1 text-primary font-medium group-hover:gap-2 transition-all">Baca selengkapnya <IconArrowRight size={14} /></span>
+                      {featured.author_name && (
+                        <span className="flex items-center gap-2">
+                          {featured.author_avatar ? (
+                            <img src={featured.author_avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+                          ) : (
+                            <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px] font-bold text-white">
+                              {featured.author_name[0]?.toUpperCase()}
+                            </span>
+                          )}
+                          {featured.author_name}
+                        </span>
+                      )}
                     </div>
+                    <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-primary font-semibold rounded-xl hover:bg-white/90 transition-colors">
+                      Baca Selengkapnya
+                    </button>
                   </div>
                 </div>
               </div>
@@ -220,10 +239,25 @@ export default function PublicBlogList() {
                       {article.excerpt && (
                         <p className="text-sm text-text-light line-clamp-2 mb-3">{article.excerpt}</p>
                       )}
-                      <div className="flex items-center gap-3 text-xs text-text-light">
+                      <div className="flex items-center gap-3 text-xs text-text-light mb-3">
                         <span className="flex items-center gap-1"><IconCalendar size={13} />{formatDate(article.published_at)}</span>
                         <span className="flex items-center gap-1"><IconEye size={13} />{formatViews(article.views)}</span>
                       </div>
+                      {article.author_name && (
+                        <div className="flex items-center gap-2 mb-3">
+                          {article.author_avatar ? (
+                            <img src={article.author_avatar} alt="" className="w-6 h-6 rounded-full object-cover" />
+                          ) : (
+                            <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                              {article.author_name[0]?.toUpperCase()}
+                            </span>
+                          )}
+                          <span className="text-xs text-text-light">{article.author_name}</span>
+                        </div>
+                      )}
+                      <button className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dark transition-colors">
+                        Baca <IconArrowRight size={14} />
+                      </button>
                     </div>
                   </div>
                 ))}

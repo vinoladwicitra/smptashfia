@@ -61,7 +61,7 @@ export default function PublicBlogSingle() {
           article_category_mappings (
             article_categories (id, name, slug)
           ),
-          profiles!articles_author_id_fkey (display_name, avatar_url)
+          author:profiles!articles_author_id_fkey (display_name, avatar_url)
         `)
         .eq('slug', slug)
         .eq('status', 'published')
@@ -80,8 +80,8 @@ export default function PublicBlogSingle() {
       setArticle({
         ...data,
         categories: data.article_category_mappings?.map((m: any) => m.article_categories).filter(Boolean) || [],
-        authorName: data.profiles?.display_name || 'SMP Tashfia',
-        authorAvatar: data.profiles?.avatar_url || null,
+        authorName: data.author?.display_name || 'SMP Tashfia',
+        authorAvatar: data.author?.avatar_url || null,
       });
       setLoading(false);
     };
@@ -187,10 +187,10 @@ export default function PublicBlogSingle() {
       <main className="min-h-screen bg-background pb-16 lg:pb-0">
         {/* Article Header */}
         <header className="max-w-screen-md mx-auto px-5 pt-8 lg:pt-16">
-          {/* Back Button (Mobile) */}
+          {/* Back Button */}
           <button
             onClick={() => navigate('/blog/')}
-            className="lg:hidden flex items-center gap-2 text-text-light hover:text-text mb-6 transition-colors"
+            className="flex items-center gap-2 text-text-light hover:text-text mb-6 transition-colors"
           >
             <IconArrowLeft size={20} />
             <span className="text-sm font-medium">Kembali</span>
