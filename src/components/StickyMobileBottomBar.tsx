@@ -27,6 +27,7 @@ export default function StickyMobileBottomBar() {
             <Link
               key={item.label}
               to={item.href}
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-all duration-150 active:scale-90 cursor-pointer ${
                 isActive
                   ? 'text-primary'
