@@ -1,10 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import Header from './Header';
-import MobileHeader from './MobileHeader';
-import Footer from './Footer';
-import StickyMobileBottomBar from './StickyMobileBottomBar';
 import { IconCalendar, IconEye, IconSearch } from '@tabler/icons-react';
 
 interface Article {
@@ -161,10 +157,7 @@ export default function PublicBlogList() {
   }, []);
 
   return (
-    <>
-      <Header />
-      <MobileHeader />
-      <main className="min-h-screen bg-background pb-20 lg:pb-0">
+    <main className="min-h-screen bg-background pb-20 lg:pb-0">
         {/* Hero Header - Main color background */}
         <section className="bg-primary text-white border-b border-primary">
           <div className="max-w-6xl mx-auto px-5 lg:px-8 py-10 lg:py-16 text-center">
@@ -350,8 +343,5 @@ export default function PublicBlogList() {
           )}
         </div>
       </main>
-      <Footer />
-      <StickyMobileBottomBar />
-    </>
   );
 }

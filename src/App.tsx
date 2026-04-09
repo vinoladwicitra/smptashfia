@@ -80,6 +80,7 @@ function PmbPageLayout({ children }: { children: ReactNode }) {
       <MobileHeader />
       <main>{children}</main>
       <Footer />
+      <StickyMobileBottomBar />
     </>
   )
 }
