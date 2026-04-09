@@ -50,6 +50,10 @@ export default function PublicBlogSingle() {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [showMobileShare, setShowMobileShare] = useState(false);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [slug]);
+
   // Load article
   useEffect(() => {
     const fetchArticle = async () => {

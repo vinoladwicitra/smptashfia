@@ -156,6 +156,10 @@ export default function PublicBlogList() {
   const featured = articles[0];
   const rest = articles.slice(1);
 
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   return (
     <>
       <Header />
@@ -217,7 +221,7 @@ export default function PublicBlogList() {
 
           {/* Featured Article */}
           {!loading && featured && (
-            <div onClick={() => navigate(`/blog/${featured.slug}`)} className="block mb-10 group cursor-pointer">
+            <div onClick={() => { scrollToTop(); navigate(`/blog/${featured.slug}`); }} className="block mb-10 group cursor-pointer">
               <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-md transition-shadow">
                 <div className="grid grid-cols-1 lg:grid-cols-2">
                   <div className="relative overflow-hidden">
@@ -257,8 +261,8 @@ export default function PublicBlogList() {
                         </span>
                       )}
                     </div>
-                    <div className="flex justify-center">
-                      <button className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors cursor-pointer">
+                    <div className="mt-4">
+                      <button className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors cursor-pointer">
                         Baca Selengkapnya
                       </button>
                     </div>
@@ -274,7 +278,7 @@ export default function PublicBlogList() {
               <h3 className="text-lg font-semibold text-text mb-5">Artikel Terbaru</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {rest.map((article) => (
-                  <div key={article.id} onClick={() => navigate(`/blog/${article.slug}`)} className="group block bg-white rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-md transition-shadow cursor-pointer">
+                  <div key={article.id} onClick={() => { scrollToTop(); navigate(`/blog/${article.slug}`); }} className="group block bg-white rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-md transition-shadow cursor-pointer">
                     <div className="relative overflow-hidden">
                       {article.featured_image ? (
                         <img src={article.featured_image} alt={article.title} className="w-full h-48 object-cover group-hover:scale-[1.02] transition-transform duration-300" />
