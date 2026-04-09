@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { IconHome, IconHomeFilled, IconBulb, IconBulbFilled, IconFileText, IconFileTextFilled, IconPencil, IconPencilFilled, IconPhone, IconPhoneFilled } from '@tabler/icons-react';
 
 const items = [
@@ -24,9 +24,9 @@ export default function StickyMobileBottomBar() {
             : currentPath === normalizePath(item.href);
           const Icon = isActive ? item.iconFilled : item.icon;
           return (
-            <a
+            <Link
               key={item.label}
-              href={item.href}
+              to={item.href}
               className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-all duration-150 active:scale-90 cursor-pointer ${
                 isActive
                   ? 'text-primary'
@@ -35,7 +35,7 @@ export default function StickyMobileBottomBar() {
             >
               <Icon size={22} />
               <span className="text-[10px] font-medium">{item.label}</span>
-            </a>
+            </Link>
           );
         })}
       </nav>

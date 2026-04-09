@@ -1,4 +1,9 @@
+import { Link } from 'react-router-dom';
 import { IconBrandInstagram, IconBrandFacebook, IconBrandYoutube, IconMapPin, IconPhone, IconChevronRight } from '@tabler/icons-react';
+
+function InternalLink({ to, children, className, ...props }: any) {
+  return <Link to={to} className={className} {...props}>{children}</Link>;
+}
 
 export default function Footer() {
   return (
@@ -9,13 +14,13 @@ export default function Footer() {
           <div className="grid grid-cols-3 gap-12 mb-10">
             {/* Column 1: Logo & Social */}
             <div>
-              <a href="/" className="inline-flex items-center gap-3 mb-6">
+              <InternalLink to="/" className="inline-flex items-center gap-3 mb-6">
                 <img src="/logo.png" alt="SMP Tashfia" className="h-16 w-auto" />
                 <div>
                   <span className="block text-lg font-bold leading-tight">SMP Tashfia</span>
                   <span className="block text-xs text-gray-300 leading-tight">Sekolah Islam Terpadu</span>
                 </div>
-              </a>
+              </InternalLink>
               <ul className="space-y-3 mb-6">
                 <li><a href="https://www.instagram.com/smptashfia" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:text-gray-200 transition-colors cursor-pointer"><IconBrandInstagram size={20} /><span>@smptashfia</span></a></li>
                 <li><a href="https://web.facebook.com/smp.tashfia" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:text-gray-200 transition-colors cursor-pointer"><IconBrandFacebook size={20} /><span>SMP Tashfia</span></a></li>
@@ -26,12 +31,12 @@ export default function Footer() {
             <div>
               <h5 className="text-lg font-semibold mb-4">Tautan Cepat</h5>
               <ul className="space-y-2">
-                <li><a href="/" className="hover:text-gray-200 transition-colors cursor-pointer">Home</a></li>
-                <li><a href="/tentang-kami" className="hover:text-gray-200 transition-colors cursor-pointer">Tentang Kami</a></li>
-                <li><a href="/program" className="hover:text-gray-200 transition-colors cursor-pointer">Program</a></li>
-                <li><a href="/blog/" className="hover:text-gray-200 transition-colors cursor-pointer">Artikel</a></li>
-                <li><a href="/ppdb" className="hover:text-gray-200 transition-colors cursor-pointer">PPDB</a></li>
-                <li><a href="/hubungi-kami" className="hover:text-gray-200 transition-colors cursor-pointer">Hubungi Kami</a></li>
+                <li><InternalLink to="/" className="hover:text-gray-200 transition-colors cursor-pointer">Home</InternalLink></li>
+                <li><InternalLink to="/tentang-kami" className="hover:text-gray-200 transition-colors cursor-pointer">Tentang Kami</InternalLink></li>
+                <li><InternalLink to="/program" className="hover:text-gray-200 transition-colors cursor-pointer">Program</InternalLink></li>
+                <li><InternalLink to="/blog/" className="hover:text-gray-200 transition-colors cursor-pointer">Artikel</InternalLink></li>
+                <li><InternalLink to="/ppdb" className="hover:text-gray-200 transition-colors cursor-pointer">PPDB</InternalLink></li>
+                <li><InternalLink to="/hubungi-kami" className="hover:text-gray-200 transition-colors cursor-pointer">Hubungi Kami</InternalLink></li>
               </ul>
             </div>
             {/* Column 3: Location with Embedded Map */}
@@ -99,16 +104,16 @@ export default function Footer() {
         <div className="px-5 mt-6">
           <h5 className="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wide">Tautan</h5>
           <div className="grid grid-cols-2 gap-2">
-            {[{ label: 'Home', href: '/' }, { label: 'Tentang Kami', href: '/tentang-kami' }, { label: 'Program', href: '/program' }, { label: 'Artikel', href: '/blog/' }, { label: 'PPDB', href: '/ppdb' }, { label: 'Hubungi Kami', href: '/hubungi-kami' }].map((link) => (
-              <a key={link.label} href={link.href} className="flex items-center gap-1.5 bg-white/5 rounded-lg px-3 py-2.5 text-sm text-gray-200 active:bg-white/15 transition-colors cursor-pointer">
+            {[{ label: 'Home', to: '/' }, { label: 'Tentang Kami', to: '/tentang-kami' }, { label: 'Program', to: '/program' }, { label: 'Artikel', to: '/blog/' }, { label: 'PPDB', to: '/ppdb' }, { label: 'Hubungi Kami', to: '/hubungi-kami' }].map((link) => (
+              <InternalLink key={link.label} to={link.to} className="flex items-center gap-1.5 bg-white/5 rounded-lg px-3 py-2.5 text-sm text-gray-200 active:bg-white/15 transition-colors cursor-pointer">
                 <IconChevronRight size={14} />
                 {link.label}
-              </a>
+              </InternalLink>
             ))}
           </div>
         </div>
         <div className="text-center mt-8 px-5">
-          <p className="text-xs text-gray-400">© 2023 - 2026 SMP Tashfia. All Rights Reserved.</p>
+          <p className="text-xs text-white">© 2023 - 2026 SMP Tashfia. All Rights Reserved.</p>
         </div>
       </div>
     </footer>

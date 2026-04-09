@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { IconHome, IconHomeFilled, IconBriefcase, IconBriefcaseFilled, IconBulb, IconBulbFilled, IconBook, IconBookFilled, IconHeadset, IconHeadsetFilled, IconX, IconPhone, IconClock, IconMapPin, IconUser, IconUserCheck, IconUsersGroup, IconUsers, IconPencil, IconPencilFilled } from '@tabler/icons-react';
 
 const menuItems = [
-  { label: 'Home', href: '/', icon: IconHome, iconFilled: IconHomeFilled, match: '/' },
-  { label: 'Tentang Kami', href: '/tentang-kami', icon: IconBriefcase, iconFilled: IconBriefcaseFilled, match: '/tentang-kami' },
-  { label: 'Program', href: '/program', icon: IconBulb, iconFilled: IconBulbFilled, match: '/program' },
-  { label: 'Blog', href: '/blog/', icon: IconPencil, iconFilled: IconPencilFilled, match: '/blog' },
-  { label: 'Perpustakaan', href: 'https://mahad-attashfiyyah.perpus.id/', icon: IconBook, iconFilled: IconBookFilled, match: '' },
-  { label: 'Hubungi Kami', href: '/hubungi-kami', icon: IconHeadset, iconFilled: IconHeadsetFilled, match: '/hubungi-kami' },
+  { label: 'Home', href: '/', icon: IconHome, iconFilled: IconHomeFilled, match: '/', external: false },
+  { label: 'Tentang Kami', href: '/tentang-kami', icon: IconBriefcase, iconFilled: IconBriefcaseFilled, match: '/tentang-kami', external: false },
+  { label: 'Program', href: '/program', icon: IconBulb, iconFilled: IconBulbFilled, match: '/program', external: false },
+  { label: 'Blog', href: '/blog/', icon: IconPencil, iconFilled: IconPencilFilled, match: '/blog', external: false },
+  { label: 'Perpustakaan', href: 'https://mahad-attashfiyyah.perpus.id/', icon: IconBook, iconFilled: IconBookFilled, match: '', external: true },
+  { label: 'Hubungi Kami', href: '/hubungi-kami', icon: IconHeadset, iconFilled: IconHeadsetFilled, match: '/hubungi-kami', external: false },
 ];
 
 const loginItems = [
@@ -45,13 +45,13 @@ export default function Header() {
       <div className="bg-white border-b border-border py-4 hidden lg:block">
         <div className="max-w-5xl mx-auto px-8 flex items-center justify-between">
           {/* Logo + Text */}
-          <a href="/" className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3">
             <img src="/logo.png" alt="SMP Tashfia" className="h-14 w-auto" />
             <div className="flex flex-col">
               <span className="text-xl font-bold text-primary leading-tight">SMP Tashfia</span>
               <span className="text-[11px] text-text-light leading-tight">Sekolah Islam Terpadu</span>
             </div>
-          </a>
+          </Link>
 
           {/* Info Items */}
           <div className="flex items-center gap-8">
@@ -94,15 +94,15 @@ export default function Header() {
                   {loginItems.map((item) => {
                     const Icon = item.icon;
                     return (
-                      <a
+                      <Link
                         key={item.label}
-                        href={item.href}
+                        to={item.href}
                         className="flex items-center gap-3 px-4 py-3 text-sm text-text hover:bg-gray-100 hover:text-primary transition-colors cursor-pointer"
                         onClick={() => setLoginDropdown(false)}
                       >
                         <Icon size={16} className="text-text-light" />
                         {item.label}
-                      </a>
+                      </Link>
                     );
                   })}
                 </div>
@@ -119,17 +119,20 @@ export default function Header() {
             {menuItems.map((item) => {
               const isActive = item.match && (location.pathname === item.match || location.pathname.startsWith(item.match + '/'));
               const Icon = isActive ? item.iconFilled : item.icon;
+              const linkProps = item.external
+                ? { href: item.href, target: '_blank', rel: 'noopener noreferrer' }
+                : { to: item.href };
+
               return (
-                <a
+                <Component
                   key={item.label}
-                  href={item.href}
-                  target={item.label === 'Perpustakaan' ? '_blank' : undefined}
-                  rel={item.label === 'Perpustakaan' ? 'noopener noreferrer' : undefined}
+                  component={item.external ? 'a' : Link}
+                  {...linkProps}
                   className={`flex items-center gap-2 px-4 py-3 text-[15px] font-medium text-text rounded transition-colors hover:text-primary hover:bg-gray-100 cursor-pointer ${isActive ? 'text-primary relative after:absolute after:bottom-0 after:left-4 after:right-4 after:h-0.5 after:bg-primary' : ''}`}
                 >
                   <Icon size={24} />
                   <span>{item.label}</span>
-                </a>
+                </Component>
               );
             })}
           </nav>
@@ -137,4 +140,8 @@ export default function Header() {
       </div>
     </header>
   );
+}
+
+function Component({ component: Component, ...props }: any) {
+  return <Component {...props} />;
 }
