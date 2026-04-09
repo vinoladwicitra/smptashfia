@@ -9,7 +9,7 @@ import PPDBFormStudent from './PPDBFormStudent';
 import PPDBFormFather from './PPDBFormFather';
 import PPDBFormMother from './PPDBFormMother';
 import PPDBFormSubmit from './PPDBFormSubmit';
-import { IconChevronRight, IconChevronLeft, IconCheck, IconArrowLeft } from '@tabler/icons-react';
+import { IconChevronRight, IconChevronLeft, IconCheck } from '@tabler/icons-react';
 
 const VALIDATION: Record<number, (d: PPDBFormData) => string | null> = {
   1: (d) => !d.email || !d.email.includes('@') ? 'Email Tidak Valid' : !d.buktiTransferUrl ? 'Bukti Transfer Diperlukan' : !d.pemilihanSekolah ? 'Pilih Sekolah' : null,
@@ -32,14 +32,12 @@ export default function PPDBPage() {
   const [formData, setFormData] = useState<PPDBFormData>(initialFormData);
   const [initialized, setInitialized] = useState(false);
 
-  // Load draft from localStorage on mount
   useEffect(() => {
     const draft = loadFormDraft();
     if (draft && hasDataChanged(draft)) setFormData(draft);
     setInitialized(true);
   }, []);
 
-  // Auto-save to localStorage on every change
   useEffect(() => { if (initialized) saveFormDraft(formData); }, [formData, initialized]);
 
   const updateField = useCallback((f: string, v: string) => setFormData(p => ({ ...p, [f]: v })), []);
@@ -55,9 +53,7 @@ export default function PPDBPage() {
     updateField('buktiTransferUrl', publicUrl);
   }, [updateField]);
 
-  const validate = useCallback((s: number) => {
-    return !VALIDATION[s]?.(formData);
-  }, [formData]);
+  const validate = useCallback((s: number) => !VALIDATION[s]?.(formData), [formData]);
 
   const handleNext = useCallback(() => {
     if (validate(step) && step < 5) { setStep(s => s + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -66,17 +62,6 @@ export default function PPDBPage() {
   const handlePrev = useCallback(() => {
     if (step > 1) { setStep(s => s - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }
   }, [step]);
-
-  const handleBackToHome = useCallback(() => {
-    if (hasDataChanged(formData)) {
-      if (window.confirm('Anda memiliki perubahan yang belum disimpan. Yakin ingin kembali?')) {
-        clearFormDraft();
-        navigate('/');
-      }
-    } else {
-      navigate('/');
-    }
-  }, [formData, navigate]);
 
   const handleSubmit = useCallback(async () => {
     if (!validate(step)) return;
@@ -94,8 +79,7 @@ export default function PPDBPage() {
     });
     setSubmitting(false);
     if (error) return;
-    clearFormDraft();
-    navigate('/');
+    clearFormDraft(); navigate('/');
   }, [formData, validate, navigate]);
 
   const progress = (step / STEPS.length) * 100;
@@ -108,15 +92,11 @@ export default function PPDBPage() {
         <div className="max-w-4xl mx-auto px-5 py-8 space-y-8">
           <div className="text-center">
             <h3 className="text-xl font-bold text-text mb-4">Rincian Biaya Tashfia Boarding</h3>
-            <div className="overflow-hidden rounded-xl shadow-sm max-w-full">
-              <img src="https://file.smptashfia.sch.id/2025/08/1-2.png" alt="Biaya Boarding" className="w-full max-w-sm mx-auto rounded-xl" loading="lazy" />
-            </div>
+            <img src="https://file.smptashfia.sch.id/2025/08/1-2.png" alt="Biaya Boarding" className="w-full max-w-sm mx-auto" loading="lazy" />
           </div>
           <div className="text-center">
             <h3 className="text-xl font-bold text-text mb-4">Rincian Biaya Tashfia Fullday</h3>
-            <div className="overflow-hidden rounded-xl shadow-sm max-w-full">
-              <img src="https://file.smptashfia.sch.id/2025/08/2-2.png" alt="Biaya Fullday" className="w-full max-w-sm mx-auto rounded-xl" loading="lazy" />
-            </div>
+            <img src="https://file.smptashfia.sch.id/2025/08/2-2.png" alt="Biaya Fullday" className="w-full max-w-sm mx-auto" loading="lazy" />
           </div>
         </div>
       </section>
@@ -152,15 +132,15 @@ export default function PPDBPage() {
           {FormComponent && <FormComponent formData={formData} updateField={updateField} onFileUpload={handleFileUpload} />}
           <div className="flex items-center justify-between mt-8 pt-4 border-t border-border">
             {step > 1
-              ? <button onClick={handlePrev} className="flex items-center gap-2 px-5 py-2.5 bg-white text-text font-semibold border border-border rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"><IconChevronLeft size={18} /><span className="hidden sm:inline"> Sebelumnya</span></button>
-              : <button onClick={handleBackToHome} className="flex items-center gap-1 p-2.5 bg-white text-text border border-border rounded-xl hover:bg-gray-50 transition-colors cursor-pointer" title="Kembali"><IconArrowLeft size={18} /></button>
+              ? <button onClick={handlePrev} className="flex items-center gap-2 px-3 py-2 sm:px-5 sm:py-2.5 text-sm sm:text-base bg-white text-text font-semibold border border-border rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"><IconChevronLeft size={16} /><span className="sm:inline"> Sebelumnya</span></button>
+              : <div />
             }
             {step < 5
-              ? <button onClick={handleNext} className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors cursor-pointer">Selanjutnya <IconChevronRight size={18} /></button>
-              : <button onClick={handleSubmit} disabled={submitting} className="flex items-center gap-2 px-6 py-2.5 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors disabled:opacity-60 cursor-pointer">
+              ? <button onClick={handleNext} className="flex items-center gap-2 px-3 py-2 sm:px-6 sm:py-2.5 text-sm sm:text-base bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors cursor-pointer">Selanjutnya <IconChevronRight size={16} /></button>
+              : <button onClick={handleSubmit} disabled={submitting} className="flex items-center gap-2 px-3 py-2 sm:px-6 sm:py-2.5 text-sm sm:text-base bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors disabled:opacity-60 cursor-pointer">
                   {submitting
-                    ? <><svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>Mengirim...</>
-                    : <>Kirim Pendaftaran <IconCheck size={18} /></>
+                    ? <><svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>Mengirim...</>
+                    : <>Kirim Pendaftaran <IconCheck size={16} /></>
                   }
                 </button>
             }
