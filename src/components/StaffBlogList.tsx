@@ -1,37 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useToast } from '../context/ToastContext';
 import { IconPlus, IconSearch, IconEdit, IconTrash, IconEye, IconCalendar, IconFileText, IconFilter } from '@tabler/icons-react';
 
-// Sample data - will be replaced with Supabase fetch later
-const sampleArticles = [
-  {
-    id: '1',
-    title: 'Komunitas Belajar Guru SMP Tashfia – November 2025',
-    excerpt: 'Alhamdulillah, kegiatan Komunitas Belajar Guru SMP Tashfia bulan November 2025 telah terlaksana dengan lancar.',
-    status: 'published',
-    category: 'Kegiatan',
-    date: '13 Des 2025',
-    views: 124,
-  },
-  {
-    id: '2',
-    title: 'Cyberbullying: Bahaya Terbesar Media Sosial',
-    excerpt: 'Pada zaman digital sekarang media sosial tidak seaman yang kita bayangkan, terutama di kalangan remaja.',
-    status: 'published',
-    category: 'Edukasi',
-    date: '12 Des 2025',
-    views: 89,
-  },
-  {
-    id: '3',
-    title: 'Draft: Persiapan Ujian Akhir Semester',
-    excerpt: 'Panduan lengkap persiapan ujian akhir semester untuk semua kelas.',
-    status: 'draft',
-    category: 'Akademik',
-    date: '10 Des 2025',
-    views: 0,
-  },
-];
+interface Article {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  featured_image: string | null;
+  status: string;
+  published_at: string | null;
+  views: number;
+  created_at: string;
+  category?: { name: string; slug: string } | null;
+}
 
 const statusColors: Record<string, string> = {
   published: 'bg-green-100 text-green-700',
@@ -45,12 +29,65 @@ const statusLabels: Record<string, string> = {
   archived: 'Arsip',
 };
 
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return 'Belum dipublikasi';
+  return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 export default function StaffBlogList() {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
-  const filteredArticles = sampleArticles.filter((article) => {
+  const fetchArticles = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('articles')
+      .select(`
+        id, title, slug, excerpt, featured_image, status, published_at, views, created_at,
+        article_category_mappings!inner (
+          article_categories (id, name, slug)
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      toast({ type: 'error', title: 'Gagal Memuat Artikel', description: error.message });
+    } else {
+      const formatted = (data || []).map((a: any) => ({
+        id: a.id,
+        title: a.title,
+        slug: a.slug,
+        excerpt: a.excerpt,
+        featured_image: a.featured_image,
+        status: a.status,
+        published_at: a.published_at,
+        views: a.views || 0,
+        created_at: a.created_at,
+        category: a.article_category_mappings?.[0]?.article_categories || null,
+      }));
+      setArticles(formatted);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchArticles(); }, []);
+
+  const handleDelete = async (id: string, title: string) => {
+    if (!confirm(`Hapus artikel "${title}"? Tindakan ini tidak bisa dibatalkan.`)) return;
+    const { error } = await supabase.from('articles').delete().eq('id', id);
+    if (error) {
+      toast({ type: 'error', title: 'Gagal Menghapus', description: error.message });
+    } else {
+      toast({ type: 'success', title: 'Artikel Dihapus', description: `"${title}" berhasil dihapus.` });
+      fetchArticles();
+    }
+  };
+
+  const filteredArticles = articles.filter((article) => {
     const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filterStatus === 'all' || article.status === filterStatus;
     return matchesSearch && matchesFilter;
@@ -102,8 +139,18 @@ export default function StaffBlogList() {
         </div>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-16">
+          <svg className="animate-spin h-8 w-8 text-primary" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+        </div>
+      )}
+
       {/* Articles List */}
-      {filteredArticles.length === 0 ? (
+      {!loading && filteredArticles.length === 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-border p-12 text-center">
           <IconFileText size={48} className="mx-auto text-text-light/30 mb-4" />
           <h3 className="text-lg font-semibold text-text mb-2">
@@ -124,44 +171,61 @@ export default function StaffBlogList() {
             </button>
           )}
         </div>
-      ) : (
+      )}
+
+      {!loading && filteredArticles.length > 0 && (
         <div className="space-y-3">
           {filteredArticles.map((article) => (
             <div
               key={article.id}
-              className="bg-white rounded-xl shadow-sm border border-border p-4 hover:shadow-md transition-shadow"
+              className="bg-white rounded-xl shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow"
             >
-              <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                {/* Status Badge */}
-                <div className="flex-shrink-0">
-                  <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-full ${statusColors[article.status]}`}>
-                    {statusLabels[article.status]}
-                  </span>
+              <div className="flex flex-col sm:flex-row">
+                {/* Featured Image */}
+                <div className="sm:w-40 sm:flex-shrink-0">
+                  {article.featured_image ? (
+                    <img src={article.featured_image} alt={article.title} className="w-full h-32 sm:h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-32 sm:h-full bg-primary/5 flex items-center justify-center">
+                      <IconFileText size={32} className="text-text-light/20" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-semibold text-text mb-1 line-clamp-1">{article.title}</h3>
-                  <p className="text-sm text-text-light line-clamp-2 mb-2">{article.excerpt}</p>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-light">
-                    <span className="flex items-center gap-1">
-                      <IconCalendar size={14} />
-                      {article.date}
-                    </span>
-                    <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-medium">
-                      {article.category}
-                    </span>
-                    {article.status === 'published' && (
-                      <span className="flex items-center gap-1">
-                        <IconEye size={14} />
-                        {article.views} views
+                <div className="flex-1 p-4 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-full ${statusColors[article.status]}`}>
+                        {statusLabels[article.status]}
                       </span>
+                      {article.category && (
+                        <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-medium">
+                          {article.category.name}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-base font-semibold text-text mb-1 line-clamp-1">{article.title}</h3>
+                    {article.excerpt && (
+                      <p className="text-sm text-text-light line-clamp-2 mb-2">{article.excerpt}</p>
                     )}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-light">
+                      <span className="flex items-center gap-1">
+                        <IconCalendar size={14} />
+                        {formatDate(article.published_at || article.created_at)}
+                      </span>
+                      {article.status === 'published' && (
+                        <span className="flex items-center gap-1">
+                          <IconEye size={14} />
+                          {article.views} views
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 sm:flex-shrink-0">
+                <div className="flex items-center gap-1 px-4 pb-4 sm:py-4 sm:flex-shrink-0">
                   <button
                     onClick={() => navigate(`/staff/blog/edit/${article.id}`)}
                     className="p-2 rounded-lg text-text-light hover:text-primary hover:bg-primary/10 transition-colors"
@@ -170,6 +234,7 @@ export default function StaffBlogList() {
                     <IconEdit size={18} />
                   </button>
                   <button
+                    onClick={() => handleDelete(article.id, article.title)}
                     className="p-2 rounded-lg text-text-light hover:text-red-600 hover:bg-red-50 transition-colors"
                     title="Hapus"
                   >

@@ -122,7 +122,7 @@ function App() {
           <Route index element={<StaffDashboard />} />
           <Route path="blog" element={<StaffBlogList />} />
           <Route path="blog/new" element={<StaffBlogEditor />} />
-          <Route path="blog/edit/:id" element={<StaffBlogEditor isNew={false} />} />
+          <Route path="blog/edit/:id" element={<StaffBlogEditor />} />
           <Route path="profile" element={<StaffProfile />} />
           <Route path="settings" element={<PlaceholderPage title="Pengaturan" />} />
         </Route>
