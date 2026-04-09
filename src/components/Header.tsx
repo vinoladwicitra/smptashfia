@@ -12,9 +12,10 @@ const menuItems = [
 ];
 
 const loginItems = [
-  { label: 'Teacher', href: '/teacher', icon: IconUserCheck },
-  { label: 'Student', href: '/student', icon: IconUsersGroup },
-  { label: 'Staff', href: '/staff', icon: IconUsers },
+  { label: 'Guru', href: '/login/teacher', icon: IconUserCheck },
+  { label: 'Siswa', href: '/login/student', icon: IconUsersGroup },
+  { label: 'Orang Tua', href: '/login/parent', icon: IconUsers },
+  { label: 'Staf', href: '/login/staff', icon: IconUsers },
 ];
 
 export default function Header() {
@@ -84,7 +85,7 @@ export default function Header() {
               className="flex items-center gap-2 px-5 py-2.5 border-2 border-primary text-primary text-sm font-semibold rounded-full hover:bg-primary hover:text-white transition-all cursor-pointer"
             >
               <IconUser size={18} />
-              Login
+              Masuk
             </button>
             {loginDropdown && (
               <>

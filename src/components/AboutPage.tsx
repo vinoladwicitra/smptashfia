@@ -106,7 +106,7 @@ function AccordionItem({ item, isOpen, onToggle }: { item: typeof accordionItems
 }
 
 export default function AboutPage() {
-  const [openSections, setOpenSections] = useState<Record<number, boolean>>({ 2: true });
+  const [openSections, setOpenSections] = useState<Record<number, boolean>>({ 0: true });
 
   const toggleSection = (index: number) => {
     setOpenSections((prev) => ({ ...prev, [index]: !prev[index] }));

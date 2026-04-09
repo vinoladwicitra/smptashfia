@@ -29,23 +29,35 @@ export default function Footer() {
                 <li><a href="/" className="hover:text-gray-200 transition-colors cursor-pointer">Home</a></li>
                 <li><a href="/tentang-kami" className="hover:text-gray-200 transition-colors cursor-pointer">Tentang Kami</a></li>
                 <li><a href="/program" className="hover:text-gray-200 transition-colors cursor-pointer">Program</a></li>
+                <li><a href="/blog/" className="hover:text-gray-200 transition-colors cursor-pointer">Artikel</a></li>
                 <li><a href="/ppdb" className="hover:text-gray-200 transition-colors cursor-pointer">PPDB</a></li>
                 <li><a href="/hubungi-kami" className="hover:text-gray-200 transition-colors cursor-pointer">Hubungi Kami</a></li>
               </ul>
             </div>
-            {/* Column 3: Location */}
+            {/* Column 3: Location with Embedded Map */}
             <div>
               <h5 className="text-lg font-semibold mb-4">Lokasi</h5>
               <div className="flex items-start gap-2 mb-4 text-sm text-gray-300">
                 <IconMapPin size={20} className="flex-shrink-0 mt-0.5" />
                 <p className="leading-relaxed">Jl. Dr. Ratna No.82, RT.02/RW.08, Kel. Jatikramat, Kec. Jatiasih, Kota Bekasi, Jawa Barat 17421</p>
               </div>
-              <a href="https://maps.app.goo.gl/ju7qW5xSXENTzcU89" target="_blank" rel="noopener noreferrer" className="inline-block text-sm font-semibold hover:text-gray-200 transition-colors underline cursor-pointer">Lihat di Google Maps →</a>
+              <div className="rounded-xl overflow-hidden shadow-md h-48">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d15863.614022201797!2d106.9516837!3d-6.2764164!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e698d730bca8f7f%3A0xa7c63c7cbe29afe3!2sSMP%20Tashfia!5e0!3m2!1sid!2sid!4v1775721806664!5m2!1sid!2sid"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Lokasi SMP Tashfia"
+                ></iframe>
+              </div>
             </div>
           </div>
-          {/* Copyright - Centered */}
+          {/* Copyright - Centered, White text */}
           <div className="border-t border-white/20 pt-6 text-center">
-            <p className="text-sm text-gray-300">© 2023 - 2026 <strong>SMP Tashfia</strong> - All Rights Reserved</p>
+            <p className="text-sm text-white">© 2023 - 2026 <strong>SMP Tashfia</strong> - All Rights Reserved</p>
           </div>
         </div>
       </div>
@@ -87,7 +99,7 @@ export default function Footer() {
         <div className="px-5 mt-6">
           <h5 className="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wide">Tautan</h5>
           <div className="grid grid-cols-2 gap-2">
-            {[{ label: 'Home', href: '/' }, { label: 'Tentang Kami', href: '/tentang-kami' }, { label: 'Program', href: '/program' }, { label: 'PPDB', href: '/ppdb' }, { label: 'Hubungi Kami', href: '/hubungi-kami' }].map((link) => (
+            {[{ label: 'Home', href: '/' }, { label: 'Tentang Kami', href: '/tentang-kami' }, { label: 'Program', href: '/program' }, { label: 'Artikel', href: '/blog/' }, { label: 'PPDB', href: '/ppdb' }, { label: 'Hubungi Kami', href: '/hubungi-kami' }].map((link) => (
               <a key={link.label} href={link.href} className="flex items-center gap-1.5 bg-white/5 rounded-lg px-3 py-2.5 text-sm text-gray-200 active:bg-white/15 transition-colors cursor-pointer">
                 <IconChevronRight size={14} />
                 {link.label}

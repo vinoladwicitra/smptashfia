@@ -1,11 +1,11 @@
 import { useLocation } from 'react-router-dom';
-import { IconHome, IconHomeFilled, IconBulb, IconBulbFilled, IconFileText, IconFileTextFilled, IconFileCv, IconFileCvFilled, IconPhone, IconPhoneFilled } from '@tabler/icons-react';
+import { IconHome, IconHomeFilled, IconBulb, IconBulbFilled, IconFileText, IconFileTextFilled, IconPencil, IconPencilFilled, IconPhone, IconPhoneFilled } from '@tabler/icons-react';
 
 const items = [
   { label: 'Home', href: '/', icon: IconHome, iconFilled: IconHomeFilled },
   { label: 'Program', href: '/program', icon: IconBulb, iconFilled: IconBulbFilled },
   { label: 'PPDB', href: '/ppdb', icon: IconFileText, iconFilled: IconFileTextFilled },
-  { label: 'Artikel', href: '/blog/', icon: IconFileCv, iconFilled: IconFileCvFilled },
+  { label: 'Artikel', href: '/blog/', icon: IconPencil, iconFilled: IconPencilFilled },
   { label: 'Kontak', href: '/hubungi-kami', icon: IconPhone, iconFilled: IconPhoneFilled },
 ];
 

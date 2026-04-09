@@ -32,7 +32,7 @@ export default function PopupBanner() {
         {/* Banner Image */}
         <a href="/ppdb" className="block">
           <img
-            src="/assets/ppdb-banner.png"
+            src="/assets/ppdb-banner.webp"
             alt="PPDB SMP Tashfia"
             className="w-full"
           />

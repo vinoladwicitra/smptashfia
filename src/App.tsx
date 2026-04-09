@@ -118,6 +118,7 @@ function App() {
         <Route path="/karir/" element={<PlaceholderPage title="Karir / Loker" />} />
         <Route path="/login/teacher" element={<LoginPage role="teacher" />} />
         <Route path="/login/student" element={<LoginPage role="student" />} />
+        <Route path="/login/parent" element={<LoginPage role="parent" />} />
         <Route path="/login/staff" element={<LoginPage role="staff" />} />
         <Route path="/teacher" element={<TeacherDashboardWrapper />} />
         <Route path="/student" element={<StudentDashboardWrapper />} />
@@ -129,6 +130,7 @@ function App() {
           <Route path="profile" element={<StaffProfile />} />
           <Route path="settings" element={<PlaceholderPage title="Pengaturan" />} />
         </Route>
+        <Route path="/parents" element={<PlaceholderPage title="Portal Orang Tua" />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>

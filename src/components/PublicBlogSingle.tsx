@@ -211,7 +211,7 @@ export default function PublicBlogSingle() {
           {/* Back Button */}
           <button
             onClick={() => navigate('/blog/')}
-            className="flex items-center gap-2 text-text-light hover:text-text mb-6 transition-colors"
+            className="flex items-center gap-2 text-text-light hover:text-text mb-6 transition-colors cursor-pointer"
           >
             <IconArrowLeft size={20} />
             <span className="text-sm font-medium">Kembali</span>

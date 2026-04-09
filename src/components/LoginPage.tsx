@@ -5,9 +5,10 @@ import { supabase } from '../lib/supabase';
 import { useToast } from '../context/ToastContext';
 
 const roleLabels: Record<string, string> = {
-  teacher: 'Teacher',
-  student: 'Student',
-  staff: 'Staff',
+  teacher: 'Guru',
+  student: 'Siswa',
+  parent: 'Orang Tua',
+  staff: 'Staf',
 };
 
 interface LocationState {
