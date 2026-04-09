@@ -1,6 +1,4 @@
-import {
-  IconFileUpload, IconUser, IconUsers, IconCheck,
-} from '@tabler/icons-react';
+import { IconFileUpload, IconUser, IconUsers, IconCheck } from '@tabler/icons-react';
 
 export const STEPS = [
   { title: 'Pembayaran', icon: IconFileUpload },
@@ -28,30 +26,15 @@ export const ALUR_PENDAFARAN = [
 ];
 
 export interface PPDBFormData {
-  email: string;
-  buktiTransferUrl: string;
-  pemilihanSekolah: string;
-  namaLengkap: string;
-  namaPanggilan: string;
-  tempatLahir: string;
-  tanggalLahir: string;
-  alamat: string;
-  asalSekolah: string;
-  alamatSekolah: string;
-  noTelpOrtu1: string;
-  noTelpOrtu2: string;
-  namaBapak: string;
-  tempatLahirBapak: string;
-  tanggalLahirBapak: string;
-  pendidikanBapak: string;
-  pekerjaanBapak: string;
-  namaIbu: string;
-  tempatLahirIbu: string;
-  tanggalLahirIbu: string;
-  pendidikanIbu: string;
-  pekerjaanIbu: string;
-  sumberInfo: string;
-  sumberInfoLainnya: string;
+  email: string; buktiTransferUrl: string; pemilihanSekolah: string;
+  namaLengkap: string; namaPanggilan: string; tempatLahir: string; tanggalLahir: string;
+  alamat: string; asalSekolah: string; alamatSekolah: string;
+  noTelpOrtu1: string; noTelpOrtu2: string;
+  namaBapak: string; tempatLahirBapak: string; tanggalLahirBapak: string;
+  pendidikanBapak: string; pekerjaanBapak: string;
+  namaIbu: string; tempatLahirIbu: string; tanggalLahirIbu: string;
+  pendidikanIbu: string; pekerjaanIbu: string;
+  sumberInfo: string; sumberInfoLainnya: string;
 }
 
 export const initialFormData: PPDBFormData = {

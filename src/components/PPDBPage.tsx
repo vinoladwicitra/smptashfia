@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../context/ToastContext';
@@ -10,7 +10,7 @@ import PPDBFormStudent from './PPDBFormStudent';
 import PPDBFormFather from './PPDBFormFather';
 import PPDBFormMother from './PPDBFormMother';
 import PPDBFormSubmit from './PPDBFormSubmit';
-import { IconChevronRight, IconChevronLeft, IconArrowLeft, IconCheck } from '@tabler/icons-react';
+import { IconChevronRight, IconChevronLeft, IconCheck } from '@tabler/icons-react';
 
 const VALIDATION: Record<number, (d: PPDBFormData) => string | null> = {
   1: (d) => !d.email || !d.email.includes('@') ? 'Email Tidak Valid' : !d.buktiTransferUrl ? 'Bukti Transfer Diperlukan' : !d.pemilihanSekolah ? 'Pilih Sekolah' : null,
@@ -87,41 +87,52 @@ export default function PPDBPage() {
         <div className="max-w-3xl mx-auto px-5 py-8 space-y-8">
           <div className="text-center">
             <h3 className="text-xl font-bold text-text mb-4">Rincian Biaya Tashfia Boarding</h3>
-            <img src="https://file.smptashfia.sch.id/2025/08/1-2.png" alt="Biaya Boarding" className="mx-auto max-w-sm rounded-xl shadow-sm" loading="lazy" />
+            <div className="overflow-hidden rounded-xl shadow-sm max-w-full">
+              <img src="https://file.smptashfia.sch.id/2025/08/1-2.png" alt="Biaya Boarding" className="w-full max-w-sm mx-auto rounded-xl" loading="lazy" />
+            </div>
           </div>
           <div className="text-center">
             <h3 className="text-xl font-bold text-text mb-4">Rincian Biaya Tashfia Fullday</h3>
-            <img src="https://file.smptashfia.sch.id/2025/08/2-2.png" alt="Biaya Fullday" className="mx-auto max-w-sm rounded-xl shadow-sm" loading="lazy" />
+            <div className="overflow-hidden rounded-xl shadow-sm max-w-full">
+              <img src="https://file.smptashfia.sch.id/2025/08/2-2.png" alt="Biaya Fullday" className="w-full max-w-sm mx-auto rounded-xl" loading="lazy" />
+            </div>
           </div>
         </div>
       </section>
 
       <div className="max-w-3xl mx-auto px-5 py-8">
+        {/* Alur */}
+        <PPDBAlur onCopyRekening={handleCopyRekening} />
+
         {/* Progress */}
         <div className="mb-8">
           <div className="flex justify-between mb-2 text-sm"><span className="font-medium text-text">Step {step} dari {STEPS.length}</span><span className="text-text-light">{Math.round(progress)}%</span></div>
           <div className="w-full bg-gray-200 rounded-full h-2.5"><div className="bg-primary h-2.5 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} /></div>
           <div className="flex justify-between mt-4">
-            {STEPS.map((s, i) => { const done = i + 1 < step; const cur = i + 1 === step; return (
-              <div key={s.title} className={`flex flex-col items-center ${done || cur ? 'text-primary' : 'text-gray-400'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${done ? 'bg-primary text-white' : cur ? 'bg-primary text-white ring-4 ring-primary/20' : 'bg-gray-200'}`}>{done ? <s.icon  size={14} /> : i + 1}</div>
-                <span className="text-[10px] mt-1 hidden sm:block">{s.title}</span>
-              </div>
-            ); })}
+            {STEPS.map((s, i) => {
+              const Icon = s.icon;
+              const done = i + 1 < step;
+              const cur = i + 1 === step;
+              return (
+                <div key={s.title} className={`flex flex-col items-center ${done || cur ? 'text-primary' : 'text-gray-400'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${done ? 'bg-primary text-white' : cur ? 'bg-primary text-white ring-4 ring-primary/20' : 'bg-gray-200 text-gray-400'}`}>
+                    <Icon size={16} />
+                  </div>
+                  <span className="text-[10px] mt-1 hidden sm:block">{s.title}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Alur */}
-        <PPDBAlur onCopyRekening={handleCopyRekening} />
-
         {/* Form */}
         <div className="bg-white rounded-xl shadow-sm border border-border p-6">
-          <h3 className="text-lg font-semibold text-text mb-4">Formulir Pendaftaran — Step {step}</h3>
+          <h3 className="text-lg font-semibold text-text mb-4">Formulir Pendaftaran</h3>
           {FormComponent && <FormComponent formData={formData} updateField={updateField} onFileUpload={handleFileUpload} />}
           <div className="flex items-center justify-between mt-8 pt-4 border-t border-border">
             {step > 1
               ? <button onClick={handlePrev} className="flex items-center gap-2 px-5 py-2.5 bg-white text-text font-semibold border border-border rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"><IconChevronLeft size={18} /> Sebelumnya</button>
-              : <button onClick={() => navigate('/')} className="flex items-center gap-2 px-5 py-2.5 bg-white text-text font-semibold border border-border rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"><IconArrowLeft size={18} /> Kembali</button>
+              : <div />
             }
             {step < 5
               ? <button onClick={handleNext} className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors cursor-pointer">Selanjutnya <IconChevronRight size={18} /></button>

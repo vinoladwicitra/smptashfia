@@ -1,7 +1,6 @@
 import { IconInfoCircle, IconBrandWhatsapp, IconCopy } from '@tabler/icons-react';
 import { ALUR_PENDAFARAN } from '../lib/ppdb';
 
-
 function AlurItem({ number, content, onClickCopy }: { number: number; content: string; onClickCopy?: () => void }) {
   return (
     <li className="flex gap-3 items-start">
@@ -9,7 +8,7 @@ function AlurItem({ number, content, onClickCopy }: { number: number; content: s
       <div className="text-text-light leading-relaxed flex-1">
         <span dangerouslySetInnerHTML={{ __html: content }} />
         {onClickCopy && (
-          <button onClick={onClickCopy} className="inline-flex items-center gap-1 mt-2 px-3 py-1.5 bg-gray-100 text-text text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors">
+          <button onClick={onClickCopy} className="inline-flex items-center gap-1 mt-2 px-3 py-1.5 bg-gray-100 text-text text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors align-middle">
             <IconCopy size={14} /> Salin Nomor Rekening
           </button>
         )}
