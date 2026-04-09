@@ -15,6 +15,8 @@ interface CollapsibleSidebarProps {
   onNavigate: (href: string) => void;
   onLogout: () => void;
   avatarUrl?: string | null;
+  collapsed: boolean;
+  setCollapsed: (v: boolean) => void;
 }
 
 export default function CollapsibleSidebar({
@@ -23,24 +25,17 @@ export default function CollapsibleSidebar({
   onNavigate,
   onLogout,
   avatarUrl,
+  collapsed,
+  setCollapsed,
 }: CollapsibleSidebarProps) {
   const { user } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
-  // Close mobile sidebar on route change
+  // Close mobile sidebar on route change and on small screens
   useEffect(() => {
-    setMobileOpen(false);
+    if (window.innerWidth < 1024) setMobileOpen(false);
   }, [activePath]);
-
-  // Check screen size on mount and resize
-  useEffect(() => {
-    const check = () => setCollapsed(window.innerWidth >= 1024);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
 
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Staff';
   const displayAvatar = avatarUrl || user?.user_metadata?.avatar_url;
@@ -174,13 +169,6 @@ export default function CollapsibleSidebar({
           </button>
         </div>
       </aside>
-
-      {/* Main content offset */}
-      <div
-        className={`transition-all duration-300 min-h-screen
-          ${collapsed ? 'lg:ml-[72px]' : 'lg:ml-64'}
-        `}
-      />
     </>
   );
 }
