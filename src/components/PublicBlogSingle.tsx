@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import DOMPurify from 'dompurify';
 import {
-  IconHeart, IconShare3, IconBookmark, IconBookmarkFilled,
+  IconHeart, IconShare2, IconBookmark, IconBookmarkFilled,
   IconCopy, IconBrandWhatsapp, IconBrandFacebook, IconBrandX,
   IconArrowUp, IconArrowLeft, IconEye, IconX,
 } from '@tabler/icons-react';
@@ -194,7 +194,7 @@ export default function PublicBlogSingle() {
               <span className="ms-2 min-w-[1.125rem] text-start">{formatViews(article.views)}</span>
             </div>
             <div className="relative">
-              <button onClick={() => setShowShareMenu(!showShareMenu)} className="flex items-center justify-center rounded-full text-text h-9 w-9 bg-neutral-50 hover:bg-neutral-100 transition-colors" title="Share"><IconShare3 size={18} /></button>
+              <button onClick={() => setShowShareMenu(!showShareMenu)} className="flex items-center justify-center rounded-full text-text h-9 w-9 bg-neutral-50 hover:bg-neutral-100 transition-colors" title="Share"><IconShare2 size={18} /></button>
               {showShareMenu && (
                 <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-lg border border-border py-2 w-48 z-50">
                   <button onClick={() => handleShare('whatsapp')} className="flex items-center gap-3 px-4 py-2.5 text-sm text-text hover:bg-gray-50 w-full"><IconBrandWhatsapp size={18} className="text-green-600" /> WhatsApp</button>
@@ -238,7 +238,7 @@ export default function PublicBlogSingle() {
 
           {/* Share */}
           <button onClick={() => setShowMobileShare(true)} className="flex items-center px-1.5 py-1 rounded-full text-text-light hover:text-text transition-colors">
-            <div className="w-[34px] h-[34px] flex items-center justify-center rounded-full bg-gray-100"><IconShare3 size={16} /></div>
+            <div className="w-[34px] h-[34px] flex items-center justify-center rounded-full bg-gray-100"><IconShare2 size={16} /></div>
           </button>
 
           {/* Reading Progress / Scroll to Top */}
