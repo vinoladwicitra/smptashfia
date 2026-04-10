@@ -15,7 +15,7 @@ import {
 } from '@tabler/icons-react';
 import { useToast } from '../context/ToastContext';
 import { supabase } from '../lib/supabase';
-import { uploadAvatar } from '../lib/storage';
+import { uploadBlogImage } from '../lib/storage';
 import { useAuth } from '../lib/auth';
 
 const categories = [
@@ -164,7 +164,7 @@ export default function StaffBlogEditor() {
     }
     setUploadingFeatured(true);
     try {
-      const url = await uploadAvatar(`blog-featured-${user.id}-${Date.now()}`, file);
+      const url = await uploadBlogImage(user.id, 'featured', file);
       setFeaturedImageUrl(url);
       toast({ type: 'success', title: 'Cover Image Diperbarui', description: 'Gambar sampul berhasil diunggah.' });
     } catch (error: any) {
@@ -188,7 +188,7 @@ export default function StaffBlogEditor() {
     }
     setUploadingImage(true);
     try {
-      const url = await uploadAvatar(`blog-content-${user.id}-${Date.now()}`, file);
+      const url = await uploadBlogImage(user.id, 'content', file);
       editor.chain().focus().setImage({ src: url }).run();
       toast({ type: 'success', title: 'Gambar Disisipkan', description: 'Gambar berhasil ditambahkan ke artikel.' });
     } catch (error: any) {

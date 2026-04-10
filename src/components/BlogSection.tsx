@@ -1,24 +1,56 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import { IconCalendar, IconArrowRight } from '@tabler/icons-react';
-
-const blogPosts = [
-  { id: 1, title: 'Komunitas Belajar Guru SMP Tashfia – November 2025', excerpt: 'Alhamdulillah, kegiatan Komunitas Belajar Guru SMP Tashfia bulan November 2025 telah terlaksana.', image: 'https://file.smptashfia.sch.id/2025/12/FEEDS-IG-TASHFIA-45-9-1-240x300.png', category: 'Kegiatan', date: '13 Des 2025' },
-  { id: 2, title: 'Cyberbullying: Bahaya Terbesar Media Sosial', excerpt: 'Pada zaman digital sekarang media sosial tidak seaman yang kita bayangkan.', image: 'https://file.smptashfia.sch.id/2025/12/WhatsApp-Image-2025-12-12-at-11.13.19-1-232x300.jpeg', category: 'Edukasi', date: '12 Des 2025' },
-  { id: 3, title: 'Cerdas Bermedia Sosial: Dampak Psikologis Cyberbullying', excerpt: 'Cyberbullying ialah salah satu bentuk perundungan dengan teknologi digital.', image: 'https://file.smptashfia.sch.id/2025/12/WhatsApp-Image-2025-12-12-at-11.13.19-246x300.jpeg', category: 'Edukasi', date: '12 Des 2025' },
-  { id: 4, title: 'Serangan Tanpa Wajah SLN 2025', excerpt: 'Hati-hati dengan setiap ketikan agar tidak tergelincir menjadi Cyberbullying.', image: 'https://file.smptashfia.sch.id/2025/12/1-300x150.png', category: 'Literasi Digital', date: '12 Des 2025' },
-  { id: 5, title: 'Netizen Asik Bukan Toxic SLN 2025', excerpt: 'Perundungan yang dilakukan menggunakan teknologi digital melalui berbagai platform.', image: 'https://file.smptashfia.sch.id/2025/12/WhatsApp-Image-2025-12-12-at-08.07.33-2-300x300.jpeg', category: 'Literasi Digital', date: '12 Des 2025' },
-];
 
 const categoryStyles: Record<string, string> = {
   'Kegiatan': 'bg-green-100 text-green-700 ring-green-600/20',
+  'Kegiatan Sekolah': 'bg-green-100 text-green-700 ring-green-600/20',
   'Edukasi': 'bg-blue-100 text-blue-700 ring-blue-600/20',
   'Literasi Digital': 'bg-purple-100 text-purple-700 ring-purple-600/20',
   'Akademik': 'bg-amber-100 text-amber-700 ring-amber-600/20',
+  'Pengumuman': 'bg-rose-100 text-rose-700 ring-rose-600/20',
 };
+
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return '';
+  return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+}
 
 export default function BlogSection() {
   const navigate = useNavigate();
-  const display = blogPosts.slice(0, 5);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      const { data, error } = await supabase
+        .from('articles')
+        .select(`
+          id, title, slug, excerpt, featured_image, published_at,
+          article_category_mappings (
+            article_categories (name, slug)
+          )
+        `)
+        .eq('status', 'published')
+        .order('published_at', { ascending: false })
+        .limit(5);
+
+      if (!error && data) {
+        setPosts(data.map((a: any) => ({
+          ...a,
+          category: a.article_category_mappings?.[0]?.article_categories?.name || 'Umum',
+          date: formatDate(a.published_at),
+        })));
+      }
+      setLoading(false);
+    };
+    fetchPosts();
+  }, []);
+
+  if (loading || posts.length === 0) return null;
+
+  const display = posts.slice(0, 5);
 
   return (
     <section className="py-8 bg-background lg:py-16 lg:bg-white">
@@ -36,10 +68,14 @@ export default function BlogSection() {
         <div className="hidden lg:grid lg:grid-cols-4 lg:gap-4 lg:mb-10">
           {/* Hero - Square 2x2 */}
           <div
-            onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate('/blog/'); }}
+            onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate(`/blog/${display[0].slug}`); }}
             className="col-span-2 row-span-2 relative rounded-xl overflow-hidden shadow-md group cursor-pointer aspect-square"
           >
-            <img src={display[0].image} alt={display[0].title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+            {display[0].featured_image ? (
+              <img src={display[0].featured_image} alt={display[0].title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+            ) : (
+              <div className="w-full h-full bg-primary/10 flex items-center justify-center" />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-black/90 transition-colors" />
             <div className="absolute bottom-0 left-0 right-0 p-5">
               <span className={`inline-flex px-2.5 py-0.5 font-medium text-xs rounded-full ring-1 ring-inset mb-2 ${categoryStyles[display[0].category] || 'bg-white/20 text-white ring-white/30'}`}>{display[0].category}</span>
@@ -55,8 +91,12 @@ export default function BlogSection() {
 
           {/* 4 Small Square Tiles */}
           {display.slice(1).map((post) => (
-            <div key={post.id} onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate('/blog/'); }} className="relative rounded-xl overflow-hidden shadow-md group cursor-pointer aspect-square">
-              <img src={post.image} alt={post.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+            <div key={post.id} onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate(`/blog/${post.slug}`); }} className="relative rounded-xl overflow-hidden shadow-md group cursor-pointer aspect-square">
+              {post.featured_image ? (
+                <img src={post.featured_image} alt={post.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+              ) : (
+                <div className="w-full h-full bg-primary/10 flex items-center justify-center" />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-black/90 transition-colors" />
               <div className="absolute bottom-0 left-0 right-0 p-4">
                 <span className={`inline-flex px-2 py-0.5 font-medium text-[10px] rounded-full ring-1 ring-inset mb-1.5 ${categoryStyles[post.category] || 'bg-white/20 text-white ring-white/30'}`}>{post.category}</span>
@@ -71,10 +111,14 @@ export default function BlogSection() {
 
         {/* Mobile: Compact Horizontal Cards */}
         <div className="lg:hidden space-y-3 mb-5">
-          {blogPosts.slice(0, 5).map((post) => (
-            <div key={post.id} onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate('/blog/'); }} className="flex h-28 bg-white rounded-xl overflow-hidden shadow-sm active:scale-[0.98] transition-transform cursor-pointer">
+          {display.map((post) => (
+            <div key={post.id} onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate(`/blog/${post.slug}`); }} className="flex h-28 bg-white rounded-xl overflow-hidden shadow-sm active:scale-[0.98] transition-transform cursor-pointer">
               <div className="flex-shrink-0 w-28 h-28">
-                <img src={post.image} alt={post.title} loading="lazy" className="w-full h-full object-cover" />
+                {post.featured_image ? (
+                  <img src={post.featured_image} alt={post.title} loading="lazy" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-primary/10 flex items-center justify-center" />
+                )}
               </div>
               <div className="flex-1 h-28 p-2.5 flex flex-col overflow-hidden">
                 <div>
@@ -82,7 +126,7 @@ export default function BlogSection() {
                     <span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded ${categoryStyles[post.category] || 'bg-gray-100 text-gray-700'}`}>{post.category}</span>
                   </div>
                   <h3 className="text-xs font-semibold text-text leading-tight line-clamp-2 mb-0.5">{post.title}</h3>
-                  <p className="text-[10px] text-text-light line-clamp-1">{post.excerpt}</p>
+                  {post.excerpt && <p className="text-[10px] text-text-light line-clamp-1">{post.excerpt}</p>}
                 </div>
                 <div className="flex items-center justify-between mt-auto pt-1">
                   <span className="flex items-center gap-1 text-[9px] text-text-light"><IconCalendar size={10} />{post.date}</span>

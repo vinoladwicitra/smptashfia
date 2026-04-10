@@ -45,3 +45,15 @@ export async function deleteAvatar(userId: string): Promise<void> {
   // Ignore "not found" errors
   if (error && !error.message.includes('not found')) throw error;
 }
+
+/**
+ * Upload blog image (featured or content)
+ * Uses blog folder with SEO-friendly naming
+ */
+export async function uploadBlogImage(userId: string, purpose: 'featured' | 'content', file: File): Promise<string> {
+  const ext = file.name.split('.').pop() || 'jpg';
+  const timestamp = Date.now();
+  // SEO-friendly: purpose-userId-timestamp.ext
+  const key = `blog/${purpose}/${purpose}-${userId}-${timestamp}.${ext}`;
+  return uploadToStorage(key, file);
+}
