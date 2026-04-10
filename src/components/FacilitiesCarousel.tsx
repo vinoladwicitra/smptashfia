@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { IconChevronLeft, IconChevronRight, IconX, IconBuilding, IconFlask, IconArrowRight } from '@tabler/icons-react';
+import { IconChevronLeft, IconChevronRight, IconX, IconBuilding, IconFlask, IconArrowRight, IconDeviceDesktop } from '@tabler/icons-react';
 
 const facilities = [
   {
@@ -22,6 +22,17 @@ const facilities = [
       '/assets/lab-ipa-3.webp',
       '/assets/lab-ipa-4.webp',
       '/assets/lab-ipa-5.webp',
+    ],
+  },
+  {
+    category: 'Lab Komputer',
+    icon: IconDeviceDesktop,
+    images: [
+      '/assets/lab-komputer-1.webp',
+      '/assets/lab-komputer-2.webp',
+      '/assets/lab-komputer-3.webp',
+      '/assets/lab-komputer-4.webp',
+      '/assets/lab-komputer-5.webp',
     ],
   },
 ];
