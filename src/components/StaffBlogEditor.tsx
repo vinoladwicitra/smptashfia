@@ -11,7 +11,7 @@ import {
   IconArrowLeft, IconBold, IconItalic, IconUnderline, IconStrikethrough,
   IconList, IconListNumbers, IconQuote, IconCode, IconHeading,
   IconAlignLeft, IconAlignCenter, IconAlignRight, IconLink, IconUnlink,
-  IconDeviceFloppy, IconSend, IconPhotoPlus, IconX,
+  IconDeviceFloppy, IconSend, IconPhotoPlus, IconX, IconCalendar,
 } from '@tabler/icons-react';
 import { useToast } from '../context/ToastContext';
 import { supabase } from '../lib/supabase';
@@ -88,6 +88,10 @@ export default function StaffBlogEditor() {
   const [uploadingFeatured, setUploadingFeatured] = useState(false);
   const [isEditingSlug, setIsEditingSlug] = useState(false);
   const [autoSlug, setAutoSlug] = useState(true);
+  const [publishDate, setPublishDate] = useState(() => {
+    const now = new Date();
+    return now.toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM format for datetime-local
+  });
 
   // Load article if editing
   useEffect(() => {
@@ -114,6 +118,9 @@ export default function StaffBlogEditor() {
         setSlug(data.slug);
         setAutoSlug(false);
         setFeaturedImageUrl(data.featured_image);
+        if (data.published_at) {
+          setPublishDate(new Date(data.published_at).toISOString().slice(0, 16));
+        }
 
         // Extract category from join
         const mappings = data.article_category_mappings as any[] | undefined;
@@ -229,7 +236,7 @@ export default function StaffBlogEditor() {
         featured_image: featuredImageUrl,
         author_id: user?.id,
         status,
-        published_at: status === 'published' ? new Date().toISOString() : null,
+        published_at: status === 'published' ? new Date(publishDate).toISOString() : null,
         updated_at: new Date().toISOString(),
       };
 
@@ -465,6 +472,21 @@ export default function StaffBlogEditor() {
             )}
             <input ref={featuredInputRef} type="file" accept="image/*" onChange={handleFeaturedImageUpload} className="hidden" />
             <p className="text-xs text-text-light mt-2">Gambar ini akan tampil sebagai cover artikel. Maks 5MB.</p>
+          </div>
+
+          {/* Publish Date */}
+          <div className="bg-white rounded-xl shadow-sm border border-border p-4">
+            <h3 className="text-sm font-semibold text-text mb-3 flex items-center gap-2">
+              <IconCalendar size={16} className="text-primary" />
+              Tanggal Publish
+            </h3>
+            <input
+              type="datetime-local"
+              value={publishDate}
+              onChange={(e) => setPublishDate(e.target.value)}
+              className="w-full px-4 py-3 border border-border rounded-xl outline-none focus:border-primary transition-colors text-text bg-white text-sm"
+            />
+            <p className="text-xs text-text-light mt-2">Biarkan default untuk tanggal saat ini. Ubah untuk artikel lama (migrasi).</p>
           </div>
 
           {/* Category */}
