@@ -37,7 +37,7 @@ export default function BlogSection() {
           {/* Hero - Square 2x2 */}
           <div
             onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate('/blog/'); }}
-            className="col-span-2 relative rounded-xl overflow-hidden shadow-md group cursor-pointer aspect-square"
+            className="col-span-2 row-span-2 relative rounded-xl overflow-hidden shadow-md group cursor-pointer aspect-square"
           >
             <img src={display[0].image} alt={display[0].title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-black/90 transition-colors" />
