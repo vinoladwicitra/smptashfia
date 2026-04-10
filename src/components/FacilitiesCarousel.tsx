@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { IconChevronLeft, IconChevronRight, IconX, IconBuilding, IconFlask, IconArrowRight, IconDeviceDesktop } from '@tabler/icons-react';
 
 const facilities = [
@@ -135,6 +135,14 @@ export default function FacilitiesCarousel() {
   const [activeCategory, setActiveCategory] = useState(0);
   const [activeImage, setActiveImage] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && lightboxOpen) setLightboxOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxOpen]);
 
   const currentFacility = facilities[activeCategory];
 
