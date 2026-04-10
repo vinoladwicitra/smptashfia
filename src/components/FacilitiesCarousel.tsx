@@ -231,10 +231,10 @@ export default function FacilitiesCarousel() {
           </button>
           {currentFacility.images.length > 1 && (
             <>
-              <button onClick={(e) => { e.stopPropagation(); setActiveImage((prev) => (prev - 1 + currentFacility.images.length) % currentFacility.images.length); }} className="absolute left-4 text-white">
+              <button onClick={(e) => { e.stopPropagation(); setActiveImage((prev) => (prev - 1 + currentFacility.images.length) % currentFacility.images.length); }} className="absolute left-4 text-white cursor-pointer">
                 <IconChevronLeft size={40} />
               </button>
-              <button onClick={(e) => { e.stopPropagation(); setActiveImage((prev) => (prev + 1) % currentFacility.images.length); }} className="absolute right-4 text-white">
+              <button onClick={(e) => { e.stopPropagation(); setActiveImage((prev) => (prev + 1) % currentFacility.images.length); }} className="absolute right-4 text-white cursor-pointer">
                 <IconChevronRight size={40} />
               </button>
             </>
