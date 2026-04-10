@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { STEPS, initialFormData, saveFormDraft, loadFormDraft, clearFormDraft } from '../lib/ppdb';
@@ -53,15 +53,20 @@ export default function PPDBPage() {
     updateField('buktiTransferUrl', publicUrl);
   }, [updateField]);
 
+  const formRef = useRef<HTMLDivElement>(null);
+  const scrollToForm = useCallback(() => {
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
   const validate = useCallback((s: number) => !VALIDATION[s]?.(formData), [formData]);
 
   const handleNext = useCallback(() => {
-    if (validate(step) && step < 5) { setStep(s => s + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-  }, [step, validate]);
+    if (validate(step) && step < 5) { setStep(s => s + 1); setTimeout(scrollToForm, 50); }
+  }, [step, validate, scrollToForm]);
 
   const handlePrev = useCallback(() => {
-    if (step > 1) { setStep(s => s - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-  }, [step]);
+    if (step > 1) { setStep(s => s - 1); setTimeout(scrollToForm, 50); }
+  }, [step, scrollToForm]);
 
   const handleSubmit = useCallback(async () => {
     if (!validate(step)) return;
@@ -114,7 +119,7 @@ export default function PPDBPage() {
         <PPDBAlur />
 
         {/* Progress */}
-        <div className="mb-8">
+        <div className="mb-8" ref={formRef}>
           <div className="flex justify-between mb-2 text-sm"><span className="font-medium text-text">Step {step} dari {STEPS.length}</span><span className="text-text-light">{Math.round(progress)}%</span></div>
           <div className="w-full bg-gray-200 rounded-full h-2.5"><div className="bg-primary h-2.5 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} /></div>
           <div className="flex justify-between mt-4">
