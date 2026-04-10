@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { IconCalendar, IconEye, IconSearch } from '@tabler/icons-react';
+import { IconCalendar, IconEye, IconSearch, IconCheck } from '@tabler/icons-react';
 
 interface Article {
   id: string;
@@ -317,15 +317,25 @@ export default function PublicBlogList() {
           )}
 
           {/* Infinite Scroll Trigger */}
-          {!loading && hasMore && (
-            <div ref={observerTarget} className="flex justify-center py-8">
-              {loadingMore && (
-                <div className="flex items-center gap-2 text-text-light">
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+          {!loading && (
+            <div ref={observerTarget} className="flex justify-center py-10">
+              {loadingMore ? (
+                <div className="flex items-center gap-3 text-text-light bg-white px-6 py-3 rounded-full shadow-sm border border-border">
+                  <svg className="animate-spin h-5 w-5 text-primary" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Memuat artikel lainnya...
+                  <span className="text-sm font-medium">Memuat artikel lainnya...</span>
+                </div>
+              ) : hasMore ? (
+                <div className="flex items-center gap-2 text-text-light text-sm">
+                  <svg className="animate-bounce h-4 w-4" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" strokeWidth="2" fill="none" /></svg>
+                  <span>Scroll untuk memuat lebih banyak</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-text-light text-sm">
+                  <IconCheck size={16} className="text-green-500" />
+                  <span>Semua artikel sudah ditampilkan</span>
                 </div>
               )}
             </div>
