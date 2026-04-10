@@ -18,7 +18,7 @@ const badgeColors: Record<string, string> = {
   'pengumuman': 'bg-rose-100 text-rose-700 ring-rose-600/20',
 };
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 6;
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return '';
@@ -82,119 +82,81 @@ export default function PublicBlogList() {
   }, [hasMore, loadingMore, page, fetchArticles]);
 
   const scrollToTop = useCallback(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, []);
-  const featured = articles[0];
-  const rest = articles.slice(1);
 
   return (
     <main className="min-h-screen bg-background pb-20 lg:pb-0">
-        {/* Hero */}
-        <section className="bg-primary text-white border-b border-primary">
-          <div className="max-w-6xl mx-auto px-5 lg:px-8 py-10 lg:py-16 text-center">
-            <h1 className="text-3xl lg:text-5xl font-bold mb-3">Blog & Artikel</h1>
-            <p className="text-white/80 max-w-xl mx-auto">Kumpulan berita, tips, dan informasi terkini dari SMP Tashfia.</p>
+      {/* Hero */}
+      <section className="bg-primary text-white border-b border-primary">
+        <div className="max-w-6xl mx-auto px-5 lg:px-8 py-10 lg:py-16 text-center">
+          <h1 className="text-3xl lg:text-5xl font-bold mb-3">Blog & Artikel</h1>
+          <p className="text-white/80 max-w-xl mx-auto">Kumpulan berita, tips, dan informasi terkini dari SMP Tashfia.</p>
+        </div>
+      </section>
+
+      <div className="max-w-6xl mx-auto px-5 lg:px-8 py-8">
+        {/* Category Filter */}
+        <div className="mb-6">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            <button onClick={() => { setActiveCategory('all'); navigate('/blog/'); }} className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ring-1 ring-inset cursor-pointer ${activeCategory === 'all' ? 'bg-primary text-white ring-primary' : 'bg-white text-text-light ring-border hover:bg-gray-50'}`}>Semua</button>
+            {categories.map((cat) => (
+              <button key={cat.slug} onClick={() => { setActiveCategory(cat.slug); navigate(`/blog/?category=${cat.slug}`); }} className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ring-1 ring-inset cursor-pointer ${activeCategory === cat.slug ? 'bg-primary text-white ring-primary' : 'bg-white text-text-light ring-border hover:bg-gray-50'}`}>{cat.name}</button>
+            ))}
           </div>
-        </section>
+        </div>
 
-        <div className="max-w-6xl mx-auto px-5 lg:px-8 py-8">
-          {/* Category Filter */}
-          <div className="mb-6">
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-              <button onClick={() => { setActiveCategory('all'); navigate('/blog/'); }} className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ring-1 ring-inset cursor-pointer ${activeCategory === 'all' ? 'bg-primary text-white ring-primary' : 'bg-white text-text-light ring-border hover:bg-gray-50'}`}>Semua</button>
-              {categories.map((cat) => (
-                <button key={cat.slug} onClick={() => { setActiveCategory(cat.slug); navigate(`/blog/?category=${cat.slug}`); }} className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ring-1 ring-inset cursor-pointer ${activeCategory === cat.slug ? 'bg-primary text-white ring-primary' : 'bg-white text-text-light ring-border hover:bg-gray-50'}`}>{cat.name}</button>
-              ))}
-            </div>
-          </div>
+        {/* Loading Skeleton */}
+        {loading && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{[1, 2, 3, 4, 5, 6].map((i) => (<div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse"><div className="h-48 bg-gray-200" /><div className="p-5 space-y-3"><div className="h-4 bg-gray-200 rounded w-20" /><div className="h-5 bg-gray-200 rounded w-full" /><div className="h-4 bg-gray-200 rounded w-3/4" /></div></div>))}</div>}
 
-          {/* Loading Skeleton */}
-          {loading && <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">{[1, 2, 3, 4, 5].map((i) => (<div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse"><div className="h-48 bg-gray-200" /><div className="p-5 space-y-3"><div className="h-4 bg-gray-200 rounded w-20" /><div className="h-5 bg-gray-200 rounded w-full" /><div className="h-4 bg-gray-200 rounded w-3/4" /></div></div>))}</div>}
-
-          {/* Featured */}
-          {!loading && featured && (
-            <div onClick={() => { scrollToTop(); navigate(`/blog/${featured.slug}`); }} className="block mb-10 group cursor-pointer">
-              <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-md transition-shadow">
-                <div className="grid grid-cols-1 lg:grid-cols-2">
-                  <div className="relative overflow-hidden">
-                    {featured.featured_image ? <img src={featured.featured_image} alt={featured.title} className="w-full h-64 lg:h-full object-cover group-hover:scale-[1.02] transition-transform duration-300 rounded-t-2xl lg:rounded-l-2xl lg:rounded-tr-none" /> : <div className="w-full h-64 lg:h-full bg-primary/5 flex items-center justify-center rounded-t-2xl lg:rounded-l-2xl lg:rounded-tr-none" />}
+        {/* Articles Grid */}
+        {!loading && articles.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {articles.map((article) => (
+              <div key={article.id} onClick={() => { scrollToTop(); navigate(`/blog/${article.slug}`); }} className="group block bg-white rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-md transition-shadow cursor-pointer">
+                <div className="relative overflow-hidden">
+                  {article.featured_image ? <img src={article.featured_image} alt={article.title} className="w-full h-48 object-cover group-hover:scale-[1.02] transition-transform duration-300" /> : <div className="w-full h-48 bg-primary/5 flex items-center justify-center" />}
+                </div>
+                <div className="p-5">
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {article.article_categories?.map((cat) => (
+                      <span key={cat.slug} onClick={(e) => { e.stopPropagation(); setActiveCategory(cat.slug); navigate(`/blog/?category=${cat.slug}`); }} className={`inline-flex px-2.5 py-1 font-medium text-xs rounded-full ring-1 ring-inset cursor-pointer ${badgeColors[cat.slug] || 'bg-gray-100 text-gray-700 ring-gray-600/20'}`}>{cat.name}</span>
+                    ))}
                   </div>
-                  <div className="p-6 lg:p-10 flex flex-col justify-center">
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {featured.article_categories?.map((cat) => (
-                        <span key={cat.slug} onClick={(e) => { e.stopPropagation(); setActiveCategory(cat.slug); navigate(`/blog/?category=${cat.slug}`); }} className={`inline-flex px-3 py-1 font-medium text-xs rounded-full ring-1 ring-inset cursor-pointer ${badgeColors[cat.slug] || 'bg-gray-100 text-gray-700 ring-gray-600/20'}`}>{cat.name}</span>
-                      ))}
+                  <h4 className="text-base font-semibold text-text mb-2 line-clamp-2 group-hover:text-primary transition-colors cursor-pointer">{article.title}</h4>
+                  {article.excerpt && <p className="text-sm text-text-light line-clamp-2 mb-3">{article.excerpt}</p>}
+                  {article.author_name && (
+                    <div className="flex items-center gap-2 mb-2">
+                      {article.author_avatar ? <img src={article.author_avatar} alt="" className="w-5 h-5 rounded-full object-cover" /> : <span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">{article.author_name[0]?.toUpperCase()}</span>}
+                      <span className="text-xs text-text-light">{article.author_name}</span>
                     </div>
-                    <h2 className="text-2xl lg:text-3xl font-bold text-text mb-3 leading-tight group-hover:text-primary transition-colors line-clamp-3">{featured.title}</h2>
-                    {featured.excerpt && <p className="text-text-light line-clamp-3 mb-5">{featured.excerpt}</p>}
-                    <div className="flex items-center gap-4 text-xs text-text-light mb-5">
-                      <span className="flex items-center gap-1"><IconCalendar size={14} />{formatDate(featured.published_at)}</span>
-                      <span className="flex items-center gap-1"><IconEye size={14} />{formatViews(featured.views)} views</span>
-                      {featured.author_name && (
-                        <span className="flex items-center gap-2">
-                          {featured.author_avatar ? <img src={featured.author_avatar} alt="" className="w-5 h-5 rounded-full object-cover" /> : <span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">{featured.author_name[0]?.toUpperCase()}</span>}
-                          {featured.author_name}
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-4"><button className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors cursor-pointer">Baca Selengkapnya</button></div>
+                  )}
+                  <div className="flex items-center gap-3 text-xs text-text-light">
+                    <span className="flex items-center gap-1"><IconCalendar size={13} />{formatDate(article.published_at)}</span>
+                    <span className="flex items-center gap-1"><IconEye size={13} />{formatViews(article.views)}</span>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            ))}
+          </div>
+        )}
 
-          {/* Articles Grid */}
-          {!loading && rest.length > 0 && (
-            <>
-              <h3 className="text-lg font-semibold text-text mb-5">Artikel Terbaru</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {rest.map((article) => (
-                  <div key={article.id} onClick={() => { scrollToTop(); navigate(`/blog/${article.slug}`); }} className="group block bg-white rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-md transition-shadow cursor-pointer">
-                    <div className="relative overflow-hidden">
-                      {article.featured_image ? <img src={article.featured_image} alt={article.title} className="w-full h-48 object-cover group-hover:scale-[1.02] transition-transform duration-300" /> : <div className="w-full h-48 bg-primary/5 flex items-center justify-center" />}
-                    </div>
-                    <div className="p-5">
-                      <div className="flex flex-wrap gap-1.5 mb-3">
-                        {article.article_categories?.map((cat) => (
-                          <span key={cat.slug} onClick={(e) => { e.stopPropagation(); setActiveCategory(cat.slug); navigate(`/blog/?category=${cat.slug}`); }} className={`inline-flex px-2.5 py-1 font-medium text-xs rounded-full ring-1 ring-inset cursor-pointer ${badgeColors[cat.slug] || 'bg-gray-100 text-gray-700 ring-gray-600/20'}`}>{cat.name}</span>
-                        ))}
-                      </div>
-                      <h4 className="text-base font-semibold text-text mb-2 line-clamp-2 group-hover:text-primary transition-colors cursor-pointer">{article.title}</h4>
-                      {article.excerpt && <p className="text-sm text-text-light line-clamp-2 mb-3">{article.excerpt}</p>}
-                      {article.author_name && (
-                        <div className="flex items-center gap-2 mb-2">
-                          {article.author_avatar ? <img src={article.author_avatar} alt="" className="w-5 h-5 rounded-full object-cover" /> : <span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">{article.author_name[0]?.toUpperCase()}</span>}
-                          <span className="text-xs text-text-light">{article.author_name}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-3 text-xs text-text-light">
-                        <span className="flex items-center gap-1"><IconCalendar size={13} />{formatDate(article.published_at)}</span>
-                        <span className="flex items-center gap-1"><IconEye size={13} />{formatViews(article.views)}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
+        {/* Load More Button */}
+        {!loading && hasMore && articles.length > 0 && (
+          <div className="flex justify-center py-10">
+            <button onClick={loadMore} disabled={loadingMore} className="flex items-center gap-2 px-8 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer">
+              {loadingMore ? <><IconLoader2 size={18} className="animate-spin" /> Memuat...</> : <>Tampilkan Lebih Banyak</>}
+            </button>
+          </div>
+        )}
 
-          {/* Load More Button */}
-          {!loading && hasMore && (
-            <div className="flex justify-center py-10">
-              <button onClick={loadMore} disabled={loadingMore} className="flex items-center gap-2 px-8 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer">
-                {loadingMore ? <><IconLoader2 size={18} className="animate-spin" /> Memuat...</> : <>Tampilkan Lebih Banyak</>}
-              </button>
-            </div>
-          )}
-
-          {/* Empty State */}
-          {!loading && articles.length === 0 && (
-            <div className="text-center py-16">
-              <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4"><IconSearch size={24} className="text-text-light" /></div>
-              <h3 className="text-lg font-semibold text-text mb-2">Belum ada artikel</h3>
-              <p className="text-text-light">Artikel akan segera ditambahkan.</p>
-            </div>
-          )}
-        </div>
-      </main>
+        {/* Empty State */}
+        {!loading && articles.length === 0 && (
+          <div className="text-center py-16">
+            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4"><IconSearch size={24} className="text-text-light" /></div>
+            <h3 className="text-lg font-semibold text-text mb-2">Belum ada artikel</h3>
+            <p className="text-text-light">Artikel akan segera ditambahkan.</p>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }

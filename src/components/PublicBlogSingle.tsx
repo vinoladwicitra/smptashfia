@@ -45,6 +45,7 @@ export default function PublicBlogSingle() {
   const [likeCount, setLikeCount] = useState(0);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [showMobileShare, setShowMobileShare] = useState(false);
+  const [shareAnimating, setShareAnimating] = useState(false);
   const [readProgress, setReadProgress] = useState(0);
   const [inArticle, setInArticle] = useState(false);
 
@@ -143,7 +144,8 @@ export default function PublicBlogSingle() {
         break;
     }
     setShowShareMenu(false);
-    setShowMobileShare(false);
+    setShareAnimating(true);
+    setTimeout(() => { setShowMobileShare(false); setShareAnimating(false); }, 200);
   };
 
   if (loading) {
@@ -252,11 +254,11 @@ export default function PublicBlogSingle() {
 
       {/* Mobile Share Bottom Sheet */}
       {showMobileShare && (
-        <div className="sm:hidden fixed inset-0 bg-black/50 z-[1000] flex items-end" onClick={() => setShowMobileShare(false)}>
-          <div className="bg-white rounded-t-2xl w-full p-6 animate-slideUp" onClick={(e) => e.stopPropagation()}>
+        <div className="sm:hidden fixed inset-0 bg-black/50 z-[1000] flex items-end transition-opacity duration-200" style={{ opacity: shareAnimating ? 0 : 1 }} onClick={() => { setShareAnimating(true); setTimeout(() => { setShowMobileShare(false); setShareAnimating(false); }, 200); }}>
+          <div className="bg-white rounded-t-2xl w-full p-6 transition-transform duration-200" style={{ transform: shareAnimating ? 'translateY(100%)' : 'translateY(0)' }} onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-text">Bagikan Artikel</h3>
-              <button onClick={() => setShowMobileShare(false)} className="p-2 rounded-full hover:bg-gray-100"><IconX size={20} className="text-text-light" /></button>
+              <button onClick={() => { setShareAnimating(true); setTimeout(() => { setShowMobileShare(false); setShareAnimating(false); }, 200); }} className="p-2 rounded-full hover:bg-gray-100"><IconX size={20} className="text-text-light" /></button>
             </div>
             <div className="grid grid-cols-4 gap-4">
               <button onClick={() => handleShare('whatsapp')} className="flex flex-col items-center gap-2">
@@ -276,7 +278,7 @@ export default function PublicBlogSingle() {
                 <span className="text-xs text-text">Salin Link</span>
               </button>
             </div>
-            <button onClick={() => setShowMobileShare(false)} className="w-full mt-4 py-3 text-text font-medium text-sm rounded-xl hover:bg-gray-50 transition-colors">Tutup</button>
+            <button onClick={() => { setShareAnimating(true); setTimeout(() => { setShowMobileShare(false); setShareAnimating(false); }, 200); }} className="w-full mt-4 py-3 text-text font-medium text-sm rounded-xl hover:bg-gray-50 transition-colors">Tutup</button>
           </div>
         </div>
       )}
