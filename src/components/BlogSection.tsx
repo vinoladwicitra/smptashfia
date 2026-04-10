@@ -34,31 +34,35 @@ export default function BlogSection() {
 
         {/* Desktop: Square Bento Grid (1 large + 4 small) */}
         <div className="hidden lg:grid lg:grid-cols-4 lg:gap-4 lg:mb-10">
-          {display.map((post, index) => (
-            <div
-              key={post.id}
-              onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate('/blog/'); }}
-              className={`relative rounded-xl overflow-hidden shadow-md group cursor-pointer ${
-                index === 0 ? 'col-span-2 row-span-2' : 'aspect-square'
-              }`}
-            >
-              <img
-                src={post.image}
-                alt={post.title}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                loading="lazy"
-              />
+          {/* Hero - Square 2x2 */}
+          <div
+            onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate('/blog/'); }}
+            className="col-span-2 relative rounded-xl overflow-hidden shadow-md group cursor-pointer aspect-square"
+          >
+            <img src={display[0].image} alt={display[0].title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-black/90 transition-colors" />
+            <div className="absolute bottom-0 left-0 right-0 p-5">
+              <span className={`inline-flex px-2.5 py-0.5 font-medium text-xs rounded-full ring-1 ring-inset mb-2 ${categoryStyles[display[0].category] || 'bg-white/20 text-white ring-white/30'}`}>{display[0].category}</span>
+              <h3 className="text-xl font-bold text-white mb-3 leading-tight line-clamp-3">{display[0].title}</h3>
+              <div className="flex items-center gap-3 text-xs text-white/70 mb-3">
+                <span className="flex items-center gap-1"><IconCalendar size={13} />{display[0].date}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-white/80 text-sm font-medium group-hover:text-white transition-colors">
+                Baca Selengkapnya <IconArrowRight size={14} />
+              </div>
+            </div>
+          </div>
+
+          {/* 4 Small Square Tiles */}
+          {display.slice(1).map((post) => (
+            <div key={post.id} onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate('/blog/'); }} className="relative rounded-xl overflow-hidden shadow-md group cursor-pointer aspect-square">
+              <img src={post.image} alt={post.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-black/90 transition-colors" />
-              <div className={`absolute bottom-0 left-0 right-0 p-5 ${index === 0 ? '' : ''}`}>
-                <span className={`inline-flex px-2.5 py-0.5 font-medium text-xs rounded-full ring-1 ring-inset mb-2 ${categoryStyles[post.category] || 'bg-white/20 text-white ring-white/30'}`}>{post.category}</span>
-                <h3 className={`font-bold text-white mb-1 leading-tight ${index === 0 ? 'text-xl line-clamp-3' : 'text-sm line-clamp-2'}`}>{post.title}</h3>
-                {index === 0 && (
-                  <div className="flex items-center gap-3 text-xs text-white/70 mb-3">
-                    <span className="flex items-center gap-1"><IconCalendar size={13} />{post.date}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-1.5 text-white/80 text-sm font-medium group-hover:text-white transition-colors">
-                  Baca Selengkapnya <IconArrowRight size={14} />
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <span className={`inline-flex px-2 py-0.5 font-medium text-[10px] rounded-full ring-1 ring-inset mb-1.5 ${categoryStyles[post.category] || 'bg-white/20 text-white ring-white/30'}`}>{post.category}</span>
+                <h3 className="text-sm font-bold text-white mb-1 leading-tight line-clamp-2">{post.title}</h3>
+                <div className="flex items-center gap-1.5 text-white/80 text-xs font-medium group-hover:text-white transition-colors">
+                  Baca <IconArrowRight size={12} />
                 </div>
               </div>
             </div>
