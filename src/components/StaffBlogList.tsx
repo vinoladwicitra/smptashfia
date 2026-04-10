@@ -78,11 +78,22 @@ export default function StaffBlogList() {
 
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`Hapus artikel "${title}"? Tindakan ini tidak bisa dibatalkan.`)) return;
+
+    // Fetch article content to extract image URLs
+    const { data: article } = await supabase.from('articles').select('content, featured_image').eq('id', id).single();
+
+    // Delete images from storage
+    if (article?.content) {
+      const { deleteBlogImages } = await import('../lib/storage');
+      await deleteBlogImages(article.content);
+    }
+
+    // Delete the article
     const { error } = await supabase.from('articles').delete().eq('id', id);
     if (error) {
       toast({ type: 'error', title: 'Gagal Menghapus', description: error.message });
     } else {
-      toast({ type: 'success', title: 'Artikel Dihapus', description: `"${title}" berhasil dihapus.` });
+      toast({ type: 'success', title: 'Artikel Dihapus', description: `"${title}" berhasil dihapus beserta gambarnya.` });
       fetchArticles();
     }
   };

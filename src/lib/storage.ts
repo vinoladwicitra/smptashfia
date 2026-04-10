@@ -53,7 +53,27 @@ export async function deleteAvatar(userId: string): Promise<void> {
 export async function uploadBlogImage(userId: string, purpose: 'featured' | 'content', file: File): Promise<string> {
   const ext = file.name.split('.').pop() || 'jpg';
   const timestamp = Date.now();
-  // SEO-friendly: purpose-userId-timestamp.ext
   const key = `blog/${purpose}/${purpose}-${userId}-${timestamp}.${ext}`;
   return uploadToStorage(key, file);
+}
+
+/**
+ * Delete blog images from storage when article is deleted
+ */
+export async function deleteBlogImages(contentHtml: string): Promise<void> {
+  const keys: string[] = [];
+
+  // Extract content image paths
+  const contentImgRegex = /\/blog\/content\/[^"'?]+/g;
+  let match;
+  while ((match = contentImgRegex.exec(contentHtml)) !== null) {
+    keys.push(match[0]);
+  }
+
+  if (keys.length > 0) {
+    const { error } = await supabase.storage.from(BUCKET).remove(keys);
+    if (error && !error.message.includes('not found')) {
+      console.warn('Storage delete warning:', error.message);
+    }
+  }
 }

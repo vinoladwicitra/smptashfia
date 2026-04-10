@@ -41,11 +41,11 @@ export default function Footer() {
               <h5 className="text-lg font-semibold mb-4">Tautan Cepat</h5>
               <ul className="space-y-2">
                 <li><InternalLink to="/" className="hover:text-gray-200 transition-colors cursor-pointer">Home</InternalLink></li>
-                <li><InternalLink to="/tentang-kami" className="hover:text-gray-200 transition-colors cursor-pointer">Tentang Kami</InternalLink></li>
+                <li><InternalLink to="/tentang-kami" className="hover:text-gray-200 transition-colors cursor-pointer">Tentang</InternalLink></li>
                 <li><InternalLink to="/program" className="hover:text-gray-200 transition-colors cursor-pointer">Program</InternalLink></li>
                 <li><InternalLink to="/blog/" className="hover:text-gray-200 transition-colors cursor-pointer">Artikel</InternalLink></li>
                 <li><InternalLink to="/pmb" className="hover:text-gray-200 transition-colors cursor-pointer">PMB</InternalLink></li>
-                <li><InternalLink to="/hubungi-kami" className="hover:text-gray-200 transition-colors cursor-pointer">Hubungi Kami</InternalLink></li>
+                <li><InternalLink to="/hubungi-kami" className="hover:text-gray-200 transition-colors cursor-pointer">Kontak</InternalLink></li>
               </ul>
             </div>
             {/* Column 3: Location with Embedded Map */}
@@ -82,7 +82,7 @@ export default function Footer() {
           <a href="tel:+622184978071" className="flex items-center gap-3 bg-white/10 rounded-xl p-4 active:bg-white/20 transition-colors cursor-pointer">
             <IconPhone size={20} className="flex-shrink-0" />
             <div>
-              <p className="text-sm font-semibold">Hubungi Kami</p>
+              <p className="text-sm font-semibold">Kontak</p>
               <p className="text-xs text-gray-300">(021) 84978071</p>
             </div>
             <IconChevronRight size={16} className="ml-auto text-gray-300" />
@@ -113,7 +113,7 @@ export default function Footer() {
         <div className="px-5 mt-6">
           <h5 className="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wide">Tautan</h5>
           <div className="grid grid-cols-2 gap-2">
-            {[{ label: 'Home', to: '/' }, { label: 'Tentang Kami', to: '/tentang-kami' }, { label: 'Program', to: '/program' }, { label: 'Artikel', to: '/blog/' }, { label: 'PMB', to: '/pmb' }, { label: 'Hubungi Kami', to: '/hubungi-kami' }].map((link) => (
+            {[{ label: 'Home', to: '/' }, { label: 'Tentang', to: '/tentang-kami' }, { label: 'Program', to: '/program' }, { label: 'Artikel', to: '/blog/' }, { label: 'PMB', to: '/pmb' }, { label: 'Kontak', to: '/hubungi-kami' }].map((link) => (
               <InternalLink key={link.label} to={link.to} className="flex items-center gap-1.5 bg-white/5 rounded-lg px-3 py-2.5 text-sm text-gray-200 active:bg-white/15 transition-colors cursor-pointer">
                 <IconChevronRight size={14} />
                 {link.label}

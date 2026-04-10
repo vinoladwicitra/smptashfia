@@ -4,12 +4,12 @@ import { IconHome, IconHomeFilled, IconBriefcase, IconBriefcaseFilled, IconBulb,
 
 const menuItems = [
   { label: 'Home', href: '/', icon: IconHome, iconFilled: IconHomeFilled, match: '/', external: false },
-  { label: 'Tentang Kami', href: '/tentang-kami', icon: IconBriefcase, iconFilled: IconBriefcaseFilled, match: '/tentang-kami', external: false },
+  { label: 'Tentang', href: '/tentang-kami', icon: IconBriefcase, iconFilled: IconBriefcaseFilled, match: '/tentang-kami', external: false },
   { label: 'Program', href: '/program', icon: IconBulb, iconFilled: IconBulbFilled, match: '/program', external: false },
   { label: 'PMB', href: '/pmb', icon: IconUserCheck, iconFilled: IconUserCheck, match: '/pmb', external: false },
   { label: 'Blog', href: '/blog/', icon: IconPencil, iconFilled: IconPencilFilled, match: '/blog', external: false },
   { label: 'Perpustakaan', href: 'https://mahad-attashfiyyah.perpus.id/', icon: IconBook, iconFilled: IconBookFilled, match: '', external: true },
-  { label: 'Hubungi Kami', href: '/hubungi-kami', icon: IconHeadset, iconFilled: IconHeadsetFilled, match: '/hubungi-kami', external: false },
+  { label: 'Kontak', href: '/hubungi-kami', icon: IconHeadset, iconFilled: IconHeadsetFilled, match: '/hubungi-kami', external: false },
 ];
 
 const loginItems = [
