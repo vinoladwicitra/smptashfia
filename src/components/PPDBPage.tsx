@@ -29,6 +29,7 @@ export default function PPDBPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState<PPDBFormData>(initialFormData);
   const [initialized, setInitialized] = useState(false);
 
@@ -71,24 +72,91 @@ export default function PPDBPage() {
   const handleSubmit = useCallback(async () => {
     if (!validate(step)) return;
     setSubmitting(true);
-    const { error } = await supabase.from('ppdb_registrations').insert({
-      email: formData.email, bukti_transfer_url: formData.buktiTransferUrl, pemilihan_sekolah: formData.pemilihanSekolah,
-      nama_lengkap: formData.namaLengkap, nama_panggilan: formData.namaPanggilan, tempat_lahir: formData.tempatLahir,
-      tanggal_lahir: formData.tanggalLahir, alamat: formData.alamat, asal_sekolah: formData.asalSekolah,
-      alamat_sekolah: formData.alamatSekolah, no_telp_ortu_1: formData.noTelpOrtu1, no_telp_ortu_2: formData.noTelpOrtu2,
-      nama_bapak: formData.namaBapak, tempat_lahir_bapak: formData.tempatLahirBapak, tanggal_lahir_bapak: formData.tanggalLahirBapak,
-      pendidikan_bapak: formData.pendidikanBapak, pekerjaan_bapak: formData.pekerjaanBapak,
-      nama_ibu: formData.namaIbu, tempat_lahir_ibu: formData.tempatLahirIbu, tanggal_lahir_ibu: formData.tanggalLahirIbu,
-      pendidikan_ibu: formData.pendidikanIbu, pekerjaan_ibu: formData.pekerjaanIbu || '',
-      sumber_info: formData.sumberInfo, sumber_info_lainnya: formData.sumberInfo === 'Lainnya' ? formData.sumberInfoLainnya : null,
-    });
-    setSubmitting(false);
-    if (error) return;
-    clearFormDraft(); navigate('/');
+
+    try {
+      const res = await fetch('/api/ppdb/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          bukti_transfer_url: formData.buktiTransferUrl,
+          pemilihan_sekolah: formData.pemilihanSekolah,
+          nama_lengkap: formData.namaLengkap,
+          nama_panggilan: formData.namaPanggilan,
+          tempat_lahir: formData.tempatLahir,
+          tanggal_lahir: formData.tanggalLahir,
+          alamat: formData.alamat,
+          asal_sekolah: formData.asalSekolah,
+          alamat_sekolah: formData.alamatSekolah,
+          no_telp_ortu_1: formData.noTelpOrtu1,
+          no_telp_ortu_2: formData.noTelpOrtu2,
+          nama_bapak: formData.namaBapak,
+          tempat_lahir_bapak: formData.tempatLahirBapak,
+          tanggal_lahir_bapak: formData.tanggalLahirBapak,
+          pendidikan_bapak: formData.pendidikanBapak,
+          pekerjaan_bapak: formData.pekerjaanBapak,
+          nama_ibu: formData.namaIbu,
+          tempat_lahir_ibu: formData.tempatLahirIbu,
+          tanggal_lahir_ibu: formData.tanggalLahirIbu,
+          pendidikan_ibu: formData.pendidikanIbu,
+          pekerjaan_ibu: formData.pekerjaanIbu || '',
+          sumber_info: formData.sumberInfo,
+          sumber_info_lainnya: formData.sumberInfo === 'Lainnya' ? formData.sumberInfoLainnya : null,
+        }),
+      });
+
+      const data = await res.json();
+      setSubmitting(false);
+
+      if (!data.success) {
+        const errorMsg = typeof data.error === 'string' ? data.error : (data.error?.message || 'Terjadi kesalahan');
+        alert('Gagal mendaftar: ' + errorMsg);
+        return;
+      }
+
+      clearFormDraft();
+      setSubmitted(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {
+      setSubmitting(false);
+      alert('Terjadi kesalahan saat mengirim formulir');
+    }
   }, [formData, validate, navigate]);
 
   const progress = (step / STEPS.length) * 100;
-  const FormComponent = FORM_COMPONENTS[step] as any;
+
+  // Thank you page
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="max-w-md w-full text-center">
+          <div className="bg-white rounded-2xl shadow-lg border border-border p-8">
+            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-text mb-2">Pendaftaran Berhasil!</h1>
+            <p className="text-text-light mb-6">
+              Terima kasih telah mendaftar di SMP Tashfia. Tim kami akan meninjau pendaftaran Anda dan menghubungi melalui email yang telah didaftarkan.
+            </p>
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+              <p className="text-sm text-green-800">
+                <strong>Email:</strong> {formData.email}
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/')}
+              className="w-full py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors cursor-pointer"
+            >
+              Kembali ke Beranda
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -142,7 +210,10 @@ export default function PPDBPage() {
         {/* Form */}
         <div className="bg-white rounded-xl shadow-sm border border-border p-6">
           <h3 className="text-lg font-semibold text-text mb-4">Formulir Pendaftaran</h3>
-          {FormComponent && <FormComponent formData={formData} updateField={updateField} onFileUpload={handleFileUpload} />}
+          {(() => {
+            const FormComponent = FORM_COMPONENTS[step] as any;
+            return FormComponent && <FormComponent formData={formData} updateField={updateField} onFileUpload={handleFileUpload} />;
+          })()}
           <div className="flex items-center justify-between mt-8 pt-4 border-t border-border">
             {step > 1
               ? <button onClick={handlePrev} className="flex items-center gap-2 px-3 py-2 sm:px-5 sm:py-2.5 text-sm sm:text-base bg-white text-text font-semibold border border-border rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"><IconChevronLeft size={16} /><span className="sm:inline"> Sebelumnya</span></button>

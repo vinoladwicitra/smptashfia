@@ -82,10 +82,6 @@ export default function PublicBlogSingle() {
       if (error || !articleData) { navigate('/blog/'); return; }
       let authorName = 'SMP Tashfia';
       let authorAvatar: string | null = null;
-      if (articleData.author_id) {
-        const { data: pd } = await supabase.from('profiles').select('display_name, avatar_url').eq('id', articleData.author_id).single();
-        if (pd) { authorName = pd.display_name || 'SMP Tashfia'; authorAvatar = pd.avatar_url || null; }
-      }
       const newViews = (articleData.views || 0) + 1;
       await supabase.from('articles').update({ views: newViews }).eq('id', articleData.id);
       setArticle({ ...articleData, categories: articleData.article_category_mappings?.map((m: any) => m.article_categories).filter(Boolean) || [], authorName, authorAvatar, views: newViews });

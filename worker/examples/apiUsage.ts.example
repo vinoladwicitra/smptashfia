@@ -1,0 +1,262 @@
+/**
+ * Example: How to use the Hono API from the frontend
+ * 
+ * This file demonstrates how to integrate the API endpoints
+ * with your existing React components.
+ */
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
+/**
+ * Example 1: Fetch published articles
+ */
+export async function fetchArticles(limit = 10, offset = 0) {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/articles?limit=${limit}&offset=${offset}`
+    );
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      return data.data;
+    } else {
+      throw new Error(data.error || 'Failed to fetch articles');
+    }
+  } catch (error) {
+    console.error('Error fetching articles:', error);
+    throw error;
+  }
+}
+
+/**
+ * Example 2: Fetch single article by slug
+ */
+export async function fetchArticleBySlug(slug: string) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/articles/${slug}`);
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      return data.data;
+    } else {
+      throw new Error(data.error || 'Failed to fetch article');
+    }
+  } catch (error) {
+    console.error('Error fetching article:', error);
+    throw error;
+  }
+}
+
+/**
+ * Example 3: Submit PPDB registration
+ */
+export async function submitPPDBRegistration(formData: Record<string, unknown>) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/ppdb/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      return data.data;
+    } else {
+      throw new Error(data.error || 'Failed to submit registration');
+    }
+  } catch (error) {
+    console.error('Error submitting PPDB registration:', error);
+    throw error;
+  }
+}
+
+/**
+ * Example 4: Fetch PPDB registrations (requires authentication)
+ */
+export async function fetchPPDBRegistrations(token: string, filters?: {
+  status?: string;
+  sekolah?: string;
+  limit?: number;
+  offset?: number;
+}) {
+  try {
+    const params = new URLSearchParams();
+    
+    if (filters?.status) params.set('status', filters.status);
+    if (filters?.sekolah) params.set('sekolah', filters.sekolah);
+    if (filters?.limit) params.set('limit', String(filters.limit));
+    if (filters?.offset) params.set('offset', String(filters.offset));
+    
+    const response = await fetch(
+      `${API_BASE_URL}/ppdb/list?${params}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      return data.data;
+    } else {
+      throw new Error(data.error || 'Failed to fetch registrations');
+    }
+  } catch (error) {
+    console.error('Error fetching PPDB registrations:', error);
+    throw error;
+  }
+}
+
+/**
+ * Example 5: Validate user token and get user info
+ */
+export async function validateUserToken(token: string) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/validate`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      return data.data;
+    } else {
+      throw new Error(data.error || 'Invalid token');
+    }
+  } catch (error) {
+    console.error('Error validating token:', error);
+    throw error;
+  }
+}
+
+/**
+ * Example 6: Get user profile (requires authentication)
+ */
+export async function getUserProfile(token: string) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      return data.data;
+    } else {
+      throw new Error(data.error || 'Failed to fetch profile');
+    }
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    throw error;
+  }
+}
+
+/**
+ * Example 7: Update user profile (requires authentication)
+ */
+export async function updateUserProfile(
+  token: string,
+  profileData: {
+    display_name?: string;
+    avatar_url?: string;
+    phone?: string;
+    bio?: string;
+  }
+) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(profileData),
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      return data.data;
+    } else {
+      throw new Error(data.error || 'Failed to update profile');
+    }
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    throw error;
+  }
+}
+
+/**
+ * Example 8: Fetch article categories
+ */
+export async function fetchCategories() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/articles/categories/list`);
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      return data.data;
+    } else {
+      throw new Error(data.error || 'Failed to fetch categories');
+    }
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    throw error;
+  }
+}
+
+// ============================================
+// Usage in React Components:
+// ============================================
+
+// Example React component usage:
+/*
+import { useEffect, useState } from 'react';
+import { fetchArticles } from '../worker/examples/apiUsage';
+
+function ArticleList() {
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadArticles() {
+      try {
+        const data = await fetchArticles(10);
+        setArticles(data);
+      } catch (error) {
+        console.error('Failed to load articles:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadArticles();
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <div>
+      {articles.map(article => (
+        <article key={article.id}>
+          <h2>{article.title}</h2>
+          <p>{article.excerpt}</p>
+        </article>
+      ))}
+    </div>
+  );
+}
+*/

@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { IconHome, IconHomeFilled, IconBriefcase, IconBriefcaseFilled, IconBulb, IconBulbFilled, IconBook, IconBookFilled, IconHeadset, IconHeadsetFilled, IconX, IconPhone, IconClock, IconMapPin, IconUser, IconUserCheck, IconUsersGroup, IconUsers, IconPencil, IconPencilFilled } from '@tabler/icons-react';
+import { useSiteSettings } from '../context/SiteSettingsContext';
+
+const API_BASE = '/api';
 
 const menuItems = [
   { label: 'Home', href: '/', icon: IconHome, iconFilled: IconHomeFilled, match: '/', external: false },
@@ -20,9 +23,40 @@ const loginItems = [
 ];
 
 export default function Header() {
-  const [promoVisible, setPromoVisible] = useState(true);
+  const { settings } = useSiteSettings();
+  const [promoVisible, setPromoVisible] = useState(false);
+  const [promoText, setPromoText] = useState('');
   const [loginDropdown, setLoginDropdown] = useState(false);
   const location = useLocation();
+
+  // Use settings or fallback defaults
+  const phone = settings?.contact_phone || '(021) 84978071';
+  const hours = settings?.contact_hours || 'Sen - Jum : 07.30 - 15.10 WIB';
+  const address = settings?.contact_address_short || 'Jl. Dr. Ratna No.82, Bekasi - 17421';
+
+  useEffect(() => {
+    const fetchTopBanner = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/banners/top_banner`);
+        const data = await res.json();
+        if (data.success && data.data) {
+          setPromoVisible(data.data.enabled);
+          setPromoText(data.data.text || 'TELAH DIBUKA PMB TA 2026/2027');
+        } else {
+          setPromoVisible(true);
+          setPromoText('TELAH DIBUKA PMB TA 2026/2027');
+        }
+      } catch {
+        setPromoVisible(true);
+        setPromoText('TELAH DIBUKA PMB TA 2026/2027');
+      }
+    };
+    fetchTopBanner();
+    
+    const handleBannerUpdate = () => fetchTopBanner();
+    window.addEventListener('banner-updated', handleBannerUpdate);
+    return () => window.removeEventListener('banner-updated', handleBannerUpdate);
+  }, []);
 
   return (
     <header className="relative bg-white shadow-sm z-[1000]">
@@ -30,7 +64,7 @@ export default function Header() {
       {promoVisible && (
         <div className="bg-primary text-white py-3 relative">
           <div className="max-w-5xl mx-auto px-8 flex items-center justify-center relative">
-            <span className="font-semibold text-sm tracking-wide">TELAH DIBUKA PMB TA 2026/2027</span>
+            <span className="font-semibold text-sm tracking-wide">{promoText}</span>
             <button
               className="absolute right-4 text-white hover:text-gray-200 cursor-pointer"
               onClick={() => setPromoVisible(false)}
@@ -56,25 +90,25 @@ export default function Header() {
 
           {/* Info Items */}
           <div className="flex items-center gap-8">
-            <a href="tel:+622184978071" className="flex items-center gap-3 text-text">
+            <a href={`tel:${settings?.contact_phone_intl || '+622184978071'}`} className="flex items-center gap-3 text-text">
               <IconPhone className="text-primary flex-shrink-0" size={24} />
               <div>
                 <strong className="block text-sm font-semibold">Hubungi Kami</strong>
-                <span className="block text-xs text-text-light">(021) 84978071</span>
+                <span className="block text-xs text-text-light">{phone}</span>
               </div>
             </a>
             <div className="flex items-center gap-3 text-text">
               <IconClock className="text-primary flex-shrink-0" size={24} />
               <div>
                 <strong className="block text-sm font-semibold">Jam Kerja Sekolah</strong>
-                <span className="block text-xs text-text-light">Sen - Jum : 07.30 - 15.10 WIB</span>
+                <span className="block text-xs text-text-light">{hours}</span>
               </div>
             </div>
             <div className="flex items-center gap-3 text-text">
               <IconMapPin className="text-primary flex-shrink-0" size={24} />
               <div>
                 <strong className="block text-sm font-semibold">Alamat Sekolah</strong>
-                <span className="block text-xs text-text-light">Jl. Dr. Ratna No.82, Bekasi - 17421</span>
+                <span className="block text-xs text-text-light">{address}</span>
               </div>
             </div>
           </div>

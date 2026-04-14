@@ -25,6 +25,12 @@ const TeacherDashboard = lazy(() => import('./components/TeacherDashboard'))
 const StudentDashboard = lazy(() => import('./components/StudentDashboard'))
 const StaffDashboard = lazy(() => import('./components/StaffDashboard'))
 const StaffProfile = lazy(() => import('./components/StaffProfile'))
+const StaffBanners = lazy(() => import('./components/StaffBanners'))
+const StaffSiteSettings = lazy(() => import('./components/StaffSiteSettings'))
+const StaffUsers = lazy(() => import('./components/StaffUsers'))
+const StaffPPDB = lazy(() => import('./components/StaffPPDB'))
+const StaffGoogleSheets = lazy(() => import('./components/StaffGoogleSheets'))
+const GoogleSheetsCallback = lazy(() => import('./components/GoogleSheetsCallback'))
 const StaffLayout = lazy(() => import('./components/StaffLayout'))
 const StaffBlogList = lazy(() => import('./components/StaffBlogList'))
 const StaffBlogEditor = lazy(() => import('./components/StaffBlogEditor'))
@@ -118,6 +124,12 @@ function App() {
             <Route path="blog" element={<StaffBlogList />} />
             <Route path="blog/new" element={<StaffBlogEditor />} />
             <Route path="blog/edit/:id" element={<StaffBlogEditor />} />
+            <Route path="banners" element={<StaffBanners />} />
+            <Route path="site-settings" element={<StaffSiteSettings />} />
+            <Route path="users" element={<StaffUsers />} />
+            <Route path="pmb" element={<StaffPPDB />} />
+            <Route path="google-sheets" element={<StaffGoogleSheets />} />
+            <Route path="google-sheets/callback" element={<GoogleSheetsCallback />} />
             <Route path="profile" element={<StaffProfile />} />
             <Route path="settings" element={<PlaceholderPage title="Pengaturan" />} />
           </Route>
