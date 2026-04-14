@@ -112,7 +112,7 @@ async function getValidAccessToken(env: Env, config: Record<string, unknown>) {
 }
 
 // GET /api/google-sheets/auth-url - Generate OAuth authorization URL
-googleSheets.get('/auth-url', async (c) => {
+googleSheets.get('/auth-url', authMiddleware, roleMiddleware(['staff', 'admin']), async (c) => {
   const creds = await getGoogleCredentials(c.env.SUPABASE_URL, c.env.SUPABASE_ANON_KEY, c.env.SUPABASE_SERVICE_KEY);
   const redirectUri = buildRedirectUri(c.req.url);
   
@@ -329,7 +329,7 @@ googleSheets.post(
 
       const refreshed = await refreshAccessToken(c.env, config.refresh_token as string);
 
-      await fetch(
+      const patchRes = await fetch(
         `${c.env.SUPABASE_URL}/rest/v1/google_sheets_config?id=eq.${config.id}`,
         {
           method: 'PATCH',
@@ -345,6 +345,10 @@ googleSheets.post(
           }),
         }
       );
+
+      if (!patchRes.ok) {
+        throw new Error(`Failed to persist refreshed token: ${await patchRes.text()}`);
+      }
 
       return c.json({ success: true, message: 'Token refreshed successfully' });
     } catch (error) {
@@ -543,7 +547,7 @@ googleSheets.get(
 );
 
 // GET /api/google-sheets/mappings - Get field-to-column mappings
-googleSheets.get('/mappings', async (c) => {
+googleSheets.get('/mappings', authMiddleware, roleMiddleware(['staff', 'admin']), async (c) => {
   try {
     const res = await fetch(
       `${c.env.SUPABASE_URL}/rest/v1/google_sheets_mappings?select=*&order=column_letter.asc`,
@@ -599,11 +603,14 @@ googleSheets.put(
           },
         }
       );
+      if (!existing.ok) {
+        throw new Error(`Failed to fetch existing mapping: ${await existing.text()}`);
+      }
       const existingData = await existing.json() as Array<Record<string, unknown>>;
 
       if (existingData.length > 0) {
         // Update existing
-        await fetch(
+        const patchRes = await fetch(
           `${c.env.SUPABASE_URL}/rest/v1/google_sheets_mappings?id=eq.${existingData[0].id}`,
           {
             method: 'PATCH',
@@ -616,9 +623,10 @@ googleSheets.put(
             body: JSON.stringify(data),
           }
         );
+        if (!patchRes.ok) throw new Error(`Patch failed: ${await patchRes.text()}`);
       } else {
         // Create new
-        await fetch(`${c.env.SUPABASE_URL}/rest/v1/google_sheets_mappings`, {
+        const postRes = await fetch(`${c.env.SUPABASE_URL}/rest/v1/google_sheets_mappings`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -628,6 +636,7 @@ googleSheets.put(
           },
           body: JSON.stringify({ field_name: fieldName, ...data }),
         });
+        if (!postRes.ok) throw new Error(`Post failed: ${await postRes.text()}`);
       }
 
       return c.json({ success: true, message: 'Mapping updated' });
@@ -664,6 +673,10 @@ googleSheets.post(
           },
         }
       );
+      if (!mappingsRes.ok) {
+        const err = await mappingsRes.text();
+        throw new Error(`Failed to fetch mappings: ${err}`);
+      }
       const mappings = await mappingsRes.json() as Array<Record<string, unknown>>;
 
       // Get all PPDB registrations
@@ -676,6 +689,10 @@ googleSheets.post(
           },
         }
       );
+      if (!ppdbRes.ok) {
+        const err = await ppdbRes.text();
+        throw new Error(`Failed to fetch PPDB registrations: ${err}`);
+      }
       const ppdbData = await ppdbRes.json() as Array<Record<string, unknown>>;
 
       // Build header row from mappings (column_letter now stores the actual header name)
@@ -716,7 +733,7 @@ googleSheets.post(
       // formatting, and using a generous range (A2:ZZ) ensures any previously
       // mapped columns beyond the current endCol are also removed, preventing
       // stale data from lingering in the sheet.
-      await fetch(
+      const clearRes = await fetch(
         `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}!A2:ZZ:clear`,
         {
           method: 'POST',
@@ -726,6 +743,10 @@ googleSheets.post(
           },
         }
       );
+
+      if (!clearRes.ok) {
+        throw new Error(`Sheets API clear error: ${clearRes.statusText}`);
+      }
 
       // Write headers (row 1) and data (row 2+)
       const allValues = [headerRow, ...rows];
@@ -748,7 +769,7 @@ googleSheets.post(
 
       // Update last_sync_at
       if (config.id) {
-        await fetch(
+        const patchRes = await fetch(
           `${c.env.SUPABASE_URL}/rest/v1/google_sheets_config?id=eq.${config.id}`,
           {
             method: 'PATCH',
@@ -760,6 +781,10 @@ googleSheets.post(
             body: JSON.stringify({ last_sync_at: new Date().toISOString() }),
           }
         );
+        if (!patchRes.ok) {
+          const err = await patchRes.text();
+          console.error(`Failed to update last_sync_at: ${err}`);
+        }
       }
 
       return c.json({

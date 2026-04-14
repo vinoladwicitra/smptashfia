@@ -77,7 +77,7 @@ export const roleMiddleware = (requiredRoles: string[]) => {
       }
 
       const userRoles = await response.json() as Array<{ roles?: { name?: string } }>;
-      const roleNames = userRoles.map((ur) => ur.roles?.name).filter(Boolean);
+      const roleNames = userRoles.map((ur) => ur.roles?.name).filter(Boolean) as string[];
 
       const hasRequiredRole = requiredRoles.some(role => 
         roleNames.includes(role)
@@ -89,6 +89,7 @@ export const roleMiddleware = (requiredRoles: string[]) => {
         }, 403);
       }
 
+      user.roles = roleNames;
       await next();
     } catch (error) {
       return c.json({ error: 'Forbidden: Authorization failed' }, 403);

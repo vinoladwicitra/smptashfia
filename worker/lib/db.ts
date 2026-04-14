@@ -39,7 +39,7 @@ export async function getArticles(
 
   // Add tag filter via relational junction table
   if (options?.tag) {
-    params.set('article_tag_mappings.article_tags.slug', 'eq.' + encodeURIComponent(options.tag));
+    params.set('article_tag_mappings!inner.article_tags!inner.slug', 'eq.' + options.tag);
   }
 
   // Add author filter
@@ -49,11 +49,15 @@ export async function getArticles(
 
   // Add category filter via relational junction table
   if (options?.category) {
-    params.set('article_category_mappings.article_categories.slug', 'eq.' + encodeURIComponent(options.category));
+    params.set('article_category_mappings!inner.article_categories!inner.slug', 'eq.' + options.category);
   }
 
   // Select article fields plus nested category mappings for frontend display
-  params.set('select', '*,article_category_mappings(article_categories(name,slug))');
+  let selectQuery = '*,article_category_mappings(article_categories(name,slug))';
+  if (options?.tag) {
+    selectQuery += ',article_tag_mappings(article_tags(name,slug))';
+  }
+  params.set('select', selectQuery);
 
   const url = `${supabaseUrl}/rest/v1/articles?${params}`;
 
@@ -81,7 +85,7 @@ export async function getArticleBySlug(
   options?: { status?: string }
 ) {
   const params = new URLSearchParams();
-  params.set('slug', 'eq.' + encodeURIComponent(slug));
+  params.set('slug', 'eq.' + slug);
   params.set('select', '*,author:profiles(*)');
 
   // Default to published unless explicitly requested otherwise
@@ -273,7 +277,7 @@ export async function getBannerByType(
   type: string
 ) {
   const params = new URLSearchParams();
-  params.set('banner_type', 'eq.' + encodeURIComponent(type));
+  params.set('banner_type', 'eq.' + type);
   params.set('select', '*');
 
   const response = await fetch(

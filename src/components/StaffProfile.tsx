@@ -43,13 +43,27 @@ export default function StaffProfile() {
     setIsProfileSaving(true);
 
     try {
+      const trimmedName = displayName.trim().replace(/\s+/g, ' ');
+      setDisplayName(trimmedName);
+
+      // Update profiles table
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ display_name: displayName || undefined })
+        .update({ display_name: trimmedName || undefined })
         .eq('id', user.id);
 
       if (updateError) {
         toast({ type: 'error', title: 'Gagal Memperbarui Profil', description: updateError.message });
+        return;
+      }
+
+      // Update auth metadata
+      const { error: authError } = await supabase.auth.updateUser({
+        data: { display_name: trimmedName || undefined }
+      });
+
+      if (authError) {
+        toast({ type: 'error', title: 'Gagal Memperbarui Metadata', description: authError.message });
         return;
       }
 
@@ -78,8 +92,13 @@ export default function StaffProfile() {
     setIsUploading(true);
     try {
       const url = await uploadAvatar(user.id, file);
-      await supabase.auth.updateUser({ data: { avatar_url: url } });
-      await supabase.from('profiles').update({ avatar_url: url }).eq('id', user.id);
+      
+      const { error: authError } = await supabase.auth.updateUser({ data: { avatar_url: url } });
+      if (authError) throw authError;
+      
+      const { error: profileError } = await supabase.from('profiles').update({ avatar_url: url }).eq('id', user.id);
+      if (profileError) throw profileError;
+
       setAvatarUrl(url);
       toast({ type: 'success', title: 'Avatar Diperbarui', description: 'Foto profil Anda berhasil diunggah.' });
     } catch (error: any) {
@@ -94,7 +113,13 @@ export default function StaffProfile() {
     setIsUploading(true);
     try {
       await deleteAvatar(user.id);
-      await supabase.from('profiles').update({ avatar_url: null }).eq('id', user.id);
+      
+      const { error: authError } = await supabase.auth.updateUser({ data: { avatar_url: null } });
+      if (authError) throw authError;
+
+      const { error: profileError } = await supabase.from('profiles').update({ avatar_url: null }).eq('id', user.id);
+      if (profileError) throw profileError;
+
       setAvatarUrl(null);
       toast({ type: 'success', title: 'Avatar Dihapus', description: 'Foto profil Anda berhasil dihapus.' });
     } catch (error: any) {

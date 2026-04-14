@@ -48,11 +48,9 @@ users.get(
     const perPage = parseInt(c.req.query('per_page') || '20');
 
     try {
-      // Fetch users from Supabase Auth Admin API
+      // Fetch ALL users from Supabase Auth Admin API for local filtering and pagination
       const response = await fetch(
         `${c.env.SUPABASE_URL}/auth/v1/admin/users?${new URLSearchParams({
-          page: String(page),
-          per_page: String(perPage),
           sort: sortBy,
           order: sortOrder,
         })}`,
@@ -69,12 +67,53 @@ users.get(
       }
 
       const data = await response.json() as { users: Array<Record<string, unknown>>; total?: number };
-      let usersList = data.users || [];
+      let allUsers = data.users || [];
 
-      // Fetch profiles and roles for all users on this page
-      const userIds = usersList.map((u: any) => u.id);
+      // Fetch user roles for all users if role filter is applied
+      let userRolesData: Array<Record<string, unknown>> = [];
+      if (role) {
+         // We might need to batch this if allUsers is huge, but we assume it's manageable for now
+         // Or just fetch all user_roles
+         const allRolesRes = await fetch(
+           `${c.env.SUPABASE_URL}/rest/v1/user_roles?select=user_id,roles!inner(name)`,
+           {
+             headers: {
+               'apikey': c.env.SUPABASE_ANON_KEY,
+               'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+             },
+           }
+         );
+         if (allRolesRes.ok) {
+           userRolesData = await allRolesRes.json() as Array<Record<string, unknown>>;
+         }
+      }
 
-      // Guard: skip network requests if no users on this page
+      // Client-side search filter (by email or display name)
+      if (search) {
+        const searchLower = search.toLowerCase();
+        allUsers = allUsers.filter((u: any) =>
+          u.email?.toLowerCase().includes(searchLower) ||
+          u.user_metadata?.display_name?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      // Filter by role if specified
+      if (role) {
+        const roleUserIds = new Set(
+          userRolesData
+            .filter((r: any) => (r as any).roles?.name === role)
+            .map((r: any) => r.user_id)
+        );
+        allUsers = allUsers.filter((u: any) => roleUserIds.has(u.id));
+      }
+
+      const totalMatches = allUsers.length;
+      
+      // Apply pagination
+      const paginatedUsers = allUsers.slice((page - 1) * perPage, page * perPage);
+      const userIds = paginatedUsers.map((u: any) => u.id);
+
+      // Fetch profiles and roles for the paginated users
       const profilesRes = await fetch(
         `${c.env.SUPABASE_URL}/rest/v1/profiles?id=in.(${userIds.join(',')})&select=*`,
         {
@@ -88,42 +127,27 @@ users.get(
         ? await profilesRes.json() as Array<Record<string, unknown>>
         : [];
 
-      const userRolesRes = await fetch(
-        `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=in.(${userIds.join(',')})&select=user_id,roles!inner(name)`,
-        {
-          headers: {
-            'apikey': c.env.SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
-          },
+      // If we didn't fetch all roles above, fetch them for the paginated page
+      let pageRolesData = userRolesData.filter((r: any) => userIds.includes(r.user_id));
+      if (!role && userIds.length > 0) {
+        const pageRolesRes = await fetch(
+          `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=in.(${userIds.join(',')})&select=user_id,roles!inner(name)`,
+          {
+            headers: {
+              'apikey': c.env.SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+            },
+          }
+        );
+        if (pageRolesRes.ok) {
+           pageRolesData = await pageRolesRes.json() as Array<Record<string, unknown>>;
         }
-      );
-      const userRolesData = userRolesRes.ok
-        ? await userRolesRes.json() as Array<Record<string, unknown>>
-        : [];
-
-      // Filter by role if specified (using fetched role data)
-      if (role) {
-        const roleUserIds = new Set(
-          userRolesData
-            .filter((r: any) => (r as any).roles?.name === role)
-            .map((r: any) => r.user_id)
-        );
-        usersList = usersList.filter((u: any) => roleUserIds.has(u.id));
-      }
-
-      // Client-side search filter (by email) - note: this still applies after pagination
-      if (search) {
-        const searchLower = search.toLowerCase();
-        usersList = usersList.filter((u: any) =>
-          u.email?.toLowerCase().includes(searchLower) ||
-          u.user_metadata?.display_name?.toLowerCase().includes(searchLower)
-        );
       }
 
       // Merge profiles and roles into users
-      const enrichedUsers = usersList.map((u: any) => {
+      const enrichedUsers = paginatedUsers.map((u: any) => {
         const profile = profiles.find((p: any) => p.id === u.id);
-        const roles = userRolesData
+        const roles = pageRolesData
           .filter((r: any) => r.user_id === u.id)
           .map((r: any) => (r as any).roles?.name)
           .filter(Boolean);
@@ -141,7 +165,7 @@ users.get(
         pagination: {
           page,
           per_page: perPage,
-          total: data.total || usersList.length,
+          total: totalMatches,
         },
       });
     } catch (error) {
@@ -168,17 +192,7 @@ users.post(
     const { email, password, display_name, role } = c.req.valid('json');
 
     try {
-      // Create user via Supabase Auth Admin API with email auto-confirm
-      const userData = await authAdminRequest(c.env, 'POST', '/users', {
-        email,
-        password,
-        email_confirm: true, // Skip email verification
-        user_metadata: { display_name, can_login: true },
-      }) as Record<string, unknown>;
-
-      const userId = (userData as any).id;
-
-      // Get role ID
+      // Get role ID before creating user to fail early if invalid
       const rolesRes = await fetch(
         `${c.env.SUPABASE_URL}/rest/v1/roles?name=eq.${role}&select=id`,
         {
@@ -198,28 +212,15 @@ users.post(
         }, 400);
       }
 
-      // Atomic role swap: delete old roles then assign new one.
-      // If the POST fails, we attempt to restore the previous roles.
-      const previousRoles = await (await fetch(
-        `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${userId}&select=role_id`,
-        {
-          headers: {
-            'apikey': c.env.SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
-          },
-        }
-      )).json() as Array<{ role_id: string }>;
+      // Create user via Supabase Auth Admin API with email auto-confirm
+      const userData = await authAdminRequest(c.env, 'POST', '/users', {
+        email,
+        password,
+        email_confirm: true, // Skip email verification
+        user_metadata: { display_name, can_login: true },
+      }) as Record<string, unknown>;
 
-      await fetch(
-        `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${userId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'apikey': c.env.SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
-          },
-        }
-      );
+      const userId = (userData as any).id;
 
       // Assign new role
       const roleRes = await fetch(`${c.env.SUPABASE_URL}/rest/v1/user_roles`, {
@@ -234,18 +235,8 @@ users.post(
       });
 
       if (!roleRes.ok) {
-        // Attempt rollback: restore previous roles
-        for (const prev of previousRoles) {
-          await fetch(`${c.env.SUPABASE_URL}/rest/v1/user_roles`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': c.env.SUPABASE_ANON_KEY,
-              'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({ user_id: userId, role_id: prev.role_id }),
-          });
-        }
+        // Cleanup: delete the created auth user
+        await authAdminRequest(c.env, 'DELETE', `/users/${userId}`).catch(console.error);
         return c.json({
           success: false,
           error: `Failed to assign role: ${roleRes.statusText}`,
@@ -429,6 +420,33 @@ users.post(
       if (!roleId) {
         return c.json({ success: false, error: 'Role not found' }, 404);
       }
+
+      // Fetch target user's existing roles
+      const targetRolesRes = await fetch(
+        `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${userId}&select=role_id,roles!inner(name)`,
+        {
+          headers: {
+            'apikey': c.env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+          },
+        }
+      );
+      if (!targetRolesRes.ok) {
+        return c.json({ success: false, error: 'Failed to verify target user roles' }, 500);
+      }
+      const targetRolesData = await targetRolesRes.json() as Array<{ role_id: string; roles?: { name?: string } }>;
+      const targetRoleNames = targetRolesData.map((r) => r.roles?.name).filter(Boolean);
+
+      // Prevent staff from changing roles of admins
+      if (targetRoleNames.includes('admin')) {
+        const callerRoles = (c.get('user') as any).roles || [];
+        if (!callerRoles.includes('admin')) {
+          return c.json({ success: false, error: 'Forbidden: staff cannot modify admin roles' }, 403);
+        }
+      }
+
+      // Store previous roles for potential rollback
+      const previousRoles = targetRolesData.map(r => ({ role_id: r.role_id }));
 
       // Remove existing roles
       await fetch(

@@ -10,6 +10,7 @@ export default function StaffSiteSettings() {
   const [activeTab, setActiveTab] = useState<'contact' | 'social' | 'location'>('contact');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
 
   // Contact settings
   const [contactPhone, setContactPhone] = useState('');
@@ -35,12 +36,11 @@ export default function StaffSiteSettings() {
     if (!url) return false;
     try {
       const parsed = new URL(url);
-      // Accept Google Maps host variants (www.google.com, maps.google.com, google.co.uk, etc.)
-      // but reject non-Google domains like maps.google.evil.com
-      const isGoogleHost = parsed.hostname === 'www.google.com' ||
-        parsed.hostname === 'maps.google.com' ||
-        /^maps\.google\.[a-z.]+$/i.test(parsed.hostname) ||
-        /^www\.google\.[a-z.]+$/i.test(parsed.hostname);
+      const host = parsed.hostname;
+      const isGoogleHost = host === 'www.google.com' ||
+        host === 'maps.google.com' ||
+        /^maps\.google\.[a-z]{2,3}(\.[a-z]{2})?$/i.test(host) ||
+        /^www\.google\.[a-z]{2,3}(\.[a-z]{2})?$/i.test(host);
       return parsed.protocol === 'https:' && isGoogleHost && parsed.pathname.includes('/maps') && parsed.pathname.includes('embed');
     } catch {
       return false;
@@ -75,9 +75,13 @@ export default function StaffSiteSettings() {
         setSocialYoutubeLabel(s.social_youtube_label || '');
         setMapsEmbedUrl(l.maps_embed_url || '');
         setMapsLink(l.maps_link || '');
+        setFetchError(false);
+      } else {
+        setFetchError(true);
       }
     } catch (err) {
       console.error('Error fetching settings:', err);
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
@@ -89,6 +93,11 @@ export default function StaffSiteSettings() {
   };
 
   const handleSave = async () => {
+    if (fetchError) {
+      toast({ type: 'error', title: 'Gagal', description: 'Tidak dapat menyimpan karena data gagal dimuat.' });
+      return;
+    }
+    
     setSaving(true);
     try {
       const token = await getAuthToken();
@@ -172,6 +181,18 @@ export default function StaffSiteSettings() {
     );
   }
 
+  if (fetchError && !loading) {
+    return (
+      <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-start gap-3">
+        <IconAlertCircle size={20} className="flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="font-medium text-base">Gagal memuat pengaturan</p>
+          <p className="text-red-600 mt-1">Terjadi kesalahan saat mengambil data dari server. Silakan muat ulang halaman atau coba lagi nanti.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -229,7 +250,7 @@ export default function StaffSiteSettings() {
               <textarea value={contactAddressFull} onChange={(e) => setContactAddressFull(e.target.value)} rows={3} placeholder="Jl. Dr. Ratna No.82, RT.02/RW.08, Kel. Jatikramat, Kec. Jatiasih, Kota Bekasi, Jawa Barat 17421" className="w-full px-4 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-sm text-text resize-none" />
               <p className="text-xs text-text-light mt-1.5">Tampil di footer dan mobile</p>
             </div>
-            <button onClick={handleSave} disabled={saving} className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer">
+            <button onClick={handleSave} disabled={saving || fetchError} className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer">
               {saving ? <><IconLoader2 size={16} className="animate-spin" /> Menyimpan...</> : <><IconCheck size={16} /> Simpan Perubahan</>}
             </button>
           </div>
@@ -264,7 +285,7 @@ export default function StaffSiteSettings() {
               <label className="block text-sm font-medium text-text mb-2">Label YouTube</label>
               <input type="text" value={socialYoutubeLabel} onChange={(e) => setSocialYoutubeLabel(e.target.value)} placeholder="Ma'had Putri Tashfia" className="w-full px-4 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-sm text-text" />
             </div>
-            <button onClick={handleSave} disabled={saving} className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer">
+            <button onClick={handleSave} disabled={saving || fetchError} className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer">
               {saving ? <><IconLoader2 size={16} className="animate-spin" /> Menyimpan...</> : <><IconCheck size={16} /> Simpan Perubahan</>}
             </button>
           </div>
@@ -288,7 +309,7 @@ export default function StaffSiteSettings() {
                 <input type="text" value={mapsLink} onChange={(e) => setMapsLink(e.target.value)} placeholder="https://maps.app.goo.gl/..." className="w-full px-4 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-sm text-text" />
                 <p className="text-xs text-text-light mt-1.5">Link langsung untuk mobile</p>
               </div>
-              <button onClick={handleSave} disabled={saving} className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer">
+              <button onClick={handleSave} disabled={saving || fetchError} className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer">
                 {saving ? <><IconLoader2 size={16} className="animate-spin" /> Menyimpan...</> : <><IconCheck size={16} /> Simpan Perubahan</>}
               </button>
             </div>

@@ -67,18 +67,17 @@ export default function StaffPPDB() {
   const [detailReg, setDetailReg] = useState<PPDBRegistration | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
 
   const getAuthToken = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     return session?.access_token || '';
   };
 
-  const fetchRegistrations = useCallback(async () => {
+  const fetchRegistrations = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
-        limit: String(perPage),
+        limit: String(perPage + 1),
         offset: String((page - 1) * perPage),
       });
       if (statusFilter) params.set('status', statusFilter);
@@ -88,20 +87,41 @@ export default function StaffPPDB() {
       const token = await getAuthToken();
       const res = await fetch(`${API_BASE}/ppdb/list?${params}`, {
         headers: { 'Authorization': `Bearer ${token}` },
+        signal,
       });
+      if (!res.ok) throw new Error('Network response was not ok');
       const data = await res.json();
       if (data.success) {
-        setRegistrations(data.data as PPDBRegistration[]);
-        setHasMore(data.data.length === perPage);
+        const hasNext = data.data.length > perPage;
+        setRegistrations(data.data.slice(0, perPage) as PPDBRegistration[]);
+        setHasMore(hasNext);
+      } else {
+        throw new Error(data.error || 'API Error');
       }
-    } catch {
-      toast({ type: 'error', title: 'Gagal', description: 'Gagal memuat data pendaftaran' });
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        toast({ type: 'error', title: 'Gagal', description: 'Gagal memuat data pendaftaran' });
+      }
     } finally {
       setLoading(false);
     }
   }, [page, statusFilter, sekolahFilter, search, toast]);
 
-  useEffect(() => { fetchRegistrations(); }, [fetchRegistrations]);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchRegistrations(controller.signal);
+    return () => controller.abort();
+  }, [fetchRegistrations]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showDetail) {
+        setShowDetail(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showDetail]);
 
   const handleStatusUpdate = async (id: string, status: string) => {
     setUpdatingStatus(true);
@@ -116,9 +136,7 @@ export default function StaffPPDB() {
       if (data.success) {
         toast({ type: 'success', title: 'Berhasil', description: `Status diubah ke ${statusLabels[status]}` });
         fetchRegistrations();
-        if (detailReg?.id === id) {
-          setDetailReg({ ...detailReg, status });
-        }
+        setDetailReg(prev => prev?.id === id ? { ...prev, status } : prev);
       } else {
         toast({ type: 'error', title: 'Gagal', description: data.error || 'Gagal mengubah status' });
       }
@@ -179,7 +197,7 @@ export default function StaffPPDB() {
             <option value="Tashfia Full Day School">Full Day School</option>
           </select>
           <button
-            onClick={fetchRegistrations}
+            onClick={() => fetchRegistrations()}
             className="p-2.5 border border-border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
             title="Refresh"
           >
@@ -271,7 +289,7 @@ export default function StaffPPDB() {
         </div>
 
         {/* Pagination */}
-        {hasMore && (
+        {(hasMore || page > 1) && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-border">
             <p className="text-xs text-text-light">Halaman {page}</p>
             <div className="flex items-center gap-2">
@@ -282,12 +300,14 @@ export default function StaffPPDB() {
               >
                 <IconChevronLeft size={16} />
               </button>
-              <button
-                onClick={() => setPage(p => p + 1)}
-                className="p-2 rounded-lg border border-border text-text-light hover:text-text hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                <IconChevronRight size={16} />
-              </button>
+              {hasMore && (
+                <button
+                  onClick={() => setPage(p => p + 1)}
+                  className="p-2 rounded-lg border border-border text-text-light hover:text-text hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  <IconChevronRight size={16} />
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -295,11 +315,17 @@ export default function StaffPPDB() {
 
       {/* Detail Modal */}
       {showDetail && detailReg && (
-        <div className="fixed inset-0 bg-black/60 z-[2000] flex items-start justify-center p-4 pt-16 overflow-y-auto" onClick={() => setShowDetail(false)}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="detailModalTitle"
+          className="fixed inset-0 bg-black/60 z-[2000] flex items-start justify-center p-4 pt-16 overflow-y-auto"
+          onClick={() => setShowDetail(false)}
+        >
           <div className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full mb-8" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-white px-6 py-4 border-b border-border flex items-center justify-between rounded-t-2xl z-10">
               <div>
-                <h2 className="text-lg font-semibold text-text">Detail Pendaftaran</h2>
+                <h2 id="detailModalTitle" className="text-lg font-semibold text-text">Detail Pendaftaran</h2>
                 <p className="text-xs text-text-light mt-0.5">Diterima pada {formatDateTime(detailReg.created_at)}</p>
               </div>
               <button onClick={() => setShowDetail(false)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">

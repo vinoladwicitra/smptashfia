@@ -31,6 +31,8 @@ export default function CollapsibleSidebar({
   const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  
+  const effectiveCollapsed = collapsed && !mobileOpen;
 
   // Close mobile sidebar on route change and on small screens
   useEffect(() => {
@@ -70,24 +72,24 @@ export default function CollapsibleSidebar({
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full bg-white border-r border-border z-50 transition-all duration-300 flex flex-col
+        className={`fixed top-0 left-0 h-full w-64 bg-white border-r border-border z-50 transition-all duration-300 flex flex-col
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          ${collapsed ? 'lg:w-[72px]' : 'lg:w-64'}
+          ${effectiveCollapsed ? 'lg:w-[72px]' : 'lg:w-64'}
         `}
       >
         {/* Logo / Brand */}
-        <div className={`flex items-center border-b border-border ${collapsed ? 'lg:justify-center px-3' : 'px-5'} h-16 flex-shrink-0`}>
+        <div className={`flex items-center border-b border-border ${effectiveCollapsed ? 'lg:justify-center px-3' : 'px-5'} h-16 flex-shrink-0`}>
           <div className={`w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0`}>
             <span className="text-white font-bold text-sm">S</span>
           </div>
-          {!collapsed && (
+          {!effectiveCollapsed && (
             <span className="ml-3 text-sm font-bold text-text whitespace-nowrap overflow-hidden">SMP Tashfia</span>
           )}
         </div>
 
         {/* Avatar + User Info */}
-        <div className={`border-b border-border ${collapsed ? 'lg:justify-center lg:px-3' : 'px-5'} py-4 flex-shrink-0`}>
-          <div className={`flex items-center gap-3 ${collapsed ? 'lg:justify-center lg:flex-col lg:gap-2' : ''}`}>
+        <div className={`border-b border-border ${effectiveCollapsed ? 'lg:justify-center lg:px-3' : 'px-5'} py-4 flex-shrink-0`}>
+          <div className={`flex items-center gap-3 ${effectiveCollapsed ? 'lg:justify-center lg:flex-col lg:gap-2' : ''}`}>
             {displayAvatar ? (
               <img src={displayAvatar} alt="Avatar" className="w-10 h-10 rounded-full object-cover flex-shrink-0 border-2 border-primary/20" />
             ) : (
@@ -95,7 +97,7 @@ export default function CollapsibleSidebar({
                 <span className="text-primary font-semibold text-sm">{displayName[0]?.toUpperCase()}</span>
               </div>
             )}
-            {!collapsed && (
+            {!effectiveCollapsed && (
               <div className="min-w-0 overflow-hidden">
                 <p className="text-sm font-semibold text-text truncate">{displayName}</p>
                 <p className="text-xs text-text-light truncate">{user?.email}</p>
@@ -116,7 +118,7 @@ export default function CollapsibleSidebar({
                   onClick={() => onNavigate(item.href)}
                   aria-label={item.label}
                   onMouseEnter={(e) => {
-                    if (collapsed) {
+                    if (effectiveCollapsed) {
                       const rect = e.currentTarget.getBoundingClientRect();
                       setTooltipPos({ label: item.label, top: rect.top + rect.height / 2 });
                     }
@@ -125,7 +127,7 @@ export default function CollapsibleSidebar({
                     setTooltipPos(null);
                   }}
                   onFocus={(e) => {
-                    if (collapsed) {
+                    if (effectiveCollapsed) {
                       const rect = e.currentTarget.getBoundingClientRect();
                       setTooltipPos({ label: item.label, top: rect.top + rect.height / 2 });
                     }
@@ -138,12 +140,12 @@ export default function CollapsibleSidebar({
                       ? 'bg-primary text-white'
                       : 'text-text hover:bg-gray-100'
                     }
-                    ${collapsed ? 'lg:justify-center lg:px-2' : ''}
+                    ${effectiveCollapsed ? 'lg:justify-center lg:px-2' : ''}
                   `}
                 >
                   <Icon size={20} className="flex-shrink-0" />
-                  {!collapsed && <span className="truncate">{item.label}</span>}
-                  {item.badge && !collapsed && (
+                  {!effectiveCollapsed && <span className="truncate">{item.label}</span>}
+                  {item.badge && !effectiveCollapsed && (
                     <span className="ml-auto bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0">
                       {item.badge}
                     </span>
@@ -158,27 +160,27 @@ export default function CollapsibleSidebar({
         <div className="border-t border-border p-2 flex-shrink-0">
           <button
             onClick={() => { setCollapsed(!collapsed); setTooltipPos(null); }}
-            aria-label={collapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'}
+            aria-label={effectiveCollapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'}
             className="hidden lg:flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text hover:bg-gray-100 transition-colors cursor-pointer"
           >
-            {collapsed ? <IconChevronsRight size={20} /> : <IconChevronsLeft size={20} />}
-            {!collapsed && <span>Collapse</span>}
+            {effectiveCollapsed ? <IconChevronsRight size={20} /> : <IconChevronsLeft size={20} />}
+            {!effectiveCollapsed && <span>Collapse</span>}
           </button>
 
           <button
             onClick={onLogout}
             aria-label="Logout"
-            onMouseEnter={() => collapsed && setHoveredItem('logout')}
+            onMouseEnter={() => effectiveCollapsed && setHoveredItem('logout')}
             onMouseLeave={() => setHoveredItem(null)}
-            onFocus={() => collapsed && setHoveredItem('logout')}
+            onFocus={() => effectiveCollapsed && setHoveredItem('logout')}
             onBlur={() => setHoveredItem(null)}
             className={`relative w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer
-              ${collapsed ? 'lg:justify-center lg:px-2' : ''}
+              ${effectiveCollapsed ? 'lg:justify-center lg:px-2' : ''}
             `}
           >
             <IconLogout size={20} className="flex-shrink-0" />
-            {!collapsed && <span>Logout</span>}
-            {collapsed && hoveredItem === 'logout' && (
+            {!effectiveCollapsed && <span>Logout</span>}
+            {effectiveCollapsed && hoveredItem === 'logout' && (
               <div className="hidden lg:block absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs px-2.5 py-1.5 rounded-md whitespace-nowrap z-[60] pointer-events-none">
                 Logout
                 <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900" />
@@ -189,7 +191,7 @@ export default function CollapsibleSidebar({
       </aside>
 
       {/* Fixed Tooltip - outside sidebar overflow */}
-      {collapsed && tooltipPos && (
+      {effectiveCollapsed && tooltipPos && (
         <div
           className="fixed left-[76px] bg-gray-900 text-white text-xs px-3 py-1.5 rounded-md whitespace-nowrap z-[9999] pointer-events-none shadow-lg"
           style={{ top: tooltipPos.top - 12 }}

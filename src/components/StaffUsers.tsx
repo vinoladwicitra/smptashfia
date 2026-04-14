@@ -67,11 +67,12 @@ export default function StaffUsers() {
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
+      const order = sortFilter === 'email' ? 'asc' : 'desc';
       const params = new URLSearchParams({
         page: String(page),
         per_page: '20',
         sort: sortFilter,
-        order: 'desc',
+        order,
       });
       if (search) params.set('search', search);
       if (roleFilter) params.set('role', roleFilter);
@@ -476,6 +477,9 @@ export default function StaffUsers() {
                     </button>
                     <button onClick={() => handleRestrictLogin(user)} className="flex-1 flex items-center justify-center gap-1.5 py-2 border border-border rounded-lg text-xs font-medium text-text hover:bg-gray-50 transition-colors cursor-pointer">
                       {user.can_login ? <><IconBan size={14} /> Batasi</> : <><IconCheck size={14} /> Izinkan</>}
+                    </button>
+                    <button onClick={() => handleDeleteUser(user.id)} className="flex-1 flex items-center justify-center gap-1.5 py-2 border border-border rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer">
+                      <IconTrash size={14} /> Hapus
                     </button>
                   </div>
                 </div>

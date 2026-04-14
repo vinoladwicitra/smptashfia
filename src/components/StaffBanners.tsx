@@ -111,6 +111,20 @@ export default function StaffBanners() {
 
   const handlePopupBannerSave = async () => {
     if (popupEnabled === null) return; // Not loaded yet
+    if (uploading) {
+      toast({ type: 'error', title: 'Gagal', description: 'Harap tunggu hingga upload gambar selesai' });
+      return;
+    }
+
+    if (popupButtonLink) {
+      const isRelative = popupButtonLink.startsWith('/');
+      const isHttps = popupButtonLink.startsWith('https://');
+      if (!isRelative && !isHttps) {
+        toast({ type: 'error', title: 'URL Tidak Valid', description: 'Link tombol harus diawali dengan "/" atau "https://"' });
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       const token = await getAuthToken();
@@ -166,9 +180,10 @@ export default function StaffBanners() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Client-side validation
-    if (!file.type.startsWith('image/')) {
-      toast({ type: 'error', title: 'File Tidak Valid', description: 'Hanya file gambar yang diperbolehkan.' });
+    // Client-side validation with explicit allowlist
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({ type: 'error', title: 'File Tidak Valid', description: 'Hanya file JPG, PNG, GIF, dan WEBP yang diperbolehkan.' });
       return;
     }
     const maxSize = 5 * 1024 * 1024;
@@ -274,13 +289,17 @@ export default function StaffBanners() {
             {/* Enable/Disable Toggle */}
             <div className="flex items-center justify-between">
               <div>
-                <label className="text-sm font-medium text-text cursor-pointer" onClick={() => setTopEnabled(!topEnabled)}>Status</label>
-                <p className="text-xs text-text-light mt-0.5">Aktifkan atau nonaktifkan banner atas</p>
+                <label className="text-sm font-medium text-text" id="top-banner-label">Status</label>
+                <p className="text-xs text-text-light mt-0.5" id="top-banner-desc">Aktifkan atau nonaktifkan banner atas</p>
               </div>
               <button
+                role="switch"
+                aria-checked={topEnabled || false}
+                aria-labelledby="top-banner-label"
+                aria-describedby="top-banner-desc"
                 onClick={() => setTopEnabled(!topEnabled)}
                 disabled={topEnabled === null}
-                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors shrink-0 cursor-pointer ${
+                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors shrink-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                   topEnabled ? 'bg-primary' : 'bg-gray-300'
                 }`}
               >
@@ -349,13 +368,17 @@ export default function StaffBanners() {
               {/* Enable/Disable Toggle */}
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-text cursor-pointer" onClick={() => setPopupEnabled(!popupEnabled)}>Status</label>
-                  <p className="text-xs text-text-light mt-0.5">Aktifkan atau nonaktifkan popup banner</p>
+                  <label className="text-sm font-medium text-text" id="popup-banner-label">Status</label>
+                  <p className="text-xs text-text-light mt-0.5" id="popup-banner-desc">Aktifkan atau nonaktifkan popup banner</p>
                 </div>
                 <button
+                  role="switch"
+                  aria-checked={popupEnabled || false}
+                  aria-labelledby="popup-banner-label"
+                  aria-describedby="popup-banner-desc"
                   onClick={() => setPopupEnabled(!popupEnabled)}
                   disabled={popupEnabled === null}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors shrink-0 cursor-pointer ${
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors shrink-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                     popupEnabled ? 'bg-primary' : 'bg-gray-300'
                   }`}
                 >
@@ -392,7 +415,7 @@ export default function StaffBanners() {
                     {/* Hidden file input for replace */}
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
                       onChange={handleImageUpload}
                       className="absolute inset-0 opacity-0 cursor-pointer"
                       disabled={uploading}
@@ -407,7 +430,7 @@ export default function StaffBanners() {
                     <span className="font-medium text-text">{popupImageUrl ? 'Ganti Gambar' : 'Upload Gambar'}</span>
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
                       onChange={handleImageUpload}
                       className="hidden"
                       disabled={uploading}
@@ -454,7 +477,7 @@ export default function StaffBanners() {
               {/* Save Button */}
               <button
                 onClick={handlePopupBannerSave}
-                disabled={saving}
+                disabled={saving || uploading}
                 className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
               >
                 {saving ? (
