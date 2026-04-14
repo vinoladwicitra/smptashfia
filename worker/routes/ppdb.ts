@@ -46,6 +46,7 @@ const ppdbRegistrationSchema = z.object({
 const ppdbQuerySchema = z.object({
   status: z.string().optional(),
   sekolah: z.string().optional(),
+  search: z.string().optional(),
   limit: z.coerce.number().min(1).max(100).default(20),
   offset: z.coerce.number().min(0).default(0),
 });
@@ -83,10 +84,10 @@ ppdb.post('/register', zValidator('json', ppdbRegistrationSchema), async (c) => 
       data: result,
     }, 201);
   } catch (error) {
-    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error('PPDB registration error:', error);
     return c.json({
       success: false,
-      error: errMsg,
+      error: 'Internal server error',
     }, 500);
   }
 });
@@ -98,7 +99,7 @@ ppdb.get(
   roleMiddleware(['staff', 'admin', 'teacher']),
   zValidator('query', ppdbQuerySchema),
   async (c) => {
-    const { limit, offset, status, sekolah } = c.req.valid('query');
+    const { limit, offset, status, sekolah, search } = c.req.valid('query');
 
     try {
       const registrations = await getPPDBRegistrations(
@@ -112,12 +113,24 @@ ppdb.get(
         }
       );
 
+      // Apply server-side search filter
+      let filtered = registrations as Array<Record<string, unknown>>;
+      if (search) {
+        const s = search.toLowerCase();
+        filtered = filtered.filter((r) =>
+          (r.nama_lengkap as string)?.toLowerCase().includes(s) ||
+          (r.email as string)?.toLowerCase().includes(s) ||
+          (r.asal_sekolah as string)?.toLowerCase().includes(s)
+        );
+      }
+
       return c.json({
         success: true,
-        data: registrations,
+        data: filtered,
         pagination: {
           limit,
           offset,
+          total: filtered.length,
         },
       });
     } catch (error) {
@@ -141,14 +154,17 @@ ppdb.get('/upload-url', async (c) => {
   }
 
   try {
-    // Create storage upload URL via Supabase
-    const uploadUrl = `${c.env.SUPABASE_URL}/storage/v1/object/ppdb-documents/${Date.now()}-${fileName}`;
-    
+    const timestamp = Date.now();
+    // Sanitize fileName: remove path separators, special chars, and encode
+    const sanitizedFileName = encodeURIComponent(fileName.replace(/[/\\?%*:|"<>]/g, '-'));
+    const storageKey = `${timestamp}-${sanitizedFileName}`;
+    const uploadUrl = `${c.env.SUPABASE_URL}/storage/v1/object/ppdb-documents/${storageKey}`;
+
     return c.json({
       success: true,
       data: {
         uploadUrl,
-        publicUrl: `${c.env.SUPABASE_URL}/storage/v1/object/public/ppdb-documents/${Date.now()}-${fileName}`,
+        publicUrl: `${c.env.SUPABASE_URL}/storage/v1/object/public/ppdb-documents/${storageKey}`,
       },
     });
   } catch (error) {
@@ -167,16 +183,23 @@ ppdb.get(
   async (c) => {
     const id = c.req.param('id');
 
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      return c.json({ success: false, error: 'Invalid ID format' }, 400);
+    }
+
     try {
-      const response = await fetch(
-        `${c.env.SUPABASE_URL}/rest/v1/ppdb_registrations?id=eq.${id}&select=*`,
-        {
-          headers: {
-            'apikey': c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
-          },
-        }
-      );
+      const url = new URL(`${c.env.SUPABASE_URL}/rest/v1/ppdb_registrations`);
+      url.searchParams.set('id', `eq.${id}`);
+      url.searchParams.set('select', '*');
+
+      const response = await fetch(url.toString(), {
+        headers: {
+          'apikey': c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error(`Failed to fetch registration: ${response.statusText}`);
@@ -207,11 +230,18 @@ ppdb.put(
     const id = c.req.param('id');
     const { status } = c.req.valid('json');
 
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      return c.json({ success: false, error: 'Invalid ID format' }, 400);
+    }
+
     try {
       const userToken = c.get('userToken');
-      const response = await fetch(
-        `${c.env.SUPABASE_URL}/rest/v1/ppdb_registrations?id=eq.${id}`,
-        {
+      const url = new URL(`${c.env.SUPABASE_URL}/rest/v1/ppdb_registrations`);
+      url.searchParams.set('id', `eq.${id}`);
+
+      const response = await fetch(url.toString(), {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',

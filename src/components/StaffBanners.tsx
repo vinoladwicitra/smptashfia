@@ -13,11 +13,11 @@ export default function StaffBanners() {
   const [uploading, setUploading] = useState(false);
 
   // Top banner state
-  const [topEnabled, setTopEnabled] = useState(true);
+  const [topEnabled, setTopEnabled] = useState<boolean | null>(null);
   const [topText, setTopText] = useState('');
 
   // Popup banner state
-  const [popupEnabled, setPopupEnabled] = useState(true);
+  const [popupEnabled, setPopupEnabled] = useState<boolean | null>(null);
   const [popupImageUrl, setPopupImageUrl] = useState('');
   const [popupButtonLabel, setPopupButtonLabel] = useState('');
   const [popupButtonLink, setPopupButtonLink] = useState('');
@@ -55,6 +55,7 @@ export default function StaffBanners() {
   };
 
   const handleTopBannerSave = async () => {
+    if (topEnabled === null) return; // Not loaded yet
     setSaving(true);
     try {
       const token = await getAuthToken();
@@ -98,6 +99,7 @@ export default function StaffBanners() {
   };
 
   const handlePopupBannerSave = async () => {
+    if (popupEnabled === null) return; // Not loaded yet
     setSaving(true);
     try {
       const token = await getAuthToken();
@@ -241,6 +243,7 @@ export default function StaffBanners() {
               </div>
               <button
                 onClick={() => setTopEnabled(!topEnabled)}
+                disabled={topEnabled === null}
                 className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors shrink-0 cursor-pointer ${
                   topEnabled ? 'bg-primary' : 'bg-gray-300'
                 }`}
@@ -315,6 +318,7 @@ export default function StaffBanners() {
                 </div>
                 <button
                   onClick={() => setPopupEnabled(!popupEnabled)}
+                  disabled={popupEnabled === null}
                   className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors shrink-0 cursor-pointer ${
                     popupEnabled ? 'bg-primary' : 'bg-gray-300'
                   }`}

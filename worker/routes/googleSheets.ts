@@ -140,7 +140,6 @@ googleSheets.get('/auth-url', async (c) => {
       authUrl: authUrl.toString(),
       redirectUri: redirectUri,
       clientId: creds.client_id,
-      clientSecret: creds.client_secret,
       scopes: GOOGLE_SHEETS_SCOPES.split(' '),
       configured: true,
     },
@@ -200,6 +199,8 @@ googleSheets.put(
 // POST /api/google-sheets/oauth/callback - Process OAuth code (called from SPA)
 googleSheets.post(
   '/oauth/callback',
+  authMiddleware,
+  roleMiddleware(['staff', 'admin']),
   async (c) => {
     const { code, error: oauthError } = await c.req.json();
 
@@ -671,9 +672,22 @@ googleSheets.post(
       const spreadsheetId = config.spreadsheet_id as string;
       const sheetName = config.sheet_name as string;
 
+      // Compute dynamic end column from header count (A, B, ..., Z, AA, AB, ...)
+      const numCols = headerRow.length || 1;
+      const colIndexToLetter = (n: number): string => {
+        let letters = '';
+        while (n > 0) {
+          n -= 1;
+          letters = String.fromCharCode(65 + (n % 26)) + letters;
+          n = Math.floor(n / 26);
+        }
+        return letters;
+      };
+      const endCol = colIndexToLetter(numCols);
+
       // Clear
       await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}!A2:Z`,
+        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}!A2:${endCol}`,
         {
           method: 'PUT',
           headers: {
@@ -688,7 +702,7 @@ googleSheets.post(
       const allValues = [headerRow, ...rows];
 
       const writeRes = await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}!A1:Z?valueInputOption=USER_ENTERED`,
+        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}!A1:${endCol}?valueInputOption=USER_ENTERED`,
         {
           method: 'PUT',
           headers: {

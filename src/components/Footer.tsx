@@ -20,7 +20,7 @@ function isValidMapsEmbed(url: string): boolean {
   if (!url) return false;
   try {
     const parsed = new URL(url);
-    return parsed.hostname === 'www.google.com' && parsed.pathname.includes('/maps/embed');
+    return parsed.protocol === 'https:' && parsed.hostname === 'www.google.com' && parsed.pathname.includes('/maps/embed');
   } catch {
     return false;
   }

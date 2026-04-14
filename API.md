@@ -41,7 +41,11 @@ worker/
 ├── routes/
 │   ├── articles.ts       # Article/blog endpoints
 │   ├── ppdb.ts           # PPDB registration endpoints
-│   └── auth.ts           # Authentication endpoints
+│   ├── auth.ts           # Authentication endpoints
+│   ├── banners.ts        # Banner management endpoints
+│   ├── siteSettings.ts   # Site settings endpoints
+│   ├── users.ts          # User management endpoints
+│   └── googleSheets.ts   # Google Sheets integration endpoints
 └── lib/
     └── db.ts             # Database helper functions
 ```
@@ -351,6 +355,6 @@ curl -X POST http://localhost:5173/api/ppdb/register \
 CORS is configured to allow requests from:
 - `http://localhost:5173` (development)
 - `https://smptashfia.pages.dev` (staging)
-- `https://smptashfia.com` (production)
+- `https://smptashfia.sch.id` (production)
 
 Update allowed origins in `worker/middleware/cors.ts` if needed.

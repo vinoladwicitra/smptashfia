@@ -53,7 +53,14 @@ auth.post('/validate', async (c) => {
       }
     );
 
-    const roles = rolesResponse.ok ? await rolesResponse.json() as Array<Record<string, unknown>> : [];
+    if (!rolesResponse.ok) {
+      return c.json({
+        success: false,
+        error: 'Failed to fetch user roles',
+      }, 500);
+    }
+
+    const roles = await rolesResponse.json() as Array<Record<string, unknown>>;
     const roleNames = roles.map((ur) => (ur as { roles?: { name?: string } }).roles?.name).filter(Boolean);
 
     return c.json({
@@ -74,6 +81,7 @@ auth.post('/validate', async (c) => {
 // GET /api/auth/profile - Get user profile (requires auth)
 auth.get('/profile', authMiddleware, async (c) => {
   const user = c.get('user');
+  const userToken = c.get('userToken');
 
   try {
     // Fetch profile from Supabase
@@ -82,7 +90,7 @@ auth.get('/profile', authMiddleware, async (c) => {
       {
         headers: {
           'apikey': c.env.SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${userToken}`,
         },
       }
     );
@@ -121,6 +129,7 @@ auth.patch(
   })),
   async (c) => {
     const user = c.get('user');
+    const userToken = c.get('userToken');
     const data = c.req.valid('json');
 
     try {
@@ -131,7 +140,7 @@ auth.patch(
           headers: {
             'Content-Type': 'application/json',
             'apikey': c.env.SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+            'Authorization': `Bearer ${userToken}`,
             'Prefer': 'return=representation',
           },
           body: JSON.stringify(data),

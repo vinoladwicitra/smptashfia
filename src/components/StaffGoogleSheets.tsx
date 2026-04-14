@@ -278,19 +278,20 @@ export default function StaffGoogleSheets() {
     if (!confirm('Putuskan koneksi Google Sheets? Data mapping tetap tersimpan.')) return;
     try {
       const token = await getAuthToken();
-      await fetch(`${API_BASE}/google-sheets/config`, {
+      const res = await fetch(`${API_BASE}/google-sheets/config`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
-          spreadsheet_id: null,
-          spreadsheet_title: null,
-          sheet_name: null,
-          access_token: null,
-          refresh_token: null,
-          token_expiry: null,
-          user_email: null,
+          spreadsheet_id: '',
+          spreadsheet_title: '',
+          sheet_name: '',
         }),
       });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        toast({ type: 'error', title: 'Gagal', description: data.error || 'Gagal memutuskan koneksi' });
+        return;
+      }
       setConnected(false);
       setUserEmail('');
       setSelectedSpreadsheet('');

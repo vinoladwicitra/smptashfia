@@ -81,36 +81,6 @@ articles.get('/latest', zValidator('query', z.object({
   }
 });
 
-// GET /api/articles/:slug - Get single article
-articles.get('/:slug', async (c) => {
-  const slug = c.req.param('slug');
-
-  try {
-    const article = await getArticleBySlug(
-      c.env.SUPABASE_URL,
-      c.env.SUPABASE_ANON_KEY,
-      slug
-    );
-
-    if (!article) {
-      return c.json({
-        success: false,
-        error: 'Article not found',
-      }, 404);
-    }
-
-    return c.json({
-      success: true,
-      data: article,
-    });
-  } catch (error) {
-    return c.json({
-      success: false,
-      error: 'Failed to fetch article',
-    }, 500);
-  }
-});
-
 // GET /api/articles/categories - Get all categories
 articles.get('/categories/list', async (c) => {
   try {
@@ -147,6 +117,37 @@ articles.get('/tags', async (c) => {
     return c.json({
       success: false,
       error: 'Failed to fetch tags',
+    }, 500);
+  }
+});
+
+// GET /api/articles/:slug - Get single article
+// NOTE: This dynamic route must be registered AFTER static routes (/latest, /tags, /categories/list)
+articles.get('/:slug', async (c) => {
+  const slug = c.req.param('slug');
+
+  try {
+    const article = await getArticleBySlug(
+      c.env.SUPABASE_URL,
+      c.env.SUPABASE_ANON_KEY,
+      slug
+    );
+
+    if (!article) {
+      return c.json({
+        success: false,
+        error: 'Article not found',
+      }, 404);
+    }
+
+    return c.json({
+      success: true,
+      data: article,
+    });
+  } catch (error) {
+    return c.json({
+      success: false,
+      error: 'Failed to fetch article',
     }, 500);
   }
 });

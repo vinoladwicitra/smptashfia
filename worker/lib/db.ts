@@ -4,34 +4,6 @@
  */
 
 /**
- * Execute a SQL query using Supabase RPC or direct query
- * This is a helper for Cloudflare D1/Supabase compatibility
- */
-export async function dbQuery<T = unknown>(
-  supabaseUrl: string,
-  supabaseKey: string,
-  query: string,
-  params: unknown[] = []
-): Promise<T[]> {
-  const response = await fetch(`${supabaseUrl}/rest/v1/rpc/db_query`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': supabaseKey,
-      'Authorization': `Bearer ${supabaseKey}`,
-      'Prefer': 'return=representation',
-    },
-    body: JSON.stringify({ query, params }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Database query failed: ${response.statusText}`);
-  }
-
-  return response.json() as Promise<T[]>;
-}
-
-/**
  * Fetch articles from Supabase
  */
 export async function getArticles(
@@ -47,26 +19,43 @@ export async function getArticles(
   }
 ) {
   const params = new URLSearchParams();
-  
+
   if (options?.status) {
     params.set('status', 'eq.' + options.status);
   } else {
     // Default to published
     params.set('status', 'eq.published');
   }
-  
+
   if (options?.limit) {
     params.set('limit', String(options.limit));
   }
-  
+
+  if (options?.offset) {
+    params.set('offset', String(options.offset));
+  }
+
   params.set('order', 'published_at.desc');
 
-  let url = `${supabaseUrl}/rest/v1/articles?${params}`;
-  
-  // Add category filter if provided
-  if (options?.category) {
-    url = `${supabaseUrl}/rest/v1/articles?${params}&category_mappings=cs.{${options.category}}`;
+  // Add tag filter
+  if (options?.tag) {
+    params.set('tag_mappings', 'cs.{' + encodeURIComponent(options.tag) + '}');
   }
+
+  // Add author filter
+  if (options?.authorId) {
+    params.set('author_id', 'eq.' + options.authorId);
+  }
+
+  // Add category filter
+  if (options?.category) {
+    params.set('category_mappings', 'cs.{' + encodeURIComponent(options.category) + '}');
+  }
+
+  // Select article fields plus nested category mappings for frontend display
+  params.set('select', '*,article_category_mappings(article_categories(name,slug))');
+
+  const url = `${supabaseUrl}/rest/v1/articles?${params}`;
 
   const response = await fetch(url, {
     headers: {
@@ -88,10 +77,19 @@ export async function getArticles(
 export async function getArticleBySlug(
   supabaseUrl: string,
   supabaseKey: string,
-  slug: string
+  slug: string,
+  options?: { status?: string }
 ) {
+  const params = new URLSearchParams();
+  params.set('slug', 'eq.' + encodeURIComponent(slug));
+  params.set('select', '*,author:profiles(*)');
+
+  // Default to published unless explicitly requested otherwise
+  const status = options?.status || 'published';
+  params.set('status', 'eq.' + status);
+
   const response = await fetch(
-    `${supabaseUrl}/rest/v1/articles?slug=eq.${slug}&select=*,author:profiles(*)`,
+    `${supabaseUrl}/rest/v1/articles?${params}`,
     {
       headers: {
         'apikey': supabaseKey,
@@ -134,7 +132,11 @@ export async function getPPDBRegistrations(
   if (options?.limit) {
     params.set('limit', String(options.limit));
   }
-  
+
+  if (options?.offset) {
+    params.set('offset', String(options.offset));
+  }
+
   params.set('order', 'created_at.desc');
 
   const response = await fetch(
@@ -260,8 +262,12 @@ export async function getBannerByType(
   supabaseKey: string,
   type: string
 ) {
+  const params = new URLSearchParams();
+  params.set('banner_type', 'eq.' + encodeURIComponent(type));
+  params.set('select', '*');
+
   const response = await fetch(
-    `${supabaseUrl}/rest/v1/banners?banner_type=eq.${type}&select=*`,
+    `${supabaseUrl}/rest/v1/banners?${params}`,
     {
       headers: {
         'apikey': supabaseKey,

@@ -49,13 +49,14 @@ app.notFound((c) => {
 
 // Global error handler
 app.onError((err, c) => {
+  console.error('Unhandled error:', err);
   if (c.req.path.startsWith('/api/')) {
     return c.json({
       success: false,
-      error: err.message || 'Internal Server Error',
+      error: 'Internal Server Error',
     }, 500);
   }
-  
+
   return new Response('Internal Server Error', { status: 500 });
 });
 

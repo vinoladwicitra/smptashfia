@@ -68,32 +68,7 @@ users.get(
       const data = await response.json() as { users: Array<Record<string, unknown>>; total?: number };
       let usersList = data.users || [];
 
-      // Filter by role if specified (via profiles join)
-      if (role) {
-        const profileResponse = await fetch(
-          `${c.env.SUPABASE_URL}/rest/v1/user_roles?select=user_id,roles!inner(name)&roles.name=eq.${role}`,
-          {
-            headers: {
-              'apikey': c.env.SUPABASE_ANON_KEY,
-              'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
-            },
-          }
-        );
-        const profileData = profileResponse.ok ? await profileResponse.json() as Array<Record<string, unknown>> : [];
-        const roleUserIds = new Set(profileData.map((r: any) => r.user_id));
-        usersList = usersList.filter((u: any) => roleUserIds.has(u.id));
-      }
-
-      // Client-side search filter (by email)
-      if (search) {
-        const searchLower = search.toLowerCase();
-        usersList = usersList.filter((u: any) =>
-          u.email?.toLowerCase().includes(searchLower) ||
-          u.user_metadata?.display_name?.toLowerCase().includes(searchLower)
-        );
-      }
-
-      // Fetch profiles and roles for all users
+      // Fetch profiles and roles for all users on this page
       const userIds = usersList.map((u: any) => u.id);
       const profilesRes = await fetch(
         `${c.env.SUPABASE_URL}/rest/v1/profiles?id=in.(${userIds.join(',')})&select=*`,
@@ -116,6 +91,25 @@ users.get(
         }
       );
       const userRolesData = userRolesRes.ok ? await userRolesRes.json() as Array<Record<string, unknown>> : [];
+
+      // Filter by role if specified (using fetched role data)
+      if (role) {
+        const roleUserIds = new Set(
+          userRolesData
+            .filter((r: any) => (r as any).roles?.name === role)
+            .map((r: any) => r.user_id)
+        );
+        usersList = usersList.filter((u: any) => roleUserIds.has(u.id));
+      }
+
+      // Client-side search filter (by email) - note: this still applies after pagination
+      if (search) {
+        const searchLower = search.toLowerCase();
+        usersList = usersList.filter((u: any) =>
+          u.email?.toLowerCase().includes(searchLower) ||
+          u.user_metadata?.display_name?.toLowerCase().includes(searchLower)
+        );
+      }
 
       // Merge profiles and roles into users
       const enrichedUsers = usersList.map((u: any) => {
@@ -188,18 +182,30 @@ users.post(
       const rolesData = await rolesRes.json() as Array<Record<string, unknown>>;
       const roleId = rolesData[0]?.id;
 
+      if (!roleId) {
+        return c.json({
+          success: false,
+          error: `Role '${role}' not found`,
+        }, 400);
+      }
+
       // Assign role via user_roles
-      if (roleId) {
-        await fetch(`${c.env.SUPABASE_URL}/rest/v1/user_roles`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': c.env.SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
-            'Prefer': 'return=representation',
-          },
-          body: JSON.stringify({ user_id: userId, role_id: roleId }),
-        });
+      const roleRes = await fetch(`${c.env.SUPABASE_URL}/rest/v1/user_roles`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': c.env.SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+          'Prefer': 'return=representation',
+        },
+        body: JSON.stringify({ user_id: userId, role_id: roleId }),
+      });
+
+      if (!roleRes.ok) {
+        return c.json({
+          success: false,
+          error: `Failed to assign role: ${roleRes.statusText}`,
+        }, 500);
       }
 
       return c.json({
@@ -287,8 +293,32 @@ users.post(
   async (c) => {
     const userId = c.req.param('id');
     const { new_password } = c.req.valid('json');
+    const user = c.get('user');
 
     try {
+      // Prevent staff from modifying admin users (privilege escalation prevention)
+      const userRolesRes = await fetch(
+        `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${userId}&select=user_id,roles!inner(name)`,
+        {
+          headers: {
+            'apikey': c.env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+          },
+        }
+      );
+      const userRolesData = userRolesRes.ok ? await userRolesRes.json() as Array<Record<string, unknown>> : [];
+      const targetRoles = userRolesData.map((r: any) => (r as any).roles?.name).filter(Boolean);
+
+      if (targetRoles.includes('admin')) {
+        const callerRoles = (user as any).roles || [];
+        if (!callerRoles.includes('admin')) {
+          return c.json({
+            success: false,
+            error: 'Forbidden: staff cannot reset admin passwords',
+          }, 403);
+        }
+      }
+
       await authAdminRequest(c.env, 'PUT', `/users/${userId}`, {
         password: new_password,
       });

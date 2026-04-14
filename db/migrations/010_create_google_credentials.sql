@@ -2,13 +2,13 @@
 -- Store Google OAuth credentials securely for management via UI
 
 CREATE TABLE IF NOT EXISTS public.google_credentials (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id UUID PRIMARY KEY DEFAULT '00000000-0000-0000-0000-000000000001'::uuid,
   client_id TEXT NOT NULL,
   client_secret TEXT NOT NULL,
   redirect_uri TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
-  
+
   -- Ensure single row
   CONSTRAINT single_row CHECK (id = '00000000-0000-0000-0000-000000000001')
 );
@@ -24,7 +24,7 @@ CREATE POLICY "google_creds_staff_select" ON public.google_credentials
     EXISTS (
       SELECT 1 FROM public.user_roles ur
       JOIN public.roles r ON ur.role_id = r.id
-      WHERE ur.user_id = auth.uid() AND r.name IN ('staff', 'admin', 'teacher')
+      WHERE ur.user_id = auth.uid() AND r.name IN ('staff', 'admin')
     )
   );
 

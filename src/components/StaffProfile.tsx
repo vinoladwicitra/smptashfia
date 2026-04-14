@@ -16,7 +16,8 @@ export default function StaffProfile() {
   const [isUploading, setIsUploading] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isProfileSaving, setIsProfileSaving] = useState(false);
+  const [isPasswordSaving, setIsPasswordSaving] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -39,7 +40,7 @@ export default function StaffProfile() {
   const handleUpdateProfile = async (e: React.FormEvent) => {
     if (!user) return;
     e.preventDefault();
-    setIsLoading(true);
+    setIsProfileSaving(true);
 
     try {
       const { error: updateError } = await supabase
@@ -56,7 +57,7 @@ export default function StaffProfile() {
     } catch {
       toast({ type: 'error', title: 'Terjadi Kesalahan', description: 'Silakan coba lagi.' });
     } finally {
-      setIsLoading(false);
+      setIsProfileSaving(false);
     }
   };
 
@@ -105,11 +106,11 @@ export default function StaffProfile() {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsPasswordSaving(true);
 
     if (newPassword.length < 6) {
       toast({ type: 'error', title: 'Password Terlalu Pendek', description: 'Password baru minimal 6 karakter.' });
-      setIsLoading(false);
+      setIsPasswordSaving(false);
       return;
     }
 
@@ -128,7 +129,7 @@ export default function StaffProfile() {
     } catch {
       toast({ type: 'error', title: 'Terjadi Kesalahan', description: 'Silakan coba lagi.' });
     } finally {
-      setIsLoading(false);
+      setIsPasswordSaving(false);
     }
   };
 
@@ -211,7 +212,7 @@ export default function StaffProfile() {
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Masukkan nama lengkap"
               className="w-full px-4 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-text"
-              disabled={isLoading}
+              disabled={isProfileSaving}
             />
           </div>
           <div>
@@ -223,10 +224,10 @@ export default function StaffProfile() {
           </div>
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isProfileSaving}
             className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-60 cursor-pointer"
           >
-            {isLoading ? (
+            {isProfileSaving ? (
               <>
                 <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
@@ -266,13 +267,13 @@ export default function StaffProfile() {
                 className="w-full pl-10 pr-10 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-text"
                 required
                 minLength={6}
-                disabled={isLoading}
+                disabled={isPasswordSaving}
               />
               <button
                 type="button"
                 onClick={() => setShowNewPassword(!showNewPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-text-light hover:text-text transition-colors cursor-pointer"
-                disabled={isLoading}
+                disabled={isPasswordSaving}
               >
                 {showNewPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
               </button>
@@ -280,10 +281,10 @@ export default function StaffProfile() {
           </div>
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isPasswordSaving}
             className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-60 cursor-pointer"
           >
-            {isLoading ? (
+            {isPasswordSaving ? (
               <>
                 <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />

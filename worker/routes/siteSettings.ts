@@ -72,6 +72,7 @@ siteSettings.patch(
     try {
       const updates = Object.entries(data);
       const results: Array<Record<string, unknown>> = [];
+      const failedKeys: string[] = [];
 
       for (const [key, value] of updates) {
         const response = await fetch(
@@ -91,7 +92,17 @@ siteSettings.patch(
         if (response.ok) {
           const result = await response.json() as Array<Record<string, unknown>>;
           if (result[0]) results.push(result[0]);
+        } else {
+          failedKeys.push(key);
         }
+      }
+
+      if (failedKeys.length > 0) {
+        return c.json({
+          success: false,
+          error: `Failed to update settings: ${failedKeys.join(', ')}`,
+          data: results,
+        }, 500);
       }
 
       return c.json({

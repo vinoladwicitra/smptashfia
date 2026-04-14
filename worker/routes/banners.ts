@@ -168,6 +168,24 @@ banners.post(
       }, 400);
     }
 
+    // Validate file is an image
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    if (!allowedMimeTypes.includes(file.type)) {
+      return c.json({
+        success: false,
+        error: 'Invalid file type. Only images (JPEG, PNG, GIF, WebP, SVG) are allowed.',
+      }, 400);
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return c.json({
+        success: false,
+        error: 'File too large. Maximum size is 5MB.',
+      }, 400);
+    }
+
     try {
       const userToken = c.get('userToken');
       const ext = file.name.split('.').pop() || 'jpg';

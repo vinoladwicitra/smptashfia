@@ -47,6 +47,7 @@ export default function CollapsibleSidebar({
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-border px-4 py-3 flex items-center justify-between z-40">
         <button
           onClick={() => setMobileOpen(true)}
+          aria-label="Buka menu navigasi"
           className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
         >
           <IconMenu2 size={22} className="text-text" />
@@ -109,6 +110,7 @@ export default function CollapsibleSidebar({
               <div key={item.href} className="relative">
                 <button
                   onClick={() => onNavigate(item.href)}
+                  aria-label={item.label}
                   onMouseEnter={(e) => {
                     if (collapsed) {
                       setHoveredItem(item.href);
@@ -118,6 +120,15 @@ export default function CollapsibleSidebar({
                   }}
                   onMouseLeave={() => {
                     setHoveredItem(null);
+                    setTooltipPos(null);
+                  }}
+                  onFocus={(e) => {
+                    if (collapsed) {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setTooltipPos({ label: item.label, top: rect.top + rect.height / 2 });
+                    }
+                  }}
+                  onBlur={() => {
                     setTooltipPos(null);
                   }}
                   className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer
@@ -145,6 +156,7 @@ export default function CollapsibleSidebar({
         <div className="border-t border-border p-2 flex-shrink-0">
           <button
             onClick={() => setCollapsed(!collapsed)}
+            aria-label={collapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'}
             className="hidden lg:flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text hover:bg-gray-100 transition-colors cursor-pointer"
           >
             {collapsed ? <IconChevronsRight size={20} /> : <IconChevronsLeft size={20} />}
@@ -153,8 +165,11 @@ export default function CollapsibleSidebar({
 
           <button
             onClick={onLogout}
+            aria-label="Logout"
             onMouseEnter={() => collapsed && setHoveredItem('logout')}
             onMouseLeave={() => setHoveredItem(null)}
+            onFocus={() => collapsed && setHoveredItem('logout')}
+            onBlur={() => setHoveredItem(null)}
             className={`relative w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer
               ${collapsed ? 'lg:justify-center lg:px-2' : ''}
             `}

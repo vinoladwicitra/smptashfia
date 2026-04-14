@@ -140,17 +140,27 @@ export default function StaffUsers() {
     setSubmitting(true);
     try {
       const token = await getAuthToken();
-      await fetch(`${API_BASE}/users/${editingUser.id}`, {
+      const res = await fetch(`${API_BASE}/users/${editingUser.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(editForm),
       });
+      if (!res.ok) {
+        const err = await res.json();
+        toast({ type: 'error', title: 'Gagal', description: err.error || 'Gagal memperbarui user' });
+        return;
+      }
       if (newRole && newRole !== (editingUser.roles?.[0] || '')) {
-        await fetch(`${API_BASE}/users/${editingUser.id}/change-role`, {
+        const roleRes = await fetch(`${API_BASE}/users/${editingUser.id}/change-role`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ role: newRole }),
         });
+        if (!roleRes.ok) {
+          const err = await roleRes.json();
+          toast({ type: 'error', title: 'Gagal', description: err.error || 'Gagal mengubah role' });
+          return;
+        }
       }
       toast({ type: 'success', title: 'Berhasil', description: 'User berhasil diperbarui' });
       setEditingUser(null);
@@ -187,11 +197,16 @@ export default function StaffUsers() {
     setSubmitting(true);
     try {
       const token = await getAuthToken();
-      await fetch(`${API_BASE}/users/${user.id}`, {
+      const res = await fetch(`${API_BASE}/users/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ can_login: !user.can_login }),
       });
+      if (!res.ok) {
+        const err = await res.json();
+        toast({ type: 'error', title: 'Gagal', description: err.error || 'Gagal mengubah status login' });
+        return;
+      }
       toast({ type: 'success', title: 'Berhasil', description: user.can_login ? 'User dibatasi loginnya' : 'User diizinkan login kembali' });
       fetchUsers();
     } catch {
@@ -505,7 +520,7 @@ export default function StaffUsers() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-text mb-1.5">Password</label>
-                <input type="text" value={addForm.password} onChange={(e) => setAddForm({ ...addForm, password: e.target.value })} placeholder="Minimal 6 karakter" className="w-full px-3 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-sm text-text" />
+                <input type="password" value={addForm.password} onChange={(e) => setAddForm({ ...addForm, password: e.target.value })} placeholder="Minimal 6 karakter" className="w-full px-3 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-sm text-text" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-text mb-1.5">Nama Lengkap</label>
@@ -589,7 +604,7 @@ export default function StaffUsers() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-text mb-1.5">Password Baru</label>
-                <input type="text" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Minimal 6 karakter" className="w-full px-3 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-sm text-text" />
+                <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Minimal 6 karakter" className="w-full px-3 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-sm text-text" />
               </div>
               <div className="flex gap-3">
                 <button onClick={() => { setResetPasswordUserId(null); setNewPassword(''); }} className="flex-1 px-4 py-2.5 border border-border rounded-lg text-sm font-medium text-text hover:bg-gray-50 transition-colors cursor-pointer">Batal</button>

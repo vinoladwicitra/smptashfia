@@ -81,7 +81,7 @@ npm run deploy
 - `POST /api/ppdb/register` - Submit PPDB registration
 
 ### Protected Endpoints (Auth Required)
-- `GET /api/auth/validate` - Validate token
+- `POST /api/auth/validate` - Validate token
 - `GET /api/auth/profile` - Get user profile
 - `PATCH /api/auth/profile` - Update profile
 - `GET /api/ppdb/list` - List registrations (staff/admin/teacher)
@@ -106,7 +106,7 @@ smptashfia/
 │   ├── lib/              # Utilities
 │   │   └── db.ts         # Database helpers
 │   └── examples/         # Usage examples
-│       └── apiUsage.ts   # Frontend integration examples
+│       └── apiUsage.ts.example   # Frontend integration examples
 ├── src/                  # Frontend (React)
 │   ├── components/       # React components
 │   └── lib/              # Frontend utilities

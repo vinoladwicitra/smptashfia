@@ -43,12 +43,16 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
   const fetchSettings = async () => {
     try {
       const res = await fetch(`${API_BASE}/site-settings`);
+      if (!res.ok) {
+        console.error(`Fetch site-settings failed: ${res.status}`);
+        return;
+      }
       const data = await res.json();
-      if (data.success && data.data.contact) {
+      if (data.success && data.data) {
         setSettings({
-          ...data.data.contact,
-          ...data.data.location,
-          ...data.data.social,
+          ...(data.data.contact || {}),
+          ...(data.data.location || {}),
+          ...(data.data.social || {}),
         } as SiteSettings);
       }
     } catch (err) {

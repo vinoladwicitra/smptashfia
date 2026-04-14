@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { IconPhone, IconBrandInstagram, IconMapPin, IconUpload, IconLoader2, IconCheck } from '@tabler/icons-react';
+import { IconPhone, IconBrandInstagram, IconMapPin, IconLoader2, IconCheck, IconAlertCircle } from '@tabler/icons-react';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../context/ToastContext';
 
@@ -29,7 +29,17 @@ export default function StaffSiteSettings() {
   // Location settings
   const [mapsEmbedUrl, setMapsEmbedUrl] = useState('');
   const [mapsLink, setMapsLink] = useState('');
-  const [mapsPreviewValid, setMapsPreviewValid] = useState(true);
+
+  // Validate Google Maps embed URL
+  const isValidMapsEmbed = (url: string): boolean => {
+    if (!url) return false;
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === 'https:' && parsed.hostname === 'www.google.com' && parsed.pathname.includes('/maps/embed');
+    } catch {
+      return false;
+    }
+  };
 
   useEffect(() => {
     fetchSettings();
@@ -38,6 +48,9 @@ export default function StaffSiteSettings() {
   const fetchSettings = async () => {
     try {
       const res = await fetch(`${API_BASE}/site-settings`);
+      if (!res.ok) {
+        throw new Error(`Fetch site-settings failed: ${res.status}`);
+      }
       const data = await res.json();
       if (data.success) {
         const c = data.data.contact || {};
@@ -243,7 +256,7 @@ export default function StaffSiteSettings() {
             <div className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-text mb-2">Google Maps Embed URL</label>
-                <textarea value={mapsEmbedUrl} onChange={(e) => { setMapsEmbedUrl(e.target.value); setMapsPreviewValid(true); }} rows={3} placeholder="https://www.google.com/maps/embed?pb=..." className="w-full px-4 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-sm text-text font-mono resize-none" />
+                <textarea value={mapsEmbedUrl} onChange={(e) => setMapsEmbedUrl(e.target.value)} rows={3} placeholder="https://www.google.com/maps/embed?pb=..." className="w-full px-4 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-sm text-text font-mono resize-none" />
                 <p className="text-xs text-text-light mt-1.5">
                   Dari Google Maps → Share → Embed a map → Copy iframe src
                 </p>
@@ -260,7 +273,7 @@ export default function StaffSiteSettings() {
           </div>
 
           {/* Maps Preview */}
-          {mapsEmbedUrl && (
+          {mapsEmbedUrl && isValidMapsEmbed(mapsEmbedUrl) && (
             <div className="bg-white rounded-xl shadow-sm border border-border p-4 sm:p-6">
               <label className="block text-sm font-medium text-text mb-4">Preview Peta</label>
               <div className="rounded-xl overflow-hidden border border-border h-64 sm:h-80">
@@ -272,15 +285,17 @@ export default function StaffSiteSettings() {
                   allowFullScreen
                   loading="lazy"
                   title="Maps preview"
-                  onError={() => setMapsPreviewValid(false)}
                 />
               </div>
-              {!mapsPreviewValid && (
-                <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
-                  <IconUpload size={16} />
-                  URL embed tidak valid. Pastikan URL dari Google Maps Share → Embed.
-                </div>
-              )}
+            </div>
+          )}
+          {mapsEmbedUrl && !isValidMapsEmbed(mapsEmbedUrl) && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-start gap-3">
+              <IconAlertCircle size={18} className="flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium">URL embed tidak valid</p>
+                <p className="text-xs text-red-600 mt-1">Pastikan URL dari Google Maps → Share → Embed a map. Format yang valid: https://www.google.com/maps/embed?pb=...</p>
+              </div>
             </div>
           )}
         </div>

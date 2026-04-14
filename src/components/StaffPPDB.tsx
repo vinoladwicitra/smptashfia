@@ -77,6 +77,7 @@ export default function StaffPPDB() {
       });
       if (statusFilter) params.set('status', statusFilter);
       if (sekolahFilter) params.set('sekolah', sekolahFilter);
+      if (search) params.set('search', search);
 
       const token = await getAuthToken();
       const res = await fetch(`${API_BASE}/ppdb/list?${params}`, {
@@ -84,17 +85,9 @@ export default function StaffPPDB() {
       });
       const data = await res.json();
       if (data.success) {
-        let filtered = data.data as PPDBRegistration[];
-        if (search) {
-          const s = search.toLowerCase();
-          filtered = filtered.filter((r) =>
-            r.nama_lengkap.toLowerCase().includes(s) ||
-            r.email.toLowerCase().includes(s) ||
-            r.asal_sekolah.toLowerCase().includes(s)
-          );
-        }
-        setRegistrations(filtered);
-        setTotalPages(Math.ceil((data.pagination?.total || filtered.length) / perPage) || 1);
+        setRegistrations(data.data as PPDBRegistration[]);
+        const total = data.pagination?.total ?? (data.pagination?.offset ?? 0) + data.data.length;
+        setTotalPages(Math.ceil(total / perPage) || 1);
       }
     } catch {
       toast({ type: 'error', title: 'Gagal', description: 'Gagal memuat data pendaftaran' });

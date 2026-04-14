@@ -73,19 +73,29 @@ ON CONFLICT (field_name) DO NOTHING;
 ALTER TABLE public.google_sheets_config ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.google_sheets_mappings ENABLE ROW LEVEL SECURITY;
 
--- Config: staff/admin/teacher can read
+-- Config: staff/admin can read
 CREATE POLICY "gsheets_config_staff_select" ON public.google_sheets_config
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public.user_roles ur
       JOIN public.roles r ON ur.role_id = r.id
-      WHERE ur.user_id = auth.uid() AND r.name IN ('staff', 'admin', 'teacher')
+      WHERE ur.user_id = auth.uid() AND r.name IN ('staff', 'admin')
     )
   );
 
 -- Config: staff/admin can update
 CREATE POLICY "gsheets_config_staff_update" ON public.google_sheets_config
-  FOR ALL USING (
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM public.user_roles ur
+      JOIN public.roles r ON ur.role_id = r.id
+      WHERE ur.user_id = auth.uid() AND r.name IN ('staff', 'admin')
+    )
+  );
+
+-- Config: staff/admin can insert
+CREATE POLICY "gsheets_config_staff_insert" ON public.google_sheets_config
+  FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.user_roles ur
       JOIN public.roles r ON ur.role_id = r.id
@@ -99,7 +109,17 @@ CREATE POLICY "gsheets_mappings_public_select" ON public.google_sheets_mappings
 
 -- Mappings: staff/admin can update
 CREATE POLICY "gsheets_mappings_staff_update" ON public.google_sheets_mappings
-  FOR ALL USING (
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM public.user_roles ur
+      JOIN public.roles r ON ur.role_id = r.id
+      WHERE ur.user_id = auth.uid() AND r.name IN ('staff', 'admin')
+    )
+  );
+
+-- Mappings: staff/admin can insert
+CREATE POLICY "gsheets_mappings_staff_insert" ON public.google_sheets_mappings
+  FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.user_roles ur
       JOIN public.roles r ON ur.role_id = r.id
