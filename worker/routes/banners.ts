@@ -138,6 +138,13 @@ banners.patch(
 
       const result = await response.json() as Array<Record<string, unknown>>;
 
+      if (result.length === 0) {
+        return c.json({
+          success: false,
+          error: 'Banner not found',
+        }, 404);
+      }
+
       return c.json({
         success: true,
         message: 'Banner updated successfully',
@@ -168,12 +175,12 @@ banners.post(
       }, 400);
     }
 
-    // Validate file is an image
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    // Validate file is an image (SVG excluded to prevent stored XSS)
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedMimeTypes.includes(file.type)) {
       return c.json({
         success: false,
-        error: 'Invalid file type. Only images (JPEG, PNG, GIF, WebP, SVG) are allowed.',
+        error: 'Invalid file type. Only images (JPEG, PNG, GIF, WebP) are allowed.',
       }, 400);
     }
 
@@ -188,7 +195,14 @@ banners.post(
 
     try {
       const userToken = c.get('userToken');
-      const ext = file.name.split('.').pop() || 'jpg';
+      // Derive extension from validated MIME type, not file.name (prevents mismatch)
+      const mimeToExt: Record<string, string> = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/gif': 'gif',
+        'image/webp': 'webp',
+      };
+      const ext = mimeToExt[file.type] || 'jpg';
       const fileName = `banner-${Date.now()}.${ext}`;
 
       // Upload to Supabase Storage

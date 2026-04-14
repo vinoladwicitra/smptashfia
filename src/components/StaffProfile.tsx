@@ -167,6 +167,7 @@ export default function StaffProfile() {
             />
             <button
               onClick={() => fileInputRef.current?.click()}
+              aria-label="Upload avatar"
               className="absolute bottom-0 right-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white shadow-md hover:bg-primary-dark transition-colors disabled:opacity-60 cursor-pointer"
               disabled={isUploading}
             >
@@ -182,6 +183,7 @@ export default function StaffProfile() {
             {avatarUrl && (
               <button
                 onClick={handleDeleteAvatar}
+                aria-label="Delete avatar"
                 className="absolute -top-1 -right-1 w-7 h-7 bg-red-500 rounded-full flex items-center justify-center text-white shadow-md hover:bg-red-600 transition-colors disabled:opacity-60 cursor-pointer"
                 disabled={isUploading}
               >
@@ -272,6 +274,7 @@ export default function StaffProfile() {
               <button
                 type="button"
                 onClick={() => setShowNewPassword(!showNewPassword)}
+                aria-label="Toggle password visibility"
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-text-light hover:text-text transition-colors cursor-pointer"
                 disabled={isPasswordSaving}
               >

@@ -83,7 +83,7 @@ async function getValidAccessToken(env: Env, config: Record<string, unknown>) {
     const refreshed = await refreshAccessToken(env, config.refresh_token as string);
 
     // Update config in DB
-    await fetch(
+    const updateRes = await fetch(
       `${env.SUPABASE_URL}/rest/v1/google_sheets_config?id=eq.${config.id}`,
       {
         method: 'PATCH',
@@ -99,6 +99,11 @@ async function getValidAccessToken(env: Env, config: Record<string, unknown>) {
         }),
       }
     );
+
+    if (!updateRes.ok) {
+      console.error(`Failed to persist refreshed token for config ${config.id}: ${updateRes.status} ${updateRes.statusText}`);
+      throw new Error(`Failed to persist refreshed token: ${updateRes.statusText}`);
+    }
 
     return refreshed.accessToken;
   }
@@ -118,7 +123,6 @@ googleSheets.get('/auth-url', async (c) => {
         authUrl: null,
         redirectUri: redirectUri,
         clientId: '',
-        clientSecret: '',
         scopes: GOOGLE_SHEETS_SCOPES.split(' '),
         configured: false,
         message: 'Google OAuth credentials not configured. Set them below.',
@@ -566,7 +570,7 @@ googleSheets.put(
 
     try {
       const existing = await fetch(
-        `${c.env.SUPABASE_URL}/rest/v1/google_sheets_mappings?field_name=eq.${fieldName}&select=id`,
+        `${c.env.SUPABASE_URL}/rest/v1/google_sheets_mappings?field_name=eq.${encodeURIComponent(fieldName)}&select=id`,
         {
           headers: {
             'apikey': c.env.SUPABASE_ANON_KEY,
@@ -685,16 +689,19 @@ googleSheets.post(
       };
       const endCol = colIndexToLetter(numCols);
 
-      // Clear
+      // Clear ALL data rows (A2 onwards) using the Sheets clear endpoint.
+      // Using the :clear API (POST) ensures proper cell value clearing including
+      // formatting, and using a generous range (A2:ZZ) ensures any previously
+      // mapped columns beyond the current endCol are also removed, preventing
+      // stale data from lingering in the sheet.
       await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}!A2:${endCol}`,
+        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}!A2:ZZ:clear`,
         {
-          method: 'PUT',
+          method: 'POST',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ values: [] }),
         }
       );
 

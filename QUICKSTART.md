@@ -10,17 +10,14 @@ npm install
 ### 2. Configure Environment Variables
 
 **For Local Development:**
-Create `.dev.vars` file (already created):
+Create `.env` file:
 ```bash
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your-anon-key-here
 ```
 
 **For Frontend:**
-Create `.env` file from example:
-```bash
-cp .env.example .env
-```
+The same `.env` file is used for both frontend and backend (configured via `wrangler.jsonc`).
 
 Then update with your actual Supabase credentials.
 
@@ -91,7 +88,7 @@ npm run deploy
 
 ## Project Structure
 
-```
+```text
 smptashfia/
 ├── worker/                 # Backend API (Hono)
 │   ├── index.ts           # Main entry point

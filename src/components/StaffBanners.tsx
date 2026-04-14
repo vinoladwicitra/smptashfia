@@ -29,6 +29,10 @@ export default function StaffBanners() {
   const fetchBanners = async () => {
     try {
       const res = await fetch(`${API_BASE}/banners`);
+      if (!res.ok) {
+        console.error(`Failed to fetch banners: ${res.status} ${res.statusText}`);
+        return;
+      }
       const data = await res.json();
       if (data.success) {
         if (data.data.top_banner) {
@@ -147,6 +151,17 @@ export default function StaffBanners() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Client-side validation
+    if (!file.type.startsWith('image/')) {
+      toast({ type: 'error', title: 'File Tidak Valid', description: 'Hanya file gambar yang diperbolehkan.' });
+      return;
+    }
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast({ type: 'error', title: 'File Terlalu Besar', description: 'Ukuran file maksimal 5MB.' });
+      return;
+    }
 
     setUploading(true);
     try {

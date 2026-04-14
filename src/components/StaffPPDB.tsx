@@ -94,7 +94,7 @@ export default function StaffPPDB() {
     } finally {
       setLoading(false);
     }
-  }, [page, statusFilter, sekolahFilter, search]);
+  }, [page, statusFilter, sekolahFilter, search, toast]);
 
   useEffect(() => { fetchRegistrations(); }, [fetchRegistrations]);
 

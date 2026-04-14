@@ -99,7 +99,7 @@ export default function StaffUsers() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, roleFilter, sortFilter]);
+  }, [page, search, roleFilter, sortFilter, toast]);
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
@@ -510,9 +510,16 @@ export default function StaffUsers() {
 
       {/* Add User Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 z-[2000] flex items-center justify-center p-4" onClick={() => setShowAddModal(false)}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="addModalTitle"
+          className="fixed inset-0 bg-black/50 z-[2000] flex items-center justify-center p-4"
+          onClick={() => setShowAddModal(false)}
+          onKeyDown={(e) => { if (e.key === 'Escape') setShowAddModal(false); }}
+        >
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-text mb-4">Tambah User Baru</h2>
+            <h2 id="addModalTitle" className="text-lg font-bold text-text mb-4">Tambah User Baru</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-text mb-1.5">Email</label>

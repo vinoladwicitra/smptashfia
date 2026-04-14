@@ -30,7 +30,7 @@ CREATE POLICY "google_creds_staff_select" ON public.google_credentials
 
 -- Staff/admin can update
 CREATE POLICY "google_creds_staff_update" ON public.google_credentials
-  FOR ALL USING (
+  FOR UPDATE USING (
     EXISTS (
       SELECT 1 FROM public.user_roles ur
       JOIN public.roles r ON ur.role_id = r.id

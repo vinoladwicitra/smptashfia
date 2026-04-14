@@ -73,7 +73,6 @@ export default function StaffGoogleSheets() {
         setAuthUrl(authData.data.authUrl);
         setRedirectUri(authData.data.redirectUri);
         setClientId(authData.data.clientId || '');
-        setClientSecret(authData.data.clientSecret || '');
       }
 
       // Get config

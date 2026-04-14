@@ -108,29 +108,18 @@ ppdb.get(
         {
           status,
           sekolah,
+          search,
           limit,
           offset,
         }
       );
 
-      // Apply server-side search filter
-      let filtered = registrations as Array<Record<string, unknown>>;
-      if (search) {
-        const s = search.toLowerCase();
-        filtered = filtered.filter((r) =>
-          (r.nama_lengkap as string)?.toLowerCase().includes(s) ||
-          (r.email as string)?.toLowerCase().includes(s) ||
-          (r.asal_sekolah as string)?.toLowerCase().includes(s)
-        );
-      }
-
       return c.json({
         success: true,
-        data: filtered,
+        data: registrations,
         pagination: {
           limit,
           offset,
-          total: filtered.length,
         },
       });
     } catch (error) {
@@ -143,6 +132,13 @@ ppdb.get(
 );
 
 // GET /api/ppdb/upload-url - Get presigned upload URL for PPDB documents
+// SECURITY NOTE: This endpoint is intentionally unauthenticated to allow public
+// PPDB registration. It only returns Supabase Storage URLs — it does NOT
+// perform the upload itself. Actual uploads require client-side Supabase auth
+// or a signed policy on the storage bucket. The returned URLs (uploadUrl and
+// publicUrl) are not access tokens; they are simply object paths. Ensure the
+// ppdb-documents bucket has appropriate RLS policies to restrict who can
+// upload and who can read.
 ppdb.get('/upload-url', async (c) => {
   const fileName = c.req.query('fileName');
   

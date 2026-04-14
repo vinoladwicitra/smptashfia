@@ -155,7 +155,7 @@ export default function CollapsibleSidebar({
         {/* Collapse Toggle + Logout */}
         <div className="border-t border-border p-2 flex-shrink-0">
           <button
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={() => { setCollapsed(!collapsed); setTooltipPos(null); }}
             aria-label={collapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'}
             className="hidden lg:flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text hover:bg-gray-100 transition-colors cursor-pointer"
           >

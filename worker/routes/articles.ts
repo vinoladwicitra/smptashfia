@@ -13,7 +13,7 @@ const paginationSchema = z.object({
 });
 
 const articleQuerySchema = z.object({
-  status: z.string().optional(),
+  status: z.enum(['published', 'draft', 'archived']).optional(),
   category: z.string().optional(),
   tag: z.string().optional(),
   author: z.string().optional(),

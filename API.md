@@ -175,6 +175,7 @@ GET /api/ppdb/list
 **Query Parameters:**
 - `status` (string: "pending", "reviewed", "accepted", "rejected")
 - `sekolah` (string: school name)
+- `search` (string: optional, search across name, email, and school)
 - `limit` (number, default: 20, max: 100)
 - `offset` (number, default: 0)
 
@@ -356,5 +357,6 @@ CORS is configured to allow requests from:
 - `http://localhost:5173` (development)
 - `https://smptashfia.pages.dev` (staging)
 - `https://smptashfia.sch.id` (production)
+- Any subdomain under `*.smptashfia.sch.id` (e.g., `https://app.smptashfia.sch.id`) — validated by parsing the origin hostname to prevent spoofing.
 
 Update allowed origins in `worker/middleware/cors.ts` if needed.

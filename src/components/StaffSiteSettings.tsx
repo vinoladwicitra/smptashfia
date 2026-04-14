@@ -35,7 +35,9 @@ export default function StaffSiteSettings() {
     if (!url) return false;
     try {
       const parsed = new URL(url);
-      return parsed.protocol === 'https:' && parsed.hostname === 'www.google.com' && parsed.pathname.includes('/maps/embed');
+      // Accept Google Maps host variants (www.google.com, maps.google.com, regional TLDs)
+      const isGoogleHost = /\.google\.[a-z.]+$/i.test(parsed.hostname);
+      return parsed.protocol === 'https:' && isGoogleHost && parsed.pathname.includes('/maps') && parsed.pathname.includes('embed');
     } catch {
       return false;
     }

@@ -6,6 +6,9 @@ import type { Env } from '../types';
 
 const users = new Hono<{ Bindings: Env; Variables: { userToken: string } }>();
 
+// Helper: validate UUID format
+const isValidUuid = (v: string): boolean => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+
 // Helper: call Supabase Auth Admin API
 async function authAdminRequest(
   env: Env,
@@ -70,27 +73,31 @@ users.get(
 
       // Fetch profiles and roles for all users on this page
       const userIds = usersList.map((u: any) => u.id);
-      const profilesRes = await fetch(
-        `${c.env.SUPABASE_URL}/rest/v1/profiles?id=in.(${userIds.join(',')})&select=*`,
-        {
-          headers: {
-            'apikey': c.env.SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
-          },
-        }
-      );
-      const profiles = profilesRes.ok ? await profilesRes.json() as Array<Record<string, unknown>> : [];
 
-      const userRolesRes = await fetch(
-        `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=in.(${userIds.join(',')})&select=user_id,roles!inner(name)`,
-        {
-          headers: {
-            'apikey': c.env.SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
-          },
-        }
-      );
-      const userRolesData = userRolesRes.ok ? await userRolesRes.json() as Array<Record<string, unknown>> : [];
+      // Guard: skip network requests if no users on this page
+      const profiles = userIds.length > 0
+        ? (await (await fetch(
+            `${c.env.SUPABASE_URL}/rest/v1/profiles?id=in.(${userIds.join(',')})&select=*`,
+            {
+              headers: {
+                'apikey': c.env.SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+              },
+            }
+          )).json()) as Array<Record<string, unknown>>
+        : [];
+
+      const userRolesData = userIds.length > 0
+        ? (await (await fetch(
+            `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=in.(${userIds.join(',')})&select=user_id,roles!inner(name)`,
+            {
+              headers: {
+                'apikey': c.env.SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+              },
+            }
+          )).json()) as Array<Record<string, unknown>>
+        : [];
 
       // Filter by role if specified (using fetched role data)
       if (role) {
@@ -189,7 +196,30 @@ users.post(
         }, 400);
       }
 
-      // Assign role via user_roles
+      // Atomic role swap: delete old roles then assign new one.
+      // If the POST fails, we attempt to restore the previous roles.
+      const previousRoles = await (await fetch(
+        `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${userId}&select=role_id`,
+        {
+          headers: {
+            'apikey': c.env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+          },
+        }
+      )).json() as Array<{ role_id: string }>;
+
+      await fetch(
+        `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${userId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'apikey': c.env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+          },
+        }
+      );
+
+      // Assign new role
       const roleRes = await fetch(`${c.env.SUPABASE_URL}/rest/v1/user_roles`, {
         method: 'POST',
         headers: {
@@ -202,6 +232,18 @@ users.post(
       });
 
       if (!roleRes.ok) {
+        // Attempt rollback: restore previous roles
+        for (const prev of previousRoles) {
+          await fetch(`${c.env.SUPABASE_URL}/rest/v1/user_roles`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': c.env.SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({ user_id: userId, role_id: prev.role_id }),
+          });
+        }
         return c.json({
           success: false,
           error: `Failed to assign role: ${roleRes.statusText}`,
@@ -237,6 +279,10 @@ users.put(
   async (c) => {
     const userId = c.req.param('id');
     const data = c.req.valid('json');
+
+    if (!isValidUuid(userId)) {
+      return c.json({ success: false, error: 'Invalid user ID format' }, 400);
+    }
 
     try {
       // Update auth user metadata
@@ -295,6 +341,10 @@ users.post(
     const { new_password } = c.req.valid('json');
     const user = c.get('user');
 
+    if (!isValidUuid(userId)) {
+      return c.json({ success: false, error: 'Invalid user ID format' }, 400);
+    }
+
     try {
       // Prevent staff from modifying admin users (privilege escalation prevention)
       const userRolesRes = await fetch(
@@ -306,7 +356,15 @@ users.post(
           },
         }
       );
-      const userRolesData = userRolesRes.ok ? await userRolesRes.json() as Array<Record<string, unknown>> : [];
+
+      if (!userRolesRes.ok) {
+        return c.json({
+          success: false,
+          error: 'Failed to verify target user roles',
+        }, 500);
+      }
+
+      const userRolesData = await userRolesRes.json() as Array<Record<string, unknown>>;
       const targetRoles = userRolesData.map((r: any) => (r as any).roles?.name).filter(Boolean);
 
       if (targetRoles.includes('admin')) {
@@ -347,6 +405,10 @@ users.post(
   async (c) => {
     const userId = c.req.param('id');
     const { role } = c.req.valid('json');
+
+    if (!isValidUuid(userId)) {
+      return c.json({ success: false, error: 'Invalid user ID format' }, 400);
+    }
 
     try {
       // Get role ID
@@ -410,6 +472,10 @@ users.delete(
   roleMiddleware(['admin']),
   async (c) => {
     const userId = c.req.param('id');
+
+    if (!isValidUuid(userId)) {
+      return c.json({ success: false, error: 'Invalid user ID format' }, 400);
+    }
 
     try {
       await authAdminRequest(c.env, 'DELETE', `/users/${userId}`);

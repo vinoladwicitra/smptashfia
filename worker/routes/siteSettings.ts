@@ -56,8 +56,8 @@ siteSettings.patch(
     contact_hours: z.string().optional(),
     contact_address_short: z.string().optional(),
     contact_address_full: z.string().optional(),
-    maps_embed_url: z.string().optional(),
-    maps_link: z.string().optional(),
+    maps_embed_url: z.string().url().refine(v => v.startsWith('https://'), { message: 'maps_embed_url must be HTTPS' }).optional(),
+    maps_link: z.string().url().optional(),
     social_instagram: z.string().optional(),
     social_instagram_label: z.string().optional(),
     social_facebook: z.string().optional(),
@@ -71,29 +71,43 @@ siteSettings.patch(
 
     try {
       const updates = Object.entries(data);
-      const results: Array<Record<string, unknown>> = [];
+
+      // Fire all PATCH requests in parallel
+      const results = await Promise.allSettled(
+        updates.map(async ([key, value]) => {
+          const response = await fetch(
+            `${c.env.SUPABASE_URL}/rest/v1/site_settings?setting_key=eq.${key}`,
+            {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': c.env.SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${userToken}`,
+                'Prefer': 'return=representation',
+              },
+              body: JSON.stringify({ setting_value: value }),
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`Failed to update ${key}: ${response.status}`);
+          }
+
+          const result = await response.json() as Array<Record<string, unknown>>;
+          return result[0];
+        })
+      );
+
+      // Collect successful results and failed keys
+      const successfulResults: Array<Record<string, unknown>> = [];
       const failedKeys: string[] = [];
 
-      for (const [key, value] of updates) {
-        const response = await fetch(
-          `${c.env.SUPABASE_URL}/rest/v1/site_settings?setting_key=eq.${key}`,
-          {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': c.env.SUPABASE_ANON_KEY,
-              'Authorization': `Bearer ${userToken}`,
-              'Prefer': 'return=representation',
-            },
-            body: JSON.stringify({ setting_value: value }),
-          }
-        );
-
-        if (response.ok) {
-          const result = await response.json() as Array<Record<string, unknown>>;
-          if (result[0]) results.push(result[0]);
+      for (let i = 0; i < results.length; i++) {
+        const result = results[i];
+        if (result.status === 'fulfilled' && result.value) {
+          successfulResults.push(result.value);
         } else {
-          failedKeys.push(key);
+          failedKeys.push(updates[i][0]);
         }
       }
 
@@ -101,14 +115,14 @@ siteSettings.patch(
         return c.json({
           success: false,
           error: `Failed to update settings: ${failedKeys.join(', ')}`,
-          data: results,
+          data: successfulResults,
         }, 500);
       }
 
       return c.json({
         success: true,
         message: 'Settings updated successfully',
-        data: results,
+        data: successfulResults,
       });
     } catch (error) {
       return c.json({

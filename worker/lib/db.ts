@@ -37,9 +37,9 @@ export async function getArticles(
 
   params.set('order', 'published_at.desc');
 
-  // Add tag filter
+  // Add tag filter via relational junction table
   if (options?.tag) {
-    params.set('tag_mappings', 'cs.{' + encodeURIComponent(options.tag) + '}');
+    params.set('article_tag_mappings.tag.slug', 'eq.' + encodeURIComponent(options.tag));
   }
 
   // Add author filter
@@ -47,9 +47,9 @@ export async function getArticles(
     params.set('author_id', 'eq.' + options.authorId);
   }
 
-  // Add category filter
+  // Add category filter via relational junction table
   if (options?.category) {
-    params.set('category_mappings', 'cs.{' + encodeURIComponent(options.category) + '}');
+    params.set('article_category_mappings.article_categories.slug', 'eq.' + encodeURIComponent(options.category));
   }
 
   // Select article fields plus nested category mappings for frontend display
@@ -115,20 +115,27 @@ export async function getPPDBRegistrations(
   options?: {
     status?: string;
     sekolah?: string;
+    search?: string;
     limit?: number;
     offset?: number;
   }
 ) {
   const params = new URLSearchParams();
-  
+
   if (options?.status) {
     params.set('status', 'eq.' + options.status);
   }
-  
+
   if (options?.sekolah) {
     params.set('pemilihan_sekolah', 'eq.' + options.sekolah);
   }
-  
+
+  // Server-side search across multiple fields using PostgREST or() operator
+  if (options?.search) {
+    const encoded = encodeURIComponent(options.search);
+    params.set('or', `nama_lengkap.ilike.%${encoded}%,email.ilike.%${encoded}%,asal_sekolah.ilike.%${encoded}%`);
+  }
+
   if (options?.limit) {
     params.set('limit', String(options.limit));
   }
