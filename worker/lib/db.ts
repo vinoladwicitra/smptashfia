@@ -39,7 +39,7 @@ export async function getArticles(
 
   // Add tag filter via relational junction table
   if (options?.tag) {
-    params.set('article_tag_mappings.tag.slug', 'eq.' + encodeURIComponent(options.tag));
+    params.set('article_tag_mappings.article_tags.slug', 'eq.' + encodeURIComponent(options.tag));
   }
 
   // Add author filter
@@ -132,8 +132,11 @@ export async function getPPDBRegistrations(
 
   // Server-side search across multiple fields using PostgREST or() operator
   if (options?.search) {
-    const encoded = encodeURIComponent(options.search);
-    params.set('or', `nama_lengkap.ilike.%${encoded}%,email.ilike.%${encoded}%,asal_sekolah.ilike.%${encoded}%`);
+    // Escape SQL wildcard characters (%) and (_) before encoding
+    const escaped = options.search.replace(/%/g, '\\%').replace(/_/g, '\\_');
+    // Don't double-encode: use raw search term in the ilike pattern
+    // PostgREST will handle the URL encoding
+    params.set('or', `nama_lengkap.ilike.*${escaped}*,email.ilike.*${escaped}*,asal_sekolah.ilike.*${escaped}*`);
   }
 
   if (options?.limit) {

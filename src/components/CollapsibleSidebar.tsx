@@ -59,8 +59,12 @@ export default function CollapsibleSidebar({
       {/* Mobile Overlay */}
       {mobileOpen && (
         <div
+          tabIndex={0}
+          role="button"
+          aria-label="Tutup menu"
           className="lg:hidden fixed inset-0 bg-black/50 z-50 animate-fadeIn cursor-pointer"
           onClick={() => setMobileOpen(false)}
+          onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMobileOpen(false); } }}
         />
       )}
 
@@ -113,13 +117,11 @@ export default function CollapsibleSidebar({
                   aria-label={item.label}
                   onMouseEnter={(e) => {
                     if (collapsed) {
-                      setHoveredItem(item.href);
                       const rect = e.currentTarget.getBoundingClientRect();
                       setTooltipPos({ label: item.label, top: rect.top + rect.height / 2 });
                     }
                   }}
                   onMouseLeave={() => {
-                    setHoveredItem(null);
                     setTooltipPos(null);
                   }}
                   onFocus={(e) => {

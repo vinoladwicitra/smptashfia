@@ -75,28 +75,30 @@ users.get(
       const userIds = usersList.map((u: any) => u.id);
 
       // Guard: skip network requests if no users on this page
-      const profiles = userIds.length > 0
-        ? (await (await fetch(
-            `${c.env.SUPABASE_URL}/rest/v1/profiles?id=in.(${userIds.join(',')})&select=*`,
-            {
-              headers: {
-                'apikey': c.env.SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
-              },
-            }
-          )).json()) as Array<Record<string, unknown>>
+      const profilesRes = await fetch(
+        `${c.env.SUPABASE_URL}/rest/v1/profiles?id=in.(${userIds.join(',')})&select=*`,
+        {
+          headers: {
+            'apikey': c.env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+          },
+        }
+      );
+      const profiles = profilesRes.ok
+        ? await profilesRes.json() as Array<Record<string, unknown>>
         : [];
 
-      const userRolesData = userIds.length > 0
-        ? (await (await fetch(
-            `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=in.(${userIds.join(',')})&select=user_id,roles!inner(name)`,
-            {
-              headers: {
-                'apikey': c.env.SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
-              },
-            }
-          )).json()) as Array<Record<string, unknown>>
+      const userRolesRes = await fetch(
+        `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=in.(${userIds.join(',')})&select=user_id,roles!inner(name)`,
+        {
+          headers: {
+            'apikey': c.env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+          },
+        }
+      );
+      const userRolesData = userRolesRes.ok
+        ? await userRolesRes.json() as Array<Record<string, unknown>>
         : [];
 
       // Filter by role if specified (using fetched role data)
@@ -441,7 +443,7 @@ users.post(
       );
 
       // Assign new role
-      await fetch(`${c.env.SUPABASE_URL}/rest/v1/user_roles`, {
+      const roleRes = await fetch(`${c.env.SUPABASE_URL}/rest/v1/user_roles`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -451,6 +453,25 @@ users.post(
         },
         body: JSON.stringify({ user_id: userId, role_id: roleId }),
       });
+
+      if (!roleRes.ok) {
+        // Attempt rollback: restore previous roles
+        for (const prev of previousRoles) {
+          await fetch(`${c.env.SUPABASE_URL}/rest/v1/user_roles`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': c.env.SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({ user_id: userId, role_id: prev.role_id }),
+          });
+        }
+        return c.json({
+          success: false,
+          error: `Failed to assign role: ${roleRes.statusText}`,
+        }, 500);
+      }
 
       return c.json({
         success: true,

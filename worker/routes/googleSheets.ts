@@ -253,6 +253,11 @@ googleSheets.post(
     const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: { 'Authorization': `Bearer ${tokenData.access_token}` },
     });
+
+    if (!userInfoRes.ok) {
+      return c.json({ success: false, error: 'Failed to fetch user info from Google' }, 500);
+    }
+
     const userInfo = await userInfoRes.json() as { email: string };
 
     // Upsert config (single row always)
@@ -260,7 +265,7 @@ googleSheets.post(
     const expiry = new Date(Date.now() + tokenData.expires_in * 1000);
 
     if (existingConfig) {
-      await fetch(
+      const res = await fetch(
         `${c.env.SUPABASE_URL}/rest/v1/google_sheets_config?id=eq.${existingConfig.id}`,
         {
           method: 'PATCH',
@@ -278,8 +283,13 @@ googleSheets.post(
           }),
         }
       );
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error(`Failed to persist OAuth tokens (PATCH): ${res.status} ${errText}`);
+        return c.json({ success: false, error: 'Failed to persist OAuth tokens' }, 500);
+      }
     } else {
-      await fetch(`${c.env.SUPABASE_URL}/rest/v1/google_sheets_config`, {
+      const res = await fetch(`${c.env.SUPABASE_URL}/rest/v1/google_sheets_config`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -294,6 +304,11 @@ googleSheets.post(
           user_email: userInfo.email,
         }),
       });
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error(`Failed to persist OAuth tokens (POST): ${res.status} ${errText}`);
+        return c.json({ success: false, error: 'Failed to persist OAuth tokens' }, 500);
+      }
     }
 
     return c.json({ success: true, message: 'Google connected successfully' });
@@ -457,7 +472,7 @@ googleSheets.put(
         return c.json({ success: false, error: 'Not connected to Google Sheets' }, 400);
       }
 
-      await fetch(
+      const res = await fetch(
         `${c.env.SUPABASE_URL}/rest/v1/google_sheets_config?id=eq.${config.id}`,
         {
           method: 'PATCH',
@@ -470,6 +485,12 @@ googleSheets.put(
           body: JSON.stringify(data),
         }
       );
+
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error(`Failed to update google_sheets_config: ${res.status} ${errText}`);
+        return c.json({ success: false, error: 'Failed to update config' }, 500);
+      }
 
       return c.json({ success: true, message: 'Config updated' });
     } catch (error) {
@@ -665,8 +686,9 @@ googleSheets.post(
         return mappings.map((m) => {
           const field = m.field_name as string;
           let value = reg[field];
-          if (value instanceof Date) {
-            value = (value as Date).toISOString().split('T')[0];
+          // JSON-parsed dates are ISO strings, not Date instances
+          if (typeof value === 'string' && value.includes('T')) {
+            value = value.split('T')[0];
           }
           return value !== null && value !== undefined ? String(value) : '';
         });

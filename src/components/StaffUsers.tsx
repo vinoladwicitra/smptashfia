@@ -554,9 +554,16 @@ export default function StaffUsers() {
 
       {/* Edit User Modal */}
       {editingUser && (
-        <div className="fixed inset-0 bg-black/50 z-[2000] flex items-center justify-center p-4" onClick={() => setEditingUser(null)}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="editModalTitle"
+          className="fixed inset-0 bg-black/50 z-[2000] flex items-center justify-center p-4"
+          onClick={() => setEditingUser(null)}
+          onKeyDown={(e) => { if (e.key === 'Escape') setEditingUser(null); }}
+        >
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-text mb-4">Edit User</h2>
+            <h2 id="editModalTitle" className="text-lg font-bold text-text mb-4">Edit User</h2>
             <p className="text-sm text-text-light mb-4 truncate">{editingUser.email}</p>
             <div className="space-y-4">
               <div>
@@ -604,9 +611,16 @@ export default function StaffUsers() {
 
       {/* Reset Password Modal */}
       {resetPasswordUserId && (
-        <div className="fixed inset-0 bg-black/50 z-[2000] flex items-center justify-center p-4" onClick={() => { setResetPasswordUserId(null); setNewPassword(''); }}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="resetModalTitle"
+          className="fixed inset-0 bg-black/50 z-[2000] flex items-center justify-center p-4"
+          onClick={() => { setResetPasswordUserId(null); setNewPassword(''); }}
+          onKeyDown={(e) => { if (e.key === 'Escape') { setResetPasswordUserId(null); setNewPassword(''); } }}
+        >
           <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-text mb-2">Reset Password</h2>
+            <h2 id="resetModalTitle" className="text-lg font-bold text-text mb-2">Reset Password</h2>
             <p className="text-sm text-text-light mb-4">Masukkan password baru untuk user ini.</p>
             <div className="space-y-4">
               <div>

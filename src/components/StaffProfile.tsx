@@ -38,8 +38,8 @@ export default function StaffProfile() {
   }, [user]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
-    if (!user) return;
     e.preventDefault();
+    if (!user) return;
     setIsProfileSaving(true);
 
     try {
@@ -207,8 +207,9 @@ export default function StaffProfile() {
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-text mb-1.5">Nama Lengkap</label>
+            <label htmlFor="displayName" className="block text-sm font-medium text-text mb-1.5">Nama Lengkap</label>
             <input
+              id="displayName"
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
@@ -256,12 +257,13 @@ export default function StaffProfile() {
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-text mb-1.5">Password Baru</label>
+            <label htmlFor="newPassword" className="block text-sm font-medium text-text mb-1.5">Password Baru</label>
             <div className="relative">
               <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light">
                 <IconLock size={16} />
               </div>
               <input
+                id="newPassword"
                 type={showNewPassword ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}

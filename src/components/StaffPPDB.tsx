@@ -61,12 +61,18 @@ export default function StaffPPDB() {
   const [statusFilter, setStatusFilter] = useState('');
   const [sekolahFilter, setSekolahFilter] = useState('');
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const perPage = 20;
 
   const [detailReg, setDetailReg] = useState<PPDBRegistration | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
+  const getAuthToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || '';
+  };
 
   const fetchRegistrations = useCallback(async () => {
     setLoading(true);
@@ -86,8 +92,7 @@ export default function StaffPPDB() {
       const data = await res.json();
       if (data.success) {
         setRegistrations(data.data as PPDBRegistration[]);
-        const total = data.pagination?.total ?? (data.pagination?.offset ?? 0) + data.data.length;
-        setTotalPages(Math.ceil(total / perPage) || 1);
+        setHasMore(data.data.length === perPage);
       }
     } catch {
       toast({ type: 'error', title: 'Gagal', description: 'Gagal memuat data pendaftaran' });
@@ -97,11 +102,6 @@ export default function StaffPPDB() {
   }, [page, statusFilter, sekolahFilter, search, toast]);
 
   useEffect(() => { fetchRegistrations(); }, [fetchRegistrations]);
-
-  const getAuthToken = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    return session?.access_token || '';
-  };
 
   const handleStatusUpdate = async (id: string, status: string) => {
     setUpdatingStatus(true);
@@ -271,9 +271,9 @@ export default function StaffPPDB() {
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {hasMore && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-            <p className="text-xs text-text-light">Halaman {page} dari {totalPages}</p>
+            <p className="text-xs text-text-light">Halaman {page}</p>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
@@ -283,9 +283,8 @@ export default function StaffPPDB() {
                 <IconChevronLeft size={16} />
               </button>
               <button
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="p-2 rounded-lg border border-border text-text-light hover:text-text hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                onClick={() => setPage(p => p + 1)}
+                className="p-2 rounded-lg border border-border text-text-light hover:text-text hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 <IconChevronRight size={16} />
               </button>

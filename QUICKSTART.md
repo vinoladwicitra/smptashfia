@@ -107,9 +107,8 @@ smptashfia/
 ├── src/                  # Frontend (React)
 │   ├── components/       # React components
 │   └── lib/              # Frontend utilities
-├── .dev.vars             # Backend env vars (local dev)
-├── .env                  # Frontend env vars
-└── wrangler.jsonc        # Cloudflare config
+├── .env                  # Environment vars (frontend + backend via wrangler.jsonc)
+└── wrangler.jsonc        # Cloudflare config (env_file: ".env")
 ```
 
 ---
@@ -161,7 +160,7 @@ curl http://localhost:5173/api/myendpoint
 ## Common Issues
 
 ### "Missing Supabase environment variables"
-Make sure `.dev.vars` exists with valid Supabase credentials.
+Make sure `.env` exists with valid Supabase credentials.
 
 ### CORS errors in browser
 Check that your origin is allowed in `worker/middleware/cors.ts`.

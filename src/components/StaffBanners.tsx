@@ -75,6 +75,13 @@ export default function StaffBanners() {
         }),
       });
 
+      if (!res.ok) {
+        const errorMsg = res.headers.get('content-type')?.includes('json')
+          ? (await res.json()).error || 'Gagal memperbarui top banner'
+          : res.statusText;
+        toast({ type: 'error', title: 'Gagal', description: errorMsg });
+        return;
+      }
       const data = await res.json();
       if (data.success) {
         window.dispatchEvent(new CustomEvent('banner-updated'));
@@ -121,6 +128,13 @@ export default function StaffBanners() {
         }),
       });
 
+      if (!res.ok) {
+        const errorMsg = res.headers.get('content-type')?.includes('json')
+          ? (await res.json()).error || 'Gagal memperbarui popup banner'
+          : res.statusText;
+        toast({ type: 'error', title: 'Gagal', description: errorMsg });
+        return;
+      }
       const data = await res.json();
       if (data.success) {
         window.dispatchEvent(new CustomEvent('banner-updated'));
@@ -177,6 +191,13 @@ export default function StaffBanners() {
         body: formData,
       });
 
+      if (!res.ok) {
+        const errorMsg = res.headers.get('content-type')?.includes('json')
+          ? (await res.json()).error || 'Gagal mengupload gambar'
+          : res.statusText;
+        toast({ type: 'error', title: 'Upload Gagal', description: errorMsg });
+        return;
+      }
       const data = await res.json();
       if (data.success) {
         setPopupImageUrl(data.data.url);

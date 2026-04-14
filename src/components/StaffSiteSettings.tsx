@@ -35,8 +35,12 @@ export default function StaffSiteSettings() {
     if (!url) return false;
     try {
       const parsed = new URL(url);
-      // Accept Google Maps host variants (www.google.com, maps.google.com, regional TLDs)
-      const isGoogleHost = /\.google\.[a-z.]+$/i.test(parsed.hostname);
+      // Accept Google Maps host variants (www.google.com, maps.google.com, google.co.uk, etc.)
+      // but reject non-Google domains like maps.google.evil.com
+      const isGoogleHost = parsed.hostname === 'www.google.com' ||
+        parsed.hostname === 'maps.google.com' ||
+        /^maps\.google\.[a-z.]+$/i.test(parsed.hostname) ||
+        /^www\.google\.[a-z.]+$/i.test(parsed.hostname);
       return parsed.protocol === 'https:' && isGoogleHost && parsed.pathname.includes('/maps') && parsed.pathname.includes('embed');
     } catch {
       return false;
@@ -116,6 +120,22 @@ export default function StaffSiteSettings() {
         },
         body: JSON.stringify(payload),
       });
+
+      if (!res.ok) {
+        let errorMsg = 'Terjadi kesalahan saat menyimpan';
+        try {
+          const errData = await res.json();
+          errorMsg = errData.error || res.statusText;
+        } catch {
+          errorMsg = res.statusText;
+        }
+        toast({
+          type: 'error',
+          title: 'Gagal',
+          description: errorMsg,
+        });
+        return;
+      }
 
       const data = await res.json();
       if (data.success) {
