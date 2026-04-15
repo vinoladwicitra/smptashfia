@@ -205,8 +205,12 @@ googleSheets.post(
   '/oauth/callback',
   authMiddleware,
   roleMiddleware(['staff', 'admin']),
+  zValidator('json', z.object({
+    code: z.string().optional(),
+    error: z.string().optional(),
+  }).strict()),
   async (c) => {
-    const { code, error: oauthError } = await c.req.json();
+    const { code, error: oauthError } = c.req.valid('json');
 
     if (oauthError) {
       return c.json({ success: false, error: `OAuth cancelled: ${oauthError}` }, 400);
@@ -559,11 +563,11 @@ googleSheets.get(
 googleSheets.get('/mappings', authMiddleware, roleMiddleware(['staff', 'admin']), async (c) => {
   try {
     const res = await fetch(
-      `${c.env.SUPABASE_URL}/rest/v1/google_sheets_mappings?select=*&order=column_letter.asc`,
+        `${c.env.SUPABASE_URL}/rest/v1/google_sheets_mappings?select=*&order=column_index.asc`,
       {
         headers: {
           'apikey': c.env.SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${c.env.SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
         },
       }
     );
@@ -595,7 +599,7 @@ googleSheets.put(
   authMiddleware,
   roleMiddleware(['staff', 'admin']),
   zValidator('json', z.object({
-    column_letter: z.string().min(1),
+    column_letter: z.string().regex(/^[A-Z]{1,3}$/i),
     column_label: z.string().optional(),
   })),
   async (c) => {
@@ -674,11 +678,11 @@ googleSheets.post(
 
       // Get mappings
       const mappingsRes = await fetch(
-        `${c.env.SUPABASE_URL}/rest/v1/google_sheets_mappings?select=*&order=column_letter.asc`,
+      `${c.env.SUPABASE_URL}/rest/v1/google_sheets_mappings?select=*&order=column_index.asc`,
         {
           headers: {
             'apikey': c.env.SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${c.env.SUPABASE_ANON_KEY}`,
+            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_ROLE_KEY}`,
           },
         }
       );

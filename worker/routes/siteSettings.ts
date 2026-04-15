@@ -21,7 +21,8 @@ function isGoogleMapsEmbedUrl(url?: string): boolean {
   if (!url || url === '') return true;
   try {
     const u = new URL(url);
-    return u.protocol === 'https:' && u.hostname.endsWith('google.com') && u.pathname.startsWith('/maps/embed');
+    const hostname = u.hostname.toLowerCase();
+    return u.protocol === 'https:' && (hostname === 'google.com' || hostname.endsWith('.google.com')) && u.pathname.startsWith('/maps/embed');
   } catch {
     return false;
   }

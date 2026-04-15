@@ -102,6 +102,7 @@ banners.patch(
     image_url: z.string().optional(),
     button_label: z.string().optional(),
     button_link: z.string().refine((val) => {
+      if (val === '') return true;
       if (val.startsWith('/')) return true;
       try {
         const url = new URL(val);
@@ -110,7 +111,7 @@ banners.patch(
         return false;
       }
     }, {
-      message: "Link tombol harus dimulai dengan '/' atau berupa URL HTTPS yang valid"
+      message: "Link tombol harus kosong, dimulai dengan '/' atau berupa URL HTTPS yang valid"
     }).optional(),
   })),
   async (c) => {

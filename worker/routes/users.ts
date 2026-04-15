@@ -48,8 +48,8 @@ users.get(
     const role = c.req.query('role') || '';
     const sortBy = c.req.query('sort') || 'created_at';
     const sortOrder = c.req.query('order') || 'desc';
-    const page = parseInt(c.req.query('page') || '1');
-    const perPage = parseInt(c.req.query('per_page') || '20');
+    const page = Math.max(1, parseInt(c.req.query('page') || '1'));
+    const perPage = Math.max(1, Math.min(100, parseInt(c.req.query('per_page') || '20')));
 
     try {
       // Fetch ALL users from Supabase Auth Admin API for local filtering and pagination
@@ -94,25 +94,27 @@ users.get(
       if (role) {
          // We might need to batch this if allUsers is huge, but we assume it's manageable for now
          // Or just fetch all user_roles
-         const allRolesRes = await fetch(
-           `${c.env.SUPABASE_URL}/rest/v1/user_roles?select=user_id,roles!inner(name)`,
-           {
-             headers: {
-               'apikey': c.env.SUPABASE_ANON_KEY,
-               'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
-             },
-           }
-         );
-         if (allRolesRes.ok) {
-           userRolesData = await allRolesRes.json() as Array<Record<string, unknown>>;
-         }
+          const allRolesRes = await fetch(
+            `${c.env.SUPABASE_URL}/rest/v1/user_roles?select=user_id,roles!inner(name)`,
+            {
+              headers: {
+                'apikey': c.env.SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+              },
+            }
+          );
+          if (!allRolesRes.ok) {
+            const errorText = await allRolesRes.text();
+            throw new Error(`Failed to fetch roles: ${errorText}`);
+          }
+          userRolesData = await allRolesRes.json() as Array<Record<string, unknown>>;
       }
 
       // Client-side search filter (by email or display name)
       if (search) {
         const searchLower = search.toLowerCase();
         allUsers = allUsers.filter((u: any) =>
-          u.email?.toLowerCase().includes(searchLower) ||
+          (u.email ?? '').toLowerCase().includes(searchLower) ||
           (u.user_metadata?.display_name ?? '').toLowerCase().includes(searchLower)
         );
       }
@@ -213,6 +215,11 @@ users.post(
   })),
   async (c) => {
     const { email, password, display_name, role } = c.req.valid('json');
+    const caller = c.get('user');
+
+    if (role === 'staff' && !caller.roles.includes('admin')) {
+      return c.json({ success: false, error: 'Only admins can create staff accounts' }, 403);
+    }
 
     try {
       // Get role ID before creating user to fail early if invalid

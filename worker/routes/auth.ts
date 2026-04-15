@@ -44,7 +44,7 @@ auth.post('/validate', async (c) => {
 
     // Fetch user roles
     const rolesResponse = await fetch(
-      `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${user.id}&select=*,roles(*)`,
+      `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${encodeURIComponent(user.id)}&select=*,roles(*)`,
       {
         headers: {
           'apikey': c.env.SUPABASE_ANON_KEY,
@@ -66,7 +66,11 @@ auth.post('/validate', async (c) => {
     return c.json({
       success: true,
       data: {
-        ...user as Record<string, unknown>,
+        id: user.id,
+        email: user.email,
+        display_name: user.user_metadata?.display_name || null,
+        avatar_url: user.user_metadata?.avatar_url || null,
+        created_at: user.created_at,
         roles: roleNames,
       },
     });
@@ -86,7 +90,7 @@ auth.get('/profile', authMiddleware, async (c) => {
   try {
     // Fetch profile from Supabase
     const response = await fetch(
-      `${c.env.SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}&select=*`,
+      `${c.env.SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(user.id)}&select=*`,
       {
         headers: {
           'apikey': c.env.SUPABASE_ANON_KEY,
@@ -134,7 +138,7 @@ auth.patch(
 
     try {
       const response = await fetch(
-        `${c.env.SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`,
+        `${c.env.SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(user.id)}`,
         {
           method: 'PATCH',
           headers: {
@@ -199,7 +203,7 @@ auth.post('/avatar', authMiddleware, async (c) => {
       'image/gif': 'gif',
     };
     const ext = mimeToExt[file.type];
-    const key = `avatars/${user.id}/avatar.${ext}`;
+    const key = `avatars/${encodeURIComponent(user.id)}/avatar.${ext}`;
 
     const storageRes = await fetch(`${c.env.SUPABASE_URL}/storage/v1/object/smptashfia/${key}`, {
       method: 'POST',
@@ -238,7 +242,7 @@ auth.post('/avatar', authMiddleware, async (c) => {
       return c.json({ success: false, error: 'Failed to update auth metadata' }, 500);
     }
 
-    const profileRes = await fetch(`${c.env.SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`, {
+    const profileRes = await fetch(`${c.env.SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(user.id)}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -268,7 +272,7 @@ auth.post('/avatar', authMiddleware, async (c) => {
       return c.json({ success: false, error: 'Failed to update profile' }, 500);
     }
 
-    return c.json({ success: true, url: publicUrl });
+    return c.json({ success: true, data: { url: publicUrl } });
   } catch (error) {
     return c.json({ success: false, error: 'Internal server error during avatar upload' }, 500);
   }
@@ -281,7 +285,7 @@ auth.delete('/avatar', authMiddleware, async (c) => {
 
   try {
     const extensions = ['jpg', 'png', 'webp', 'gif'];
-    const filesToDelete = extensions.map(ext => `avatars/${user.id}/avatar.${ext}`);
+    const filesToDelete = extensions.map(ext => `avatars/${encodeURIComponent(user.id)}/avatar.${ext}`);
 
     const storageRes = await fetch(`${c.env.SUPABASE_URL}/storage/v1/object/smptashfia`, {
       method: 'DELETE',
@@ -311,7 +315,7 @@ auth.delete('/avatar', authMiddleware, async (c) => {
       return c.json({ success: false, error: 'Failed to update auth metadata' }, 500);
     }
 
-    const profileRes = await fetch(`${c.env.SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`, {
+    const profileRes = await fetch(`${c.env.SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(user.id)}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',

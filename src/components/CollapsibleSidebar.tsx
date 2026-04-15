@@ -41,14 +41,21 @@ export default function CollapsibleSidebar({
 
   // Reset mobileOpen when resizing to desktop
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setMobileOpen(false);
-      }
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        if (window.innerWidth >= 1024) {
+          setMobileOpen(false);
+        }
+      }, 100);
     };
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Staff';

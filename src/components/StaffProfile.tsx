@@ -11,6 +11,11 @@ export default function StaffProfile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const getAuthToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || '';
+  };
   const [displayName, setDisplayName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -79,8 +84,9 @@ export default function StaffProfile() {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    if (!file.type.startsWith('image/')) {
-      toast({ type: 'error', title: 'File Tidak Valid', description: 'Hanya file gambar yang diperbolehkan.' });
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({ type: 'error', title: 'File Tidak Valid', description: 'Hanya file JPG, PNG, WebP, dan GIF yang diperbolehkan.' });
       return;
     }
 
@@ -108,10 +114,10 @@ export default function StaffProfile() {
 
       const data = await res.json();
       if (data.success) {
-        setAvatarUrl(data.data.url);
+        setAvatarUrl(data.url);
         toast({ type: 'success', title: 'Avatar Diperbarui', description: 'Foto profil Anda berhasil diunggah.' });
       } else {
-        throw new Error(data.error || 'Upload failed');
+        throw new Error(data.error || 'Upload failed')
       }
     } catch (error: any) {
       toast({ type: 'error', title: 'Gagal Mengunggah Avatar', description: error?.message || 'Terjadi kesalahan saat mengunggah.' });
@@ -205,7 +211,7 @@ export default function StaffProfile() {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp,image/gif"
               onChange={handleAvatarUpload}
               className="hidden"
               disabled={isUploading}

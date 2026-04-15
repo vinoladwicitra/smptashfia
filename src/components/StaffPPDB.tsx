@@ -79,7 +79,7 @@ export default function StaffPPDB() {
     if (e.key === 'Tab') {
       const modal = modalRef.current;
       if (!modal) return;
-      const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      const focusableElements = modal.querySelectorAll('button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])');
       const firstFocusable = focusableElements[0] as HTMLElement;
       const lastFocusable = focusableElements[focusableElements.length - 1] as HTMLElement;
       if (e.shiftKey) {
