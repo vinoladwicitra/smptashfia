@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { useToast } from '../context/ToastContext';
-import { uploadAvatar, deleteAvatar } from '../lib/storage';
+
 import { IconUser, IconMail, IconLock, IconCamera, IconDeviceFloppy, IconEye, IconEyeOff, IconTrash, IconLogout, IconSettings } from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -48,7 +48,7 @@ export default function StaffProfile() {
 
       // Update auth metadata
       const { error: authError } = await supabase.auth.updateUser({
-        data: { display_name: trimmedName || undefined }
+        data: { display_name: trimmedName || null }
       });
 
       if (authError) {
@@ -91,16 +91,28 @@ export default function StaffProfile() {
 
     setIsUploading(true);
     try {
-      const url = await uploadAvatar(user.id, file);
-      
-      const { error: authError } = await supabase.auth.updateUser({ data: { avatar_url: url } });
-      if (authError) throw authError;
-      
-      const { error: profileError } = await supabase.from('profiles').update({ avatar_url: url }).eq('id', user.id);
-      if (profileError) throw profileError;
+      const token = await getAuthToken();
+      const formData = new FormData();
+      formData.append('file', file);
 
-      setAvatarUrl(url);
-      toast({ type: 'success', title: 'Avatar Diperbarui', description: 'Foto profil Anda berhasil diunggah.' });
+      const res = await fetch('/api/auth/avatar', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Failed to upload' }));
+        throw new Error(errorData.error || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      if (data.success) {
+        setAvatarUrl(data.data.url);
+        toast({ type: 'success', title: 'Avatar Diperbarui', description: 'Foto profil Anda berhasil diunggah.' });
+      } else {
+        throw new Error(data.error || 'Upload failed');
+      }
     } catch (error: any) {
       toast({ type: 'error', title: 'Gagal Mengunggah Avatar', description: error?.message || 'Terjadi kesalahan saat mengunggah.' });
     } finally {
@@ -112,16 +124,24 @@ export default function StaffProfile() {
     if (!user) return;
     setIsUploading(true);
     try {
-      const { error: authError } = await supabase.auth.updateUser({ data: { avatar_url: null } });
-      if (authError) throw authError;
+      const token = await getAuthToken();
+      const res = await fetch('/api/auth/avatar', {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
 
-      const { error: profileError } = await supabase.from('profiles').update({ avatar_url: null }).eq('id', user.id);
-      if (profileError) throw profileError;
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Failed to delete' }));
+        throw new Error(errorData.error || `HTTP ${res.status}`);
+      }
 
-      await deleteAvatar(user.id);
-      
-      setAvatarUrl(null);
-      toast({ type: 'success', title: 'Avatar Dihapus', description: 'Foto profil Anda berhasil dihapus.' });
+      const data = await res.json();
+      if (data.success) {
+        setAvatarUrl(null);
+        toast({ type: 'success', title: 'Avatar Dihapus', description: 'Foto profil Anda berhasil dihapus.' });
+      } else {
+        throw new Error(data.error || 'Delete failed');
+      }
     } catch (error: any) {
       toast({ type: 'error', title: 'Gagal Menghapus Avatar', description: error?.message || 'Terjadi kesalahan saat menghapus.' });
     } finally {

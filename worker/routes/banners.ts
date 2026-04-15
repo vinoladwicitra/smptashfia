@@ -101,8 +101,16 @@ banners.patch(
     text: z.string().optional(),
     image_url: z.string().optional(),
     button_label: z.string().optional(),
-    button_link: z.string().refine((val) => !val.startsWith('//'), {
-      message: 'Link tombol tidak boleh diawali dengan "//"'
+    button_link: z.string().refine((val) => {
+      if (val.startsWith('/')) return true;
+      try {
+        const url = new URL(val);
+        return url.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    }, {
+      message: "Link tombol harus dimulai dengan '/' atau berupa URL HTTPS yang valid"
     }).optional(),
   })),
   async (c) => {

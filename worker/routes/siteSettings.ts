@@ -6,6 +6,27 @@ import type { Env } from '../types';
 
 const siteSettings = new Hono<{ Bindings: Env; Variables: { userToken: string } }>();
 
+// Helper validators
+function isHttpsUrl(url?: string): boolean {
+  if (!url || url === '') return true;
+  try {
+    const u = new URL(url);
+    return u.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+function isGoogleMapsEmbedUrl(url?: string): boolean {
+  if (!url || url === '') return true;
+  try {
+    const u = new URL(url);
+    return u.protocol === 'https:' && u.hostname.endsWith('google.com') && u.pathname.startsWith('/maps/embed');
+  } catch {
+    return false;
+  }
+}
+
 // GET /api/site-settings - Get all settings grouped (public)
 siteSettings.get('/', async (c) => {
   try {
@@ -56,13 +77,13 @@ siteSettings.patch(
     contact_hours: z.string().optional(),
     contact_address_short: z.string().optional(),
     contact_address_full: z.string().optional(),
-    maps_embed_url: z.string().optional().refine(v => v === undefined || v === '' || (v.startsWith('https://') && (() => { try { const u = new URL(v); return u.hostname === 'www.google.com' && u.pathname.startsWith('/maps/embed'); } catch { return false; } })()), { message: 'maps_embed_url must be a valid Google Maps embed URL (or empty)' }),
-    maps_link: z.string().optional().refine(v => v === undefined || v === '' || (() => { try { const u = new URL(v); return u.protocol === 'https:'; } catch { return false; } })(), { message: 'maps_link must be a valid HTTPS URL' }),
-    social_instagram: z.string().optional().refine(v => v === undefined || v === '' || (() => { try { const u = new URL(v); return u.protocol === 'https:'; } catch { return false; } })(), { message: 'social_instagram must be a valid HTTPS URL' }),
+    maps_embed_url: z.string().refine(isGoogleMapsEmbedUrl, { message: 'maps_embed_url must be a valid Google Maps embed URL (or empty)' }).optional(),
+    maps_link: z.string().refine(isHttpsUrl, { message: 'maps_link must be a valid HTTPS URL' }).optional(),
+    social_instagram: z.string().refine(isHttpsUrl, { message: 'social_instagram must be a valid HTTPS URL' }).optional(),
     social_instagram_label: z.string().optional(),
-    social_facebook: z.string().optional().refine(v => v === undefined || v === '' || (() => { try { const u = new URL(v); return u.protocol === 'https:'; } catch { return false; } })(), { message: 'social_facebook must be a valid HTTPS URL' }),
+    social_facebook: z.string().refine(isHttpsUrl, { message: 'social_facebook must be a valid HTTPS URL' }).optional(),
     social_facebook_label: z.string().optional(),
-    social_youtube: z.string().optional().refine(v => v === undefined || v === '' || (() => { try { const u = new URL(v); return u.protocol === 'https:'; } catch { return false; } })(), { message: 'social_youtube must be a valid HTTPS URL' }),
+    social_youtube: z.string().refine(isHttpsUrl, { message: 'social_youtube must be a valid HTTPS URL' }).optional(),
     social_youtube_label: z.string().optional(),
   })),
   async (c) => {

@@ -16,12 +16,16 @@ async function authAdminRequest(
   path: string,
   body?: Record<string, unknown>
 ) {
+  if (!env.SUPABASE_SERVICE_KEY) {
+    throw new Error('SUPABASE_SERVICE_KEY is required for admin operations');
+  }
+
   const response = await fetch(`${env.SUPABASE_URL}/auth/v1/admin${path}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
       'apikey': env.SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY || env.SUPABASE_ANON_KEY}`,
+      'Authorization': `Bearer ${env.SUPABASE_SERVICE_KEY}`,
     },
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -109,7 +113,7 @@ users.get(
         const searchLower = search.toLowerCase();
         allUsers = allUsers.filter((u: any) =>
           u.email?.toLowerCase().includes(searchLower) ||
-          u.user_metadata?.display_name?.toLowerCase().includes(searchLower)
+          (u.user_metadata?.display_name ?? '').toLowerCase().includes(searchLower)
         );
       }
 
@@ -130,18 +134,21 @@ users.get(
       const userIds = paginatedUsers.map((u: any) => u.id);
 
       // Fetch profiles and roles for the paginated users
-      const profilesRes = await fetch(
-        `${c.env.SUPABASE_URL}/rest/v1/profiles?id=in.(${userIds.join(',')})&select=*`,
-        {
-          headers: {
-            'apikey': c.env.SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
-          },
-        }
-      );
-      const profiles = profilesRes.ok
-        ? await profilesRes.json() as Array<Record<string, unknown>>
-        : [];
+      let profiles: Array<Record<string, unknown>> = [];
+      if (userIds.length > 0) {
+        const profilesRes = await fetch(
+          `${c.env.SUPABASE_URL}/rest/v1/profiles?id=in.(${userIds.join(',')})&select=*`,
+          {
+            headers: {
+              'apikey': c.env.SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+            },
+          }
+        );
+        profiles = profilesRes.ok
+          ? await profilesRes.json() as Array<Record<string, unknown>>
+          : [];
+      }
 
       // If we didn't fetch all roles above, fetch them for the paginated page
       let pageRolesData = userRolesData.filter((r: any) => userIds.includes(r.user_id));
@@ -214,10 +221,13 @@ users.post(
         {
           headers: {
             'apikey': c.env.SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
           },
         }
       );
+      if (!rolesRes.ok) {
+        return c.json({ success: false, error: 'Failed to fetch roles' }, 500);
+      }
       const rolesData = await rolesRes.json() as Array<Record<string, unknown>>;
       const roleId = rolesData[0]?.id;
 
@@ -464,6 +474,9 @@ users.post(
           },
         }
       );
+      if (!rolesRes.ok) {
+        return c.json({ success: false, error: 'Failed to fetch roles' }, 500);
+      }
       const rolesData = await rolesRes.json() as Array<Record<string, unknown>>;
       const roleId = rolesData[0]?.id;
 

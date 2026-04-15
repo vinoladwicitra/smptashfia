@@ -55,6 +55,7 @@ const statusLabels: Record<string, string> = {
 
 export default function StaffPPDB() {
   const { toast } = useToast();
+  const latestReqId = useRef(0);
   const [registrations, setRegistrations] = useState<PPDBRegistration[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -68,10 +69,30 @@ export default function StaffPPDB() {
   const [showDetail, setShowDetail] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const [prevActiveEl, setPrevActiveEl] = useState<Element | null>(null);
 
   const handleModalKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       setShowDetail(false);
+      return;
+    }
+    if (e.key === 'Tab') {
+      const modal = modalRef.current;
+      if (!modal) return;
+      const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      const firstFocusable = focusableElements[0] as HTMLElement;
+      const lastFocusable = focusableElements[focusableElements.length - 1] as HTMLElement;
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+          lastFocusable.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastFocusable) {
+          firstFocusable.focus();
+          e.preventDefault();
+        }
+      }
     }
   };
 
@@ -81,6 +102,10 @@ export default function StaffPPDB() {
   };
 
   const fetchRegistrations = useCallback(async (signal?: AbortSignal) => {
+    const reqId = ++latestReqId.current;
+    const controller = signal ? null : new AbortController();
+    const effectiveSignal = signal || controller?.signal;
+
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -94,14 +119,16 @@ export default function StaffPPDB() {
       const token = await getAuthToken();
       const res = await fetch(`${API_BASE}/ppdb/list?${params}`, {
         headers: { 'Authorization': `Bearer ${token}` },
-        signal,
+        signal: effectiveSignal,
       });
       if (!res.ok) throw new Error('Network response was not ok');
       const data = await res.json();
       if (data.success) {
-        const hasNext = data.data.length > perPage;
-        setRegistrations(data.data.slice(0, perPage) as PPDBRegistration[]);
-        setHasMore(hasNext);
+        if (reqId === latestReqId.current && !effectiveSignal?.aborted) {
+          const hasNext = data.data.length > perPage;
+          setRegistrations(data.data.slice(0, perPage) as PPDBRegistration[]);
+          setHasMore(hasNext);
+        }
       } else {
         throw new Error(data.error || 'API Error');
       }
@@ -110,7 +137,9 @@ export default function StaffPPDB() {
         toast({ type: 'error', title: 'Gagal', description: 'Gagal memuat data pendaftaran' });
       }
     } finally {
-      setLoading(false);
+      if (reqId === latestReqId.current && !effectiveSignal?.aborted) {
+        setLoading(false);
+      }
     }
   }, [page, statusFilter, sekolahFilter, search, toast]);
 
@@ -119,6 +148,16 @@ export default function StaffPPDB() {
     fetchRegistrations(controller.signal);
     return () => controller.abort();
   }, [fetchRegistrations]);
+
+  useEffect(() => {
+    if (showDetail) {
+      setPrevActiveEl(document.activeElement);
+      modalRef.current?.focus();
+    } else if (prevActiveEl) {
+      (prevActiveEl as HTMLElement).focus?.();
+      setPrevActiveEl(null);
+    }
+  }, [showDetail]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -139,6 +178,10 @@ export default function StaffPPDB() {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ status }),
       });
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || `HTTP ${res.status}: ${res.statusText}`);
+      }
       const data = await res.json();
       if (data.success) {
         toast({ type: 'success', title: 'Berhasil', description: `Status diubah ke ${statusLabels[status]}` });
@@ -180,12 +223,14 @@ export default function StaffPPDB() {
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               placeholder="Cari nama, email, atau asal sekolah..."
+              aria-label="Search by name, email, or school"
               className="w-full pl-10 pr-4 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-sm text-text"
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            aria-label="Filter by status"
             className="px-3 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-sm text-text cursor-pointer"
           >
             <option value="">Semua Status</option>
@@ -197,6 +242,7 @@ export default function StaffPPDB() {
           <select
             value={sekolahFilter}
             onChange={(e) => { setSekolahFilter(e.target.value); setPage(1); }}
+            aria-label="Filter by school"
             className="px-3 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-sm text-text cursor-pointer"
           >
             <option value="">Semua Sekolah</option>
@@ -206,7 +252,7 @@ export default function StaffPPDB() {
           <button
             onClick={() => fetchRegistrations()}
             className="p-2.5 border border-border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-            title="Refresh"
+            aria-label="Refresh registrations"
           >
             <IconRefresh size={18} className="text-text-light" />
           </button>
@@ -341,7 +387,7 @@ export default function StaffPPDB() {
                 <h2 id="detailModalTitle" className="text-lg font-semibold text-text">Detail Pendaftaran</h2>
                 <p className="text-xs text-text-light mt-0.5">Diterima pada {formatDateTime(detailReg.created_at)}</p>
               </div>
-              <button onClick={() => setShowDetail(false)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
+              <button onClick={() => setShowDetail(false)} aria-label="Close detail dialog" className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
                 <IconX size={20} />
               </button>
             </div>

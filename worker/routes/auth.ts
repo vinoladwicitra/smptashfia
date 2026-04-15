@@ -183,15 +183,22 @@ auth.post('/avatar', authMiddleware, async (c) => {
       return c.json({ success: false, error: 'No file provided' }, 400);
     }
 
-    if (!file.type.startsWith('image/')) {
-      return c.json({ success: false, error: 'Invalid file type' }, 400);
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedMimeTypes.includes(file.type)) {
+      return c.json({ success: false, error: 'Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.' }, 400);
     }
 
     if (file.size > 2 * 1024 * 1024) {
       return c.json({ success: false, error: 'File too large' }, 400);
     }
 
-    const ext = file.name.split('.').pop() || 'jpg';
+    const mimeToExt: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp',
+      'image/gif': 'gif',
+    };
+    const ext = mimeToExt[file.type];
     const key = `avatars/${user.id}/avatar.${ext}`;
 
     const storageRes = await fetch(`${c.env.SUPABASE_URL}/storage/v1/object/smptashfia/${key}`, {
@@ -273,10 +280,10 @@ auth.delete('/avatar', authMiddleware, async (c) => {
   const userToken = c.get('userToken');
 
   try {
-    const extensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+    const extensions = ['jpg', 'png', 'webp', 'gif'];
     const filesToDelete = extensions.map(ext => `avatars/${user.id}/avatar.${ext}`);
-    
-    await fetch(`${c.env.SUPABASE_URL}/storage/v1/object/smptashfia`, {
+
+    const storageRes = await fetch(`${c.env.SUPABASE_URL}/storage/v1/object/smptashfia`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -285,6 +292,10 @@ auth.delete('/avatar', authMiddleware, async (c) => {
       },
       body: JSON.stringify({ prefixes: filesToDelete }),
     });
+
+    if (!storageRes.ok) {
+      return c.json({ success: false, error: 'Failed to delete from storage' }, 500);
+    }
 
     const authRes = await fetch(`${c.env.SUPABASE_URL}/auth/v1/user`, {
       method: 'PUT',

@@ -45,7 +45,7 @@ async function getGoogleCredentials(supabaseUrl: string, supabaseAnonKey: string
 
 // Helper: refresh Google access token
 async function refreshAccessToken(env: Env, refreshToken: string) {
-  const creds = await getGoogleCredentials(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+  const creds = await getGoogleCredentials(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, env.SUPABASE_SERVICE_KEY);
   if (!creds?.client_id || !creds?.client_secret) {
     throw new Error('Google OAuth credentials not configured. Set them in Staff > Google Sheets > Pengaturan.');
   }
@@ -114,7 +114,7 @@ async function getValidAccessToken(env: Env, config: Record<string, unknown>) {
 // GET /api/google-sheets/auth-url - Generate OAuth authorization URL
 googleSheets.get('/auth-url', authMiddleware, roleMiddleware(['staff', 'admin']), async (c) => {
   const creds = await getGoogleCredentials(c.env.SUPABASE_URL, c.env.SUPABASE_ANON_KEY, c.env.SUPABASE_SERVICE_KEY);
-  const redirectUri = buildRedirectUri(c.req.url);
+  const redirectUri = creds?.redirect_uri || buildRedirectUri(c.req.url);
   
   if (!creds?.client_id) {
     return c.json({
@@ -447,10 +447,19 @@ googleSheets.get(
 googleSheets.get('/config', authMiddleware, roleMiddleware(['staff', 'admin']), async (c) => {
   try {
     const config = await getConfig(c.env.SUPABASE_URL, c.env.SUPABASE_ANON_KEY, c.env.SUPABASE_SERVICE_KEY);
-    return c.json({
-      success: true,
-      data: config || { connected: false },
-    });
+    if (config) {
+      // Sanitize config by removing sensitive token fields
+      const { access_token, refresh_token, id_token, expires_in, token_type, ...safeConfig } = config;
+      return c.json({
+        success: true,
+        data: { ...safeConfig, connected: true },
+      });
+    } else {
+      return c.json({
+        success: true,
+        data: { connected: false },
+      });
+    }
   } catch (error) {
     return c.json({ success: false, error: 'Failed to get config' }, 500);
   }

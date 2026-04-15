@@ -139,7 +139,7 @@ export async function getPPDBRegistrations(
   // Server-side search across multiple fields using PostgREST or() operator
   if (options?.search) {
     // Escape SQL wildcard characters (%) and (_) before encoding
-    const escaped = options.search.replace(/%/g, '\\%').replace(/_/g, '\\_');
+    const escaped = options.search.replace(/%/g, '\\%').replace(/_/g, '\\_').replace(/\*/g, '\\*');
     // Don't double-encode: use raw search term in the ilike pattern
     // PostgREST will handle the URL encoding
     params.set('or', `nama_lengkap.ilike.*${escaped}*,email.ilike.*${escaped}*,asal_sekolah.ilike.*${escaped}*`);

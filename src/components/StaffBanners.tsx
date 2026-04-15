@@ -22,16 +22,23 @@ export default function StaffBanners() {
   const [popupImageFailed, setPopupImageFailed] = useState(false);
   const [popupButtonLabel, setPopupButtonLabel] = useState('');
   const [popupButtonLink, setPopupButtonLink] = useState('');
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     fetchBanners();
   }, []);
 
+  useEffect(() => {
+    setPopupImageFailed(false);
+  }, [popupImageUrl]);
+
   const fetchBanners = async () => {
+    setLoadError(false);
     try {
       const res = await fetch(`${API_BASE}/banners`);
       if (!res.ok) {
         console.error(`Failed to fetch banners: ${res.status} ${res.statusText}`);
+        setLoadError(true);
         return;
       }
       const data = await res.json();
@@ -49,6 +56,7 @@ export default function StaffBanners() {
       }
     } catch (err) {
       console.error('Error fetching banners:', err);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -215,20 +223,15 @@ export default function StaffBanners() {
         return;
       }
       const data = await res.json();
-      if (data.success) {
-        setPopupImageUrl(data.data.url);
-        toast({
-          type: 'success',
-          title: 'Upload Berhasil',
-          description: 'Gambar banner berhasil diupload',
-        });
-      } else {
-        toast({
-          type: 'error',
-          title: 'Upload Gagal',
-          description: data.error || 'Gagal mengupload gambar',
-        });
-      }
+        if (data.success) {
+          setPopupImageUrl(data.data.url);
+          setPopupImageFailed(false);
+          toast({
+            type: 'success',
+            title: 'Upload Berhasil',
+            description: 'Gambar banner berhasil diupload',
+          });
+        }
     } catch (err) {
       console.error('Error uploading image:', err);
       toast({
@@ -245,6 +248,22 @@ export default function StaffBanners() {
     return (
       <div className="flex items-center justify-center py-12">
         <IconLoader2 size={32} className="animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <IconAlertCircle size={48} className="text-red-500 mb-4" />
+        <h3 className="text-lg font-semibold text-text mb-2">Gagal Memuat Banner</h3>
+        <p className="text-text-light mb-4">Terjadi kesalahan saat memuat data banner.</p>
+        <button
+          onClick={() => { setLoading(true); fetchBanners(); }}
+          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+        >
+          Coba Lagi
+        </button>
       </div>
     );
   }
@@ -396,15 +415,13 @@ export default function StaffBanners() {
                 <label className="block text-sm font-medium text-text mb-2">Gambar Banner</label>
 
                 {/* Current Image Preview */}
-                {popupImageUrl && (
+                {popupImageUrl && !popupImageFailed && (
                   <div className="mb-3 relative group rounded-xl overflow-hidden border border-border">
                     <img
                       src={popupImageUrl}
                       alt="Current popup banner"
                       className="w-full max-h-64 object-contain bg-gray-50"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
+                      onError={() => setPopupImageFailed(true)}
                     />
                     {/* Overlay on hover */}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center cursor-pointer">

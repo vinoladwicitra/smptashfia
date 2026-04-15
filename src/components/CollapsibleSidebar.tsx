@@ -39,6 +39,18 @@ export default function CollapsibleSidebar({
     if (window.innerWidth < 1024) setMobileOpen(false);
   }, [activePath]);
 
+  // Reset mobileOpen when resizing to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setMobileOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Staff';
   const displayAvatar = avatarUrl || user?.user_metadata?.avatar_url;
   const [tooltipPos, setTooltipPos] = useState<{ label: string; top: number } | null>(null);
@@ -190,7 +202,7 @@ export default function CollapsibleSidebar({
       {/* Fixed Tooltip - outside sidebar overflow */}
       {effectiveCollapsed && tooltipPos && (
         <div
-          className="fixed left-[76px] bg-gray-900 text-white text-xs px-3 py-1.5 rounded-md whitespace-nowrap z-[9999] pointer-events-none shadow-lg"
+          className="fixed left-[76px] bg-gray-900 text-white text-xs px-3 py-1.5 rounded-md whitespace-nowrap z-[60] pointer-events-none shadow-lg"
           style={{ top: tooltipPos.top - 12 }}
         >
           {tooltipPos.label}
