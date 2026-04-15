@@ -14,7 +14,10 @@ export default function StaffProfile() {
 
   const getAuthToken = async () => {
     const { data: { session } } = await supabase.auth.getSession();
-    return session?.access_token || '';
+    if (!session || !session.access_token) {
+      throw new Error('No active session or missing access token');
+    }
+    return session.access_token;
   };
   const [displayName, setDisplayName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -51,30 +54,24 @@ export default function StaffProfile() {
       const trimmedName = displayName.trim().replace(/\s+/g, ' ');
       setDisplayName(trimmedName);
 
-      // Update auth metadata
-      const { error: authError } = await supabase.auth.updateUser({
-        data: { display_name: trimmedName || null }
+      const token = await getAuthToken();
+      const res = await fetch('/api/auth/profile', {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ display_name: trimmedName || null }),
       });
 
-      if (authError) {
-        toast({ type: 'error', title: 'Gagal Memperbarui Metadata', description: authError.message });
-        return;
-      }
-
-      // Update profiles table
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ display_name: trimmedName || null })
-        .eq('id', user.id);
-
-      if (updateError) {
-        toast({ type: 'error', title: 'Gagal Memperbarui Profil', description: updateError.message });
-        return;
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Failed to update profile' }));
+        throw new Error(errorData.error || `HTTP ${res.status}`);
       }
 
       toast({ type: 'success', title: 'Profil Diperbarui', description: 'Informasi Anda berhasil disimpan.' });
-    } catch {
-      toast({ type: 'error', title: 'Terjadi Kesalahan', description: 'Silakan coba lagi.' });
+    } catch (error: any) {
+      toast({ type: 'error', title: 'Terjadi Kesalahan', description: error.message || 'Silakan coba lagi.' });
     } finally {
       setIsProfileSaving(false);
     }

@@ -177,18 +177,20 @@ banners.post(
   roleMiddleware(['staff', 'admin', 'teacher']),
   async (c) => {
     const body = await c.req.parseBody();
-    const file = body['file'] as File | undefined;
+    const file = body['file'];
 
-    if (!file) {
+    if (!file || Array.isArray(file) || typeof file !== 'object' || !('type' in file) || !('size' in file)) {
       return c.json({
         success: false,
-        error: 'No file provided',
+        error: 'Invalid or missing file upload',
       }, 400);
     }
 
+    const fileInstance = file as File;
+
     // Validate file is an image (SVG excluded to prevent stored XSS)
     const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedMimeTypes.includes(file.type)) {
+    if (!allowedMimeTypes.includes(fileInstance.type)) {
       return c.json({
         success: false,
         error: 'Invalid file type. Only images (JPEG, PNG, GIF, WebP) are allowed.',
@@ -197,7 +199,7 @@ banners.post(
 
     // Validate file size (max 5MB)
     const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
+    if (fileInstance.size > maxSize) {
       return c.json({
         success: false,
         error: 'File too large. Maximum size is 5MB.',
@@ -213,7 +215,7 @@ banners.post(
         'image/gif': 'gif',
         'image/webp': 'webp',
       };
-      const ext = mimeToExt[file.type] || 'jpg';
+      const ext = mimeToExt[fileInstance.type] || 'jpg';
       const fileName = `banner-${Date.now()}.${ext}`;
 
       // Upload to Supabase Storage
@@ -224,7 +226,7 @@ banners.post(
           headers: {
             'Authorization': `Bearer ${userToken}`,
           },
-          body: file,
+          body: fileInstance,
         }
       );
 

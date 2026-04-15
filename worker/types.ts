@@ -19,6 +19,11 @@ export interface UserContext {
   email: string;
   roles: string[];
   display_name?: string;
+  user_metadata?: {
+    display_name?: string;
+    avatar_url?: string;
+    [key: string]: any;
+  };
 }
 
 /**

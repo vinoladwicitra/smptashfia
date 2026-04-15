@@ -1,12 +1,6 @@
 import { createMiddleware } from 'hono/factory';
 import type { Env, UserContext } from '../types';
 
-interface SupabaseUser {
-  id: string;
-  email: string;
-  [key: string]: unknown;
-}
-
 /**
  * Authentication middleware to validate Supabase tokens
  */
@@ -32,13 +26,14 @@ export const authMiddleware = createMiddleware<{ Bindings: Env; Variables: { use
       return c.json({ error: 'Unauthorized: Invalid token' }, 401);
     }
 
-    const user = await response.json() as SupabaseUser;
+    const user = await response.json() as any;
     
     // Attach user and token to context
     c.set('user', {
       id: user.id,
       email: user.email,
       roles: [],
+      user_metadata: user.user_metadata,
     } as UserContext);
     c.set('userToken', token);
     

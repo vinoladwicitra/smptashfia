@@ -227,15 +227,15 @@ export default function StaffBanners() {
         return;
       }
       const data = await res.json();
-        if (data.success) {
-          setPopupImageUrl(data.data.url);
-          setPopupImageFailed(false);
-          toast({
-            type: 'success',
-            title: 'Upload Berhasil',
-            description: 'Gambar banner berhasil diupload',
-          });
-        }
+      if (data.success) {
+        setPopupImageUrl(data.data.url);
+        setPopupImageFailed(false);
+        toast({
+          type: 'success',
+          title: 'Upload Berhasil',
+          description: 'Gambar banner berhasil diupload',
+        });
+      }
     } catch (err) {
       console.error('Error uploading image:', err);
       toast({

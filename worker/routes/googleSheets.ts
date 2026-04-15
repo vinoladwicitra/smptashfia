@@ -841,6 +841,9 @@ googleSheets.get(
   authMiddleware,
   roleMiddleware(['staff', 'admin']),
   async (c) => {
+    if (!c.env.SUPABASE_SERVICE_KEY) {
+      return c.json({ success: false, error: 'Missing SUPABASE_SERVICE_KEY required for privileged operations' }, 500);
+    }
     try {
       const config = await getConfig(c.env.SUPABASE_URL, c.env.SUPABASE_ANON_KEY, c.env.SUPABASE_SERVICE_KEY);
       if (!config?.spreadsheet_id || !config?.sheet_name) {

@@ -10,6 +10,7 @@ export default function GoogleSheetsCallback() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
+    const state = params.get('state');
     const error = params.get('error');
 
     if (error) {
@@ -24,11 +25,11 @@ export default function GoogleSheetsCallback() {
       return;
     }
 
-    // Send code to API via POST
+    // Send code and state to API via POST
     fetch('/api/google-sheets/oauth/callback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ code, state }),
     })
       .then((res) => res.json())
       .then((data) => {

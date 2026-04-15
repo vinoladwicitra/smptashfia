@@ -160,6 +160,7 @@ export default function StaffPPDB() {
       (prevActiveEl as HTMLElement).focus?.();
       setPrevActiveEl(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- prevActiveEl intentionally omitted to prevent infinite loop
   }, [showDetail]);
 
   useEffect(() => {

@@ -225,8 +225,9 @@ users.post(
   async (c) => {
     const { email, password, display_name, role } = c.req.valid('json');
     const caller = c.get('user');
+    const callerRoles = caller?.roles || [];
 
-    if (role === 'staff' && !caller.roles.includes('admin')) {
+    if (role === 'staff' && !callerRoles.includes('admin')) {
       return c.json({ success: false, error: 'Only admins can create staff accounts' }, 403);
     }
 

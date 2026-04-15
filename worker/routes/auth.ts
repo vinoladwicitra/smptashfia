@@ -340,6 +340,8 @@ auth.delete('/avatar', authMiddleware, async (c) => {
   const userToken = c.get('userToken');
 
   try {
+    const previousAvatar = user.user_metadata?.avatar_url;
+
     // 1. Update Auth Metadata First
     const authRes = await fetch(`${c.env.SUPABASE_URL}/auth/v1/user`, {
       method: 'PUT',
@@ -367,8 +369,16 @@ auth.delete('/avatar', authMiddleware, async (c) => {
     });
 
     if (!profileRes.ok) {
-      // Compensate: restore auth metadata if profile update fails?
-      // Feedback didn't explicitly ask for this but it's good practice.
+      // Rollback auth metadata
+      await fetch(`${c.env.SUPABASE_URL}/auth/v1/user`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userToken}`,
+          'apikey': c.env.SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ data: { avatar_url: previousAvatar } }),
+      });
       return c.json({ success: false, error: 'Failed to update profile table' }, 500);
     }
 
@@ -387,8 +397,8 @@ auth.delete('/avatar', authMiddleware, async (c) => {
     });
 
     if (!storageRes.ok) {
-      // Even if storage deletion fails, we've cleared metadata so URLs are gone.
-      console.error('Failed to delete files from storage:', await storageRes.text());
+      const errText = await storageRes.text();
+      return c.json({ success: false, error: `Failed to delete from storage: ${errText}` }, 500);
     }
 
     return c.json({ success: true });
