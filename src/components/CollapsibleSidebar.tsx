@@ -60,13 +60,10 @@ export default function CollapsibleSidebar({
 
       {/* Mobile Overlay */}
       {mobileOpen && (
-        <div
-          tabIndex={0}
-          role="button"
+        <button
           aria-label="Tutup menu"
-          className="lg:hidden fixed inset-0 bg-black/50 z-50 animate-fadeIn cursor-pointer"
+          className="lg:hidden fixed inset-0 w-full h-full bg-black/50 z-50 animate-fadeIn cursor-pointer p-0 m-0 border-none rounded-none"
           onClick={() => setMobileOpen(false)}
-          onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMobileOpen(false); } }}
         />
       )}
 

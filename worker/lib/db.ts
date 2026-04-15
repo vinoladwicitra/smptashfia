@@ -39,7 +39,7 @@ export async function getArticles(
 
   // Add tag filter via relational junction table
   if (options?.tag) {
-    params.set('article_tag_mappings!inner.article_tags!inner.slug', 'eq.' + options.tag);
+    params.set('article_tag_mappings.article_tags.slug', 'eq.' + options.tag);
   }
 
   // Add author filter
@@ -49,13 +49,15 @@ export async function getArticles(
 
   // Add category filter via relational junction table
   if (options?.category) {
-    params.set('article_category_mappings!inner.article_categories!inner.slug', 'eq.' + options.category);
+    params.set('article_category_mappings.article_categories.slug', 'eq.' + options.category);
   }
 
   // Select article fields plus nested category mappings for frontend display
-  let selectQuery = '*,article_category_mappings(article_categories(name,slug))';
+  let selectQuery = options?.category
+    ? '*,article_category_mappings!inner(article_categories(name,slug))'
+    : '*,article_category_mappings(article_categories(name,slug))';
   if (options?.tag) {
-    selectQuery += ',article_tag_mappings(article_tags(name,slug))';
+    selectQuery += ',article_tag_mappings!inner(article_tags(name,slug))';
   }
   params.set('select', selectQuery);
 

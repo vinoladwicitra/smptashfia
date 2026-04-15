@@ -101,7 +101,9 @@ banners.patch(
     text: z.string().optional(),
     image_url: z.string().optional(),
     button_label: z.string().optional(),
-    button_link: z.string().optional(),
+    button_link: z.string().refine((val) => !val.startsWith('//'), {
+      message: 'Link tombol tidak boleh diawali dengan "//"'
+    }).optional(),
   })),
   async (c) => {
     const type = c.req.param('type');

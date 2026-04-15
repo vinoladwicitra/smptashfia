@@ -46,17 +46,6 @@ export default function StaffProfile() {
       const trimmedName = displayName.trim().replace(/\s+/g, ' ');
       setDisplayName(trimmedName);
 
-      // Update profiles table
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ display_name: trimmedName || undefined })
-        .eq('id', user.id);
-
-      if (updateError) {
-        toast({ type: 'error', title: 'Gagal Memperbarui Profil', description: updateError.message });
-        return;
-      }
-
       // Update auth metadata
       const { error: authError } = await supabase.auth.updateUser({
         data: { display_name: trimmedName || undefined }
@@ -64,6 +53,17 @@ export default function StaffProfile() {
 
       if (authError) {
         toast({ type: 'error', title: 'Gagal Memperbarui Metadata', description: authError.message });
+        return;
+      }
+
+      // Update profiles table
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ display_name: trimmedName || null })
+        .eq('id', user.id);
+
+      if (updateError) {
+        toast({ type: 'error', title: 'Gagal Memperbarui Profil', description: updateError.message });
         return;
       }
 
@@ -112,14 +112,14 @@ export default function StaffProfile() {
     if (!user) return;
     setIsUploading(true);
     try {
-      await deleteAvatar(user.id);
-      
       const { error: authError } = await supabase.auth.updateUser({ data: { avatar_url: null } });
       if (authError) throw authError;
 
       const { error: profileError } = await supabase.from('profiles').update({ avatar_url: null }).eq('id', user.id);
       if (profileError) throw profileError;
 
+      await deleteAvatar(user.id);
+      
       setAvatarUrl(null);
       toast({ type: 'success', title: 'Avatar Dihapus', description: 'Foto profil Anda berhasil dihapus.' });
     } catch (error: any) {

@@ -16,6 +16,7 @@ Create `.env` file:
 ```bash
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your-anon-key-here
+SUPABASE_SERVICE_KEY=your-service-role-key-here # For backend/server-side use only
 ```
 
 **For Frontend:**
@@ -52,6 +53,7 @@ curl http://localhost:5173/api/articles
 ```bash
 wrangler secret put SUPABASE_URL
 wrangler secret put SUPABASE_ANON_KEY
+wrangler secret put SUPABASE_SERVICE_KEY # For backend/server-side use only
 ```
 
 **Deploy:**

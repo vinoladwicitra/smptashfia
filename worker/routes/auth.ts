@@ -170,4 +170,154 @@ auth.patch(
   }
 );
 
+// POST /api/auth/avatar - Upload and update avatar
+auth.post('/avatar', authMiddleware, async (c) => {
+  const user = c.get('user');
+  const userToken = c.get('userToken');
+
+  try {
+    const formData = await c.req.formData();
+    const file = formData.get('file');
+
+    if (!file || !(file instanceof File)) {
+      return c.json({ success: false, error: 'No file provided' }, 400);
+    }
+
+    if (!file.type.startsWith('image/')) {
+      return c.json({ success: false, error: 'Invalid file type' }, 400);
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      return c.json({ success: false, error: 'File too large' }, 400);
+    }
+
+    const ext = file.name.split('.').pop() || 'jpg';
+    const key = `avatars/${user.id}/avatar.${ext}`;
+
+    const storageRes = await fetch(`${c.env.SUPABASE_URL}/storage/v1/object/smptashfia/${key}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${userToken}`,
+        'apikey': c.env.SUPABASE_ANON_KEY,
+        'x-upsert': 'true',
+      },
+      body: file,
+    });
+
+    if (!storageRes.ok) {
+      return c.json({ success: false, error: 'Failed to upload to storage' }, 500);
+    }
+
+    const publicUrl = `${c.env.SUPABASE_URL}/storage/v1/object/public/smptashfia/${key}`;
+
+    const authRes = await fetch(`${c.env.SUPABASE_URL}/auth/v1/user`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${userToken}`,
+        'apikey': c.env.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ data: { avatar_url: publicUrl } }),
+    });
+
+    if (!authRes.ok) {
+      await fetch(`${c.env.SUPABASE_URL}/storage/v1/object/smptashfia/${key}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${userToken}`,
+          'apikey': c.env.SUPABASE_ANON_KEY,
+        },
+      });
+      return c.json({ success: false, error: 'Failed to update auth metadata' }, 500);
+    }
+
+    const profileRes = await fetch(`${c.env.SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${userToken}`,
+        'apikey': c.env.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ avatar_url: publicUrl }),
+    });
+
+    if (!profileRes.ok) {
+      await fetch(`${c.env.SUPABASE_URL}/storage/v1/object/smptashfia/${key}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${userToken}`,
+          'apikey': c.env.SUPABASE_ANON_KEY,
+        },
+      });
+      await fetch(`${c.env.SUPABASE_URL}/auth/v1/user`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userToken}`,
+          'apikey': c.env.SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ data: { avatar_url: null } }),
+      });
+      return c.json({ success: false, error: 'Failed to update profile' }, 500);
+    }
+
+    return c.json({ success: true, url: publicUrl });
+  } catch (error) {
+    return c.json({ success: false, error: 'Internal server error during avatar upload' }, 500);
+  }
+});
+
+// DELETE /api/auth/avatar - Delete avatar
+auth.delete('/avatar', authMiddleware, async (c) => {
+  const user = c.get('user');
+  const userToken = c.get('userToken');
+
+  try {
+    const extensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+    const filesToDelete = extensions.map(ext => `avatars/${user.id}/avatar.${ext}`);
+    
+    await fetch(`${c.env.SUPABASE_URL}/storage/v1/object/smptashfia`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${userToken}`,
+        'apikey': c.env.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ prefixes: filesToDelete }),
+    });
+
+    const authRes = await fetch(`${c.env.SUPABASE_URL}/auth/v1/user`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${userToken}`,
+        'apikey': c.env.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ data: { avatar_url: null } }),
+    });
+
+    if (!authRes.ok) {
+      return c.json({ success: false, error: 'Failed to update auth metadata' }, 500);
+    }
+
+    const profileRes = await fetch(`${c.env.SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${userToken}`,
+        'apikey': c.env.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ avatar_url: null }),
+    });
+
+    if (!profileRes.ok) {
+      return c.json({ success: false, error: 'Failed to update profile' }, 500);
+    }
+
+    return c.json({ success: true });
+  } catch (error) {
+    return c.json({ success: false, error: 'Internal server error during avatar deletion' }, 500);
+  }
+});
+
 export default auth;

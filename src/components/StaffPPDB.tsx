@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   IconSearch, IconLoader2, IconChevronLeft, IconChevronRight,
   IconEye, IconX, IconExternalLink, IconRefresh,
@@ -67,6 +67,13 @@ export default function StaffPPDB() {
   const [detailReg, setDetailReg] = useState<PPDBRegistration | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  const handleModalKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setShowDetail(false);
+    }
+  };
 
   const getAuthToken = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -322,7 +329,13 @@ export default function StaffPPDB() {
           className="fixed inset-0 bg-black/60 z-[2000] flex items-start justify-center p-4 pt-16 overflow-y-auto"
           onClick={() => setShowDetail(false)}
         >
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full mb-8" onClick={(e) => e.stopPropagation()}>
+          <div 
+            ref={modalRef}
+            tabIndex={-1}
+            onKeyDown={handleModalKeyDown}
+            className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full mb-8 focus:outline-none" 
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="sticky top-0 bg-white px-6 py-4 border-b border-border flex items-center justify-between rounded-t-2xl z-10">
               <div>
                 <h2 id="detailModalTitle" className="text-lg font-semibold text-text">Detail Pendaftaran</h2>

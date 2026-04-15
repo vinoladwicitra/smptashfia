@@ -19,6 +19,7 @@ export default function StaffBanners() {
   // Popup banner state
   const [popupEnabled, setPopupEnabled] = useState<boolean | null>(null);
   const [popupImageUrl, setPopupImageUrl] = useState('');
+  const [popupImageFailed, setPopupImageFailed] = useState(false);
   const [popupButtonLabel, setPopupButtonLabel] = useState('');
   const [popupButtonLink, setPopupButtonLink] = useState('');
 
@@ -116,7 +117,7 @@ export default function StaffBanners() {
       return;
     }
 
-    if (popupButtonLink) {
+    if (popupEnabled && popupButtonLink) {
       const isRelative = popupButtonLink.startsWith('/');
       const isHttps = popupButtonLink.startsWith('https://');
       if (!isRelative && !isHttps) {
@@ -510,17 +511,16 @@ export default function StaffBanners() {
 
                   {/* Image Preview */}
                   {popupImageUrl ? (
-                    <img
-                      src={popupImageUrl}
-                      alt="Popup banner preview"
-                      className="w-full"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                        (e.target as HTMLImageElement).parentElement!.insertAdjacentHTML('afterbegin',
-                          '<div class="w-full h-48 bg-gray-100 flex items-center justify-center text-text-light text-sm">Gambar gagal dimuat</div>'
-                        );
-                      }}
-                    />
+                    popupImageFailed ? (
+                      <div className="w-full h-48 bg-gray-100 flex items-center justify-center text-text-light text-sm">Gambar gagal dimuat</div>
+                    ) : (
+                      <img
+                        src={popupImageUrl}
+                        alt="Popup banner preview"
+                        className="w-full"
+                        onError={() => setPopupImageFailed(true)}
+                      />
+                    )
                   ) : (
                     <div className="w-full h-48 bg-gray-100 flex flex-col items-center justify-center text-text-light">
                       <IconUpload size={32} className="mb-2 opacity-50" />

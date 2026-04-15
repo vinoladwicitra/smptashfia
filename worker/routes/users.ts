@@ -49,25 +49,41 @@ users.get(
 
     try {
       // Fetch ALL users from Supabase Auth Admin API for local filtering and pagination
-      const response = await fetch(
-        `${c.env.SUPABASE_URL}/auth/v1/admin/users?${new URLSearchParams({
-          sort: sortBy,
-          order: sortOrder,
-        })}`,
-        {
-          headers: {
-            'apikey': c.env.SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
-          },
+      let allUsers: Array<Record<string, unknown>> = [];
+      let currentPage = 1;
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await fetch(
+          `${c.env.SUPABASE_URL}/auth/v1/admin/users?${new URLSearchParams({
+            sort: sortBy,
+            order: sortOrder,
+            page: String(currentPage),
+            per_page: '50'
+          })}`,
+          {
+            headers: {
+              'apikey': c.env.SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch users: ${response.statusText}`);
         }
-      );
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch users: ${response.statusText}`);
+        const data = await response.json() as { users: Array<Record<string, unknown>>; total?: number };
+        const fetchedUsers = data.users || [];
+        
+        allUsers = allUsers.concat(fetchedUsers);
+        
+        if (fetchedUsers.length < 50) {
+          hasMore = false;
+        } else {
+          currentPage++;
+        }
       }
-
-      const data = await response.json() as { users: Array<Record<string, unknown>>; total?: number };
-      let allUsers = data.users || [];
 
       // Fetch user roles for all users if role filter is applied
       let userRolesData: Array<Record<string, unknown>> = [];
@@ -280,8 +296,33 @@ users.put(
     try {
       // Update auth user metadata
       if (data.can_login !== undefined) {
+        const targetUser = await authAdminRequest(c.env, 'GET', `/users/${userId}`) as any;
+
+        const targetRolesRes = await fetch(
+          `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${userId}&select=role_id,roles!inner(name)`,
+          {
+            headers: {
+              'apikey': c.env.SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+            },
+          }
+        );
+        if (!targetRolesRes.ok) {
+          return c.json({ success: false, error: 'Failed to verify target user roles' }, 500);
+        }
+        const targetRolesData = await targetRolesRes.json() as Array<{ roles?: { name?: string } }>;
+        const targetRoleNames = targetRolesData.map((r) => r.roles?.name).filter(Boolean);
+
+        if (targetRoleNames.includes('admin')) {
+          const callerRoles = (c.get('user') as any).roles || [];
+          if (!callerRoles.includes('admin')) {
+            return c.json({ success: false, error: 'Forbidden: staff cannot modify admin accounts' }, 403);
+          }
+        }
+
+        const currentMetadata = targetUser.user_metadata || {};
         await authAdminRequest(c.env, 'PUT', `/users/${userId}`, {
-          user_metadata: { can_login: data.can_login },
+          user_metadata: { ...currentMetadata, can_login: data.can_login },
         });
       }
 
@@ -293,7 +334,7 @@ users.put(
       if (data.bio !== undefined) profileUpdate.bio = data.bio;
 
       if (Object.keys(profileUpdate).length > 0) {
-        await fetch(
+        const profileRes = await fetch(
           `${c.env.SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`,
           {
             method: 'PATCH',
@@ -306,6 +347,15 @@ users.put(
             body: JSON.stringify(profileUpdate),
           }
         );
+
+        if (!profileRes.ok) {
+          return c.json({ success: false, error: 'Failed to update profile' }, 500);
+        }
+
+        const updatedData = await profileRes.json() as Array<Record<string, unknown>>;
+        if (!updatedData || updatedData.length === 0) {
+          return c.json({ success: false, error: 'Profile not found or no rows updated' }, 404);
+        }
       }
 
       return c.json({
@@ -449,7 +499,7 @@ users.post(
       const previousRoles = targetRolesData.map(r => ({ role_id: r.role_id }));
 
       // Remove existing roles
-      await fetch(
+      const deleteRes = await fetch(
         `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${userId}`,
         {
           method: 'DELETE',
@@ -459,6 +509,10 @@ users.post(
           },
         }
       );
+
+      if (!deleteRes.ok) {
+        return c.json({ success: false, error: 'Failed to remove existing roles' }, 500);
+      }
 
       // Assign new role
       const roleRes = await fetch(`${c.env.SUPABASE_URL}/rest/v1/user_roles`, {

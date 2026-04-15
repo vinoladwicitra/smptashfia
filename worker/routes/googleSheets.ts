@@ -704,7 +704,7 @@ googleSheets.post(
           const field = m.field_name as string;
           let value = reg[field];
           // JSON-parsed dates are ISO strings, not Date instances
-          if (typeof value === 'string' && value.includes('T')) {
+          if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
             value = value.split('T')[0];
           }
           return value !== null && value !== undefined ? String(value) : '';
