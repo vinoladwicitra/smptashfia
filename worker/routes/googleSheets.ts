@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
+import { setCookie, getCookie, deleteCookie } from 'hono/cookie';
 import { authMiddleware, roleMiddleware } from '../middleware/auth';
 import type { Env } from '../types';
 
@@ -130,6 +131,16 @@ googleSheets.get('/auth-url', authMiddleware, roleMiddleware(['staff', 'admin'])
     });
   }
 
+  // Generate secure random state for CSRF protection
+  const state = crypto.randomUUID();
+  setCookie(c, 'google_oauth_state', state, {
+    path: '/',
+    secure: true,
+    httpOnly: true,
+    maxAge: 600, // 10 minutes
+    sameSite: 'Lax',
+  });
+
   const authUrl = new URL(GOOGLE_AUTH_URL);
   authUrl.searchParams.set('client_id', creds.client_id);
   authUrl.searchParams.set('redirect_uri', redirectUri);
@@ -137,6 +148,7 @@ googleSheets.get('/auth-url', authMiddleware, roleMiddleware(['staff', 'admin'])
   authUrl.searchParams.set('scope', GOOGLE_SHEETS_SCOPES);
   authUrl.searchParams.set('access_type', 'offline');
   authUrl.searchParams.set('prompt', 'consent');
+  authUrl.searchParams.set('state', state);
 
   return c.json({
     success: true,
@@ -207,13 +219,22 @@ googleSheets.post(
   roleMiddleware(['staff', 'admin']),
   zValidator('json', z.object({
     code: z.string().optional(),
+    state: z.string().optional(),
     error: z.string().optional(),
   }).strict()),
   async (c) => {
-    const { code, error: oauthError } = c.req.valid('json');
+    const { code, state, error: oauthError } = c.req.valid('json');
 
     if (oauthError) {
       return c.json({ success: false, error: `OAuth cancelled: ${oauthError}` }, 400);
+    }
+
+    // Verify state
+    const savedState = getCookie(c, 'google_oauth_state');
+    deleteCookie(c, 'google_oauth_state');
+
+    if (!state || state !== savedState) {
+      return c.json({ success: false, error: 'Invalid OAuth state (CSRF detected or session expired)' }, 403);
     }
 
     if (!code) {
@@ -563,7 +584,7 @@ googleSheets.get(
 googleSheets.get('/mappings', authMiddleware, roleMiddleware(['staff', 'admin']), async (c) => {
   try {
     const res = await fetch(
-        `${c.env.SUPABASE_URL}/rest/v1/google_sheets_mappings?select=*&order=column_index.asc`,
+        `${c.env.SUPABASE_URL}/rest/v1/google_sheets_mappings?select=*&order=created_at.asc`,
       {
         headers: {
           'apikey': c.env.SUPABASE_ANON_KEY,
@@ -678,7 +699,7 @@ googleSheets.post(
 
       // Get mappings
       const mappingsRes = await fetch(
-      `${c.env.SUPABASE_URL}/rest/v1/google_sheets_mappings?select=*&order=column_index.asc`,
+      `${c.env.SUPABASE_URL}/rest/v1/google_sheets_mappings?select=*&order=created_at.asc`,
         {
           headers: {
             'apikey': c.env.SUPABASE_ANON_KEY,
@@ -833,8 +854,31 @@ googleSheets.get(
       const spreadsheetId = config.spreadsheet_id as string;
       const sheetName = config.sheet_name as string;
 
+      // Determine range dynamically
+      const mappingsRes = await fetch(
+        `${c.env.SUPABASE_URL}/rest/v1/google_sheets_mappings?select=*&order=created_at.asc`,
+        {
+          headers: {
+            'apikey': c.env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+          },
+        }
+      );
+      const mappings = mappingsRes.ok ? await mappingsRes.json() as any[] : [];
+      
+      const colIndexToLetter = (n: number): string => {
+        let letters = '';
+        while (n > 0) {
+          n -= 1;
+          letters = String.fromCharCode(65 + (n % 26)) + letters;
+          n = Math.floor(n / 26);
+        }
+        return letters;
+      };
+      const endCol = colIndexToLetter(Math.max(1, mappings.length));
+
       const res = await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}!A:Z`,
+        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}!A:${endCol}`,
         {
           headers: { 'Authorization': `Bearer ${accessToken}` },
         }

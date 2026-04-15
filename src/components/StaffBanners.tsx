@@ -126,10 +126,14 @@ export default function StaffBanners() {
     }
 
     if (popupEnabled && popupButtonLink) {
-      const isRelative = popupButtonLink.startsWith('/');
+      const isRelative = popupButtonLink.startsWith('/') && !popupButtonLink.startsWith('//');
       const isHttps = popupButtonLink.startsWith('https://');
       if (!isRelative && !isHttps) {
-        toast({ type: 'error', title: 'URL Tidak Valid', description: 'Link tombol harus diawali dengan "/" atau "https://"' });
+        toast({
+          type: 'error',
+          title: 'Link Tidak Valid',
+          description: "Link harus dimulai dengan '/' (bukan '//') atau 'https://'",
+        });
         return;
       }
     }

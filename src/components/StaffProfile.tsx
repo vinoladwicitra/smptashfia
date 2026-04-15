@@ -114,7 +114,7 @@ export default function StaffProfile() {
 
       const data = await res.json();
       if (data.success) {
-        setAvatarUrl(data.url);
+        setAvatarUrl(data.data.url);
         toast({ type: 'success', title: 'Avatar Diperbarui', description: 'Foto profil Anda berhasil diunggah.' });
       } else {
         throw new Error(data.error || 'Upload failed')

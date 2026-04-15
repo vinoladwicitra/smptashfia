@@ -98,7 +98,10 @@ export default function StaffPPDB() {
 
   const getAuthToken = async () => {
     const { data: { session } } = await supabase.auth.getSession();
-    return session?.access_token || '';
+    if (!session || !session.access_token) {
+      throw new Error('No active session or missing access token');
+    }
+    return session.access_token;
   };
 
   const fetchRegistrations = useCallback(async (signal?: AbortSignal) => {
@@ -134,7 +137,7 @@ export default function StaffPPDB() {
       }
     } catch (err: any) {
       if (err.name !== 'AbortError') {
-        toast({ type: 'error', title: 'Gagal', description: 'Gagal memuat data pendaftaran' });
+        toast({ type: 'error', title: 'Gagal', description: err.message || 'Gagal memuat data pendaftaran' });
       }
     } finally {
       if (reqId === latestReqId.current && !effectiveSignal?.aborted) {
@@ -190,18 +193,26 @@ export default function StaffPPDB() {
       } else {
         toast({ type: 'error', title: 'Gagal', description: data.error || 'Gagal mengubah status' });
       }
-    } catch {
-      toast({ type: 'error', title: 'Gagal', description: 'Terjadi kesalahan' });
+    } catch (e: any) {
+      toast({ type: 'error', title: 'Gagal', description: e.message || 'Terjadi kesalahan' });
     } finally {
       setUpdatingStatus(false);
     }
   };
 
   const formatDate = (dateStr: string) => {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      const [year, month, day] = dateStr.split('-');
+      return new Date(Number(year), Number(month) - 1, Number(day)).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
     return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
   const formatDateTime = (dateStr: string) => {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      const [year, month, day] = dateStr.split('-');
+      return new Date(Number(year), Number(month) - 1, Number(day)).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
     return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
 
@@ -452,15 +463,28 @@ export default function StaffPPDB() {
               ]} />
 
               {/* Bukti Transfer */}
-              {detailReg.bukti_transfer_url && (
-                <div>
-                  <h3 className="text-sm font-semibold text-text mb-2">Bukti Transfer</h3>
-                  <a href={detailReg.bukti_transfer_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 text-primary rounded-lg hover:bg-primary/10 transition-colors cursor-pointer">
-                    <IconExternalLink size={16} />
-                    Lihat Bukti Transfer
-                  </a>
-                </div>
-              )}
+              {detailReg.bukti_transfer_url && (() => {
+                try {
+                  const url = new URL(detailReg.bukti_transfer_url);
+                  if (url.protocol === 'http:' || url.protocol === 'https:') {
+                    return (
+                      <div>
+                        <h3 className="text-sm font-semibold text-text mb-2">Bukti Transfer</h3>
+                        <a href={detailReg.bukti_transfer_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 text-primary rounded-lg hover:bg-primary/10 transition-colors cursor-pointer">
+                          <IconExternalLink size={16} />
+                          Lihat Bukti Transfer
+                        </a>
+                      </div>
+                    );
+                  }
+                } catch { /* ignore */ }
+                return (
+                  <div>
+                    <h3 className="text-sm font-semibold text-text mb-2">Bukti Transfer</h3>
+                    <p className="text-sm text-text-light italic">Tautan bukti transfer tidak valid atau tidak aman.</p>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>

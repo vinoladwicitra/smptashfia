@@ -153,9 +153,11 @@ users.get(
             },
           }
         );
-        profiles = profilesRes.ok
-          ? await profilesRes.json() as Array<Record<string, unknown>>
-          : [];
+        if (!profilesRes.ok) {
+          const errText = await profilesRes.text();
+          throw new Error(`Failed to fetch profiles: ${profilesRes.status} - ${errText}`);
+        }
+        profiles = await profilesRes.json() as Array<Record<string, unknown>>;
       }
 
       // If we didn't fetch all roles above, fetch them for the paginated page
@@ -318,39 +320,40 @@ users.put(
     }
 
     try {
-      // Update auth user metadata
+      // 1. Fetch target user roles to verify protection
+      const targetRolesRes = await fetch(
+        `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${encodeURIComponent(userId)}&select=role_id,roles!inner(name)`,
+        {
+          headers: {
+            'apikey': c.env.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
+          },
+        }
+      );
+      if (!targetRolesRes.ok) {
+        return c.json({ success: false, error: 'Failed to verify target user roles' }, 500);
+      }
+      const targetRolesData = await targetRolesRes.json() as Array<{ roles?: { name?: string } }>;
+      const targetRoleNames = targetRolesData.map((r) => r.roles?.name).filter(Boolean);
+
+      // 2. Prevent staff from modifying admin accounts (any field)
+      if (targetRoleNames.includes('admin')) {
+        const callerRoles = (c.get('user') as any).roles || [];
+        if (!callerRoles.includes('admin')) {
+          return c.json({ success: false, error: 'Forbidden: staff cannot modify admin accounts' }, 403);
+        }
+      }
+
+      // 3. Update auth user metadata if needed
       if (data.can_login !== undefined) {
         const targetUser = await authAdminRequest(c.env, 'GET', `/users/${userId}`) as any;
-
-        const targetRolesRes = await fetch(
-          `${c.env.SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${userId}&select=role_id,roles!inner(name)`,
-          {
-            headers: {
-              'apikey': c.env.SUPABASE_ANON_KEY,
-              'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
-            },
-          }
-        );
-        if (!targetRolesRes.ok) {
-          return c.json({ success: false, error: 'Failed to verify target user roles' }, 500);
-        }
-        const targetRolesData = await targetRolesRes.json() as Array<{ roles?: { name?: string } }>;
-        const targetRoleNames = targetRolesData.map((r) => r.roles?.name).filter(Boolean);
-
-        if (targetRoleNames.includes('admin')) {
-          const callerRoles = (c.get('user') as any).roles || [];
-          if (!callerRoles.includes('admin')) {
-            return c.json({ success: false, error: 'Forbidden: staff cannot modify admin accounts' }, 403);
-          }
-        }
-
         const currentMetadata = targetUser.user_metadata || {};
         await authAdminRequest(c.env, 'PUT', `/users/${userId}`, {
           user_metadata: { ...currentMetadata, can_login: data.can_login },
         });
       }
 
-      // Update profile
+      // 4. Update profile
       const profileUpdate: Record<string, unknown> = {};
       if (data.display_name !== undefined) profileUpdate.display_name = data.display_name;
       if (data.avatar_url !== undefined) profileUpdate.avatar_url = data.avatar_url;
@@ -560,8 +563,9 @@ users.post(
 
       if (!roleRes.ok) {
         // Attempt rollback: restore previous roles
+        const rollbackErrors: string[] = [];
         for (const prev of previousRoles) {
-          await fetch(`${c.env.SUPABASE_URL}/rest/v1/user_roles`, {
+          const res = await fetch(`${c.env.SUPABASE_URL}/rest/v1/user_roles`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -570,10 +574,14 @@ users.post(
             },
             body: JSON.stringify({ user_id: userId, role_id: prev.role_id }),
           });
+          if (!res.ok) rollbackErrors.push(`${res.status}: ${await res.text()}`);
         }
+        
         return c.json({
           success: false,
           error: `Failed to assign role: ${roleRes.statusText}`,
+          rollbackStatus: rollbackErrors.length === 0 ? 'success' : 'failed',
+          rollbackErrors: rollbackErrors.length > 0 ? rollbackErrors : undefined
         }, 500);
       }
 

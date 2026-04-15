@@ -103,7 +103,7 @@ banners.patch(
     button_label: z.string().optional(),
     button_link: z.string().refine((val) => {
       if (val === '') return true;
-      if (val.startsWith('/')) return true;
+      if (val.startsWith('/') && !val.startsWith('//')) return true;
       try {
         const url = new URL(val);
         return url.protocol === 'https:';
@@ -111,7 +111,7 @@ banners.patch(
         return false;
       }
     }, {
-      message: "Link tombol harus kosong, dimulai dengan '/' atau berupa URL HTTPS yang valid"
+      message: "Link tombol harus kosong, dimulai dengan '/' (bukan '//') atau berupa URL HTTPS yang valid"
     }).optional(),
   })),
   async (c) => {
