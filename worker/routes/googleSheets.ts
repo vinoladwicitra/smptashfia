@@ -599,7 +599,7 @@ googleSheets.put(
   authMiddleware,
   roleMiddleware(['staff', 'admin']),
   zValidator('json', z.object({
-    column_letter: z.string().regex(/^[A-Z]{1,3}$/i),
+    column_letter: z.string(),
     column_label: z.string().optional(),
   })),
   async (c) => {
@@ -682,7 +682,7 @@ googleSheets.post(
         {
           headers: {
             'apikey': c.env.SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_ROLE_KEY}`,
+            'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
           },
         }
       );

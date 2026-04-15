@@ -41,7 +41,7 @@ export default function CollapsibleSidebar({
 
   // Reset mobileOpen when resizing to desktop
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     const handleResize = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
@@ -209,7 +209,7 @@ export default function CollapsibleSidebar({
       {/* Fixed Tooltip - outside sidebar overflow */}
       {effectiveCollapsed && tooltipPos && (
         <div
-          className="fixed left-[76px] bg-gray-900 text-white text-xs px-3 py-1.5 rounded-md whitespace-nowrap z-[60] pointer-events-none shadow-lg"
+          className="hidden lg:block fixed left-[76px] bg-gray-900 text-white text-xs px-3 py-1.5 rounded-md whitespace-nowrap z-[60] pointer-events-none shadow-lg"
           style={{ top: tooltipPos.top - 12 }}
         >
           {tooltipPos.label}

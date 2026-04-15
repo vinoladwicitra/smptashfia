@@ -324,7 +324,7 @@ export default function StaffPPDB() {
                     <p className="text-xs text-text-light">{reg.email}</p>
                   </div>
                   <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${statusColors[reg.status] || 'bg-gray-100 text-gray-700'}`}>
-                    {statusLabels[reg.status]}
+                    {statusLabels[reg.status] || reg.status}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-text-light">

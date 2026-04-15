@@ -48,8 +48,14 @@ users.get(
     const role = c.req.query('role') || '';
     const sortBy = c.req.query('sort') || 'created_at';
     const sortOrder = c.req.query('order') || 'desc';
-    const page = Math.max(1, parseInt(c.req.query('page') || '1'));
-    const perPage = Math.max(1, Math.min(100, parseInt(c.req.query('per_page') || '20')));
+    
+    let rawPage = parseInt(c.req.query('page') || '1');
+    let rawPer = parseInt(c.req.query('per_page') || '20');
+    if (Number.isNaN(rawPage)) rawPage = 1;
+    if (Number.isNaN(rawPer)) rawPer = 20;
+
+    const page = Math.max(1, rawPage);
+    const perPage = Math.max(1, Math.min(100, rawPer));
 
     try {
       // Fetch ALL users from Supabase Auth Admin API for local filtering and pagination
@@ -164,9 +170,10 @@ users.get(
             },
           }
         );
-        if (pageRolesRes.ok) {
-           pageRolesData = await pageRolesRes.json() as Array<Record<string, unknown>>;
+        if (!pageRolesRes.ok) {
+           throw new Error('Failed to fetch user roles');
         }
+        pageRolesData = await pageRolesRes.json() as Array<Record<string, unknown>>;
       }
 
       // Merge profiles and roles into users
@@ -465,6 +472,11 @@ users.post(
   async (c) => {
     const userId = c.req.param('id');
     const { role } = c.req.valid('json');
+    const caller = c.get('user');
+
+    if (caller.roles?.includes('staff') && !caller.roles?.includes('admin') && role === 'staff') {
+      return c.json({ success: false, error: 'Forbidden: staff cannot assign staff role' }, 403);
+    }
 
     if (!isValidUuid(userId)) {
       return c.json({ success: false, error: 'Invalid user ID format' }, 400);

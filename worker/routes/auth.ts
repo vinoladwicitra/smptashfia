@@ -7,7 +7,13 @@ import type { Env, UserContext } from '../types';
 interface SupabaseUser {
   id: string;
   email: string;
-  [key: string]: unknown;
+  user_metadata?: {
+    display_name?: string;
+    avatar_url?: string;
+    [key: string]: any;
+  };
+  created_at?: string;
+  [key: string]: any;
 }
 
 const auth = new Hono<{ Bindings: Env; Variables: { user: UserContext; userToken: string } }>();
