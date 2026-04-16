@@ -17,13 +17,18 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
-    if (loading || !user) {
+    if (loading) {
+      return;
+    }
+
+    if (!user) {
+      setAuthorized(false);
       setChecking(false);
       return;
     }
 
     const checkRole = async () => {
-      const requiredRoles = Object.entries(routeRoles).find(([path]) => 
+      const requiredRoles = Object.entries(routeRoles).find(([path]) =>
         location.pathname === path || location.pathname.startsWith(path + '/')
       )?.[1];
 

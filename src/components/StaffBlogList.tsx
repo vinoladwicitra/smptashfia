@@ -14,6 +14,7 @@ interface Article {
   published_at: string | null;
   views: number;
   created_at: string;
+  author_name?: string;
   category?: { name: string; slug: string } | null;
 }
 
@@ -47,10 +48,11 @@ export default function StaffBlogList() {
     const { data, error } = await supabase
       .from('articles')
       .select(`
-        id, title, slug, excerpt, featured_image, status, published_at, views, created_at,
+        id, title, slug, excerpt, featured_image, status, published_at, views, created_at, author_id,
         article_category_mappings (
           article_categories (id, name, slug)
-        )
+        ),
+        profiles!articles_author_id_fkey (display_name)
       `)
       .order('created_at', { ascending: false });
 
@@ -67,6 +69,7 @@ export default function StaffBlogList() {
         published_at: a.published_at,
         views: a.views || 0,
         created_at: a.created_at,
+        author_name: a.profiles?.display_name || null,
         category: a.article_category_mappings?.[0]?.article_categories || null,
       }));
       setArticles(formatted);
@@ -79,16 +82,13 @@ export default function StaffBlogList() {
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`Hapus artikel "${title}"? Tindakan ini tidak bisa dibatalkan.`)) return;
 
-    // Fetch article content to extract image URLs
     const { data: article } = await supabase.from('articles').select('content, featured_image').eq('id', id).single();
 
-    // Delete images from storage
     if (article?.content) {
       const { deleteBlogImages } = await import('../lib/storage');
       await deleteBlogImages(article.content);
     }
 
-    // Delete the article
     const { error } = await supabase.from('articles').delete().eq('id', id);
     if (error) {
       toast({ type: 'error', title: 'Gagal Menghapus', description: error.message });
@@ -114,7 +114,7 @@ export default function StaffBlogList() {
         </div>
         <button
           onClick={() => navigate('/staff/blog/new')}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors shadow-sm whitespace-nowrap"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors shadow-sm whitespace-nowrap cursor-pointer"
         >
           <IconPlus size={18} />
           Tulis Artikel
@@ -175,7 +175,7 @@ export default function StaffBlogList() {
           {!searchQuery && filterStatus === 'all' && (
             <button
               onClick={() => navigate('/staff/blog/new')}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors cursor-pointer"
             >
               <IconPlus size={18} />
               Tulis Artikel Pertama
@@ -192,8 +192,11 @@ export default function StaffBlogList() {
               className="bg-white rounded-xl shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow"
             >
               <div className="flex flex-col sm:flex-row">
-                {/* Featured Image */}
-                <div className="sm:w-40 sm:flex-shrink-0">
+                {/* Featured Image - Clickable */}
+                <div
+                  onClick={() => navigate(`/staff/blog/edit/${article.id}`)}
+                  className="sm:w-40 sm:flex-shrink-0 cursor-pointer"
+                >
                   {article.featured_image ? (
                     <img src={article.featured_image} alt={article.title} className="w-full h-32 sm:h-full object-cover" />
                   ) : (
@@ -206,6 +209,7 @@ export default function StaffBlogList() {
                 {/* Content */}
                 <div className="flex-1 p-4 flex flex-col justify-between">
                   <div>
+                    {/* Status & Category */}
                     <div className="flex items-center gap-2 mb-2">
                       <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-full ${statusColors[article.status]}`}>
                         {statusLabels[article.status]}
@@ -216,15 +220,30 @@ export default function StaffBlogList() {
                         </span>
                       )}
                     </div>
-                    <h3 className="text-base font-semibold text-text mb-1 line-clamp-1">{article.title}</h3>
+
+                    {/* Title - Clickable */}
+                    <h3
+                      onClick={() => navigate(`/staff/blog/edit/${article.id}`)}
+                      className="text-base font-semibold text-text mb-1 line-clamp-1 cursor-pointer hover:text-primary transition-colors"
+                    >
+                      {article.title}
+                    </h3>
+
                     {article.excerpt && (
                       <p className="text-sm text-text-light line-clamp-2 mb-2">{article.excerpt}</p>
                     )}
+
+                    {/* Meta info */}
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-light">
                       <span className="flex items-center gap-1">
                         <IconCalendar size={14} />
                         {formatDate(article.published_at || article.created_at)}
                       </span>
+                      {article.author_name && (
+                        <span>
+                          Oleh: {article.author_name}
+                        </span>
+                      )}
                       {article.status === 'published' && (
                         <span className="flex items-center gap-1">
                           <IconEye size={14} />
@@ -239,14 +258,14 @@ export default function StaffBlogList() {
                 <div className="flex items-center gap-1 px-4 pb-4 sm:py-4 sm:flex-shrink-0">
                   <button
                     onClick={() => navigate(`/staff/blog/edit/${article.id}`)}
-                    className="p-2 rounded-lg text-text-light hover:text-primary hover:bg-primary/10 transition-colors"
+                    className="p-2 rounded-lg text-text-light hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
                     title="Edit"
                   >
                     <IconEdit size={18} />
                   </button>
                   <button
                     onClick={() => handleDelete(article.id, article.title)}
-                    className="p-2 rounded-lg text-text-light hover:text-red-600 hover:bg-red-50 transition-colors"
+                    className="p-2 rounded-lg text-text-light hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                     title="Hapus"
                   >
                     <IconTrash size={18} />

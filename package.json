@@ -14,7 +14,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1027.0",
     "@aws-sdk/s3-request-presigner": "^3.1027.0",
-    "@supabase/supabase-js": "^2.103.0",
+    "@hono/zod-validator": "^0.7.6",
     "@tabler/icons-react": "^3.41.1",
     "@tiptap/extension-code-block-lowlight": "^3.22.3",
     "@tiptap/extension-heading": "^3.22.3",
@@ -27,13 +27,16 @@
     "@tiptap/react": "^3.22.3",
     "@tiptap/starter-kit": "^3.22.3",
     "dompurify": "^3.3.3",
+    "hono": "^4.12.12",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^7.14.0"
+    "react-router-dom": "^7.14.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.31.1",
     "@eslint/js": "^9.39.1",
+    "@supabase/supabase-js": "^2.103.0",
     "@tailwindcss/vite": "^4.2.2",
     "@types/dompurify": "^3.0.5",
     "@types/node": "^24.12.2",

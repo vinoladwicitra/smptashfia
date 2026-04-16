@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { IconHome, IconFileText, IconSettings, IconUser } from '@tabler/icons-react';
+import { IconHome, IconFileText, IconUser, IconSpeakerphone, IconGlobe, IconUsers, IconUserCheck, IconTable } from '@tabler/icons-react';
 import { useAuth } from '../lib/auth';
 import CollapsibleSidebar, { type SidebarMenuItem } from './CollapsibleSidebar';
 
 const staffMenuItems: SidebarMenuItem[] = [
   { icon: IconHome, label: 'Dashboard', href: '/staff' },
   { icon: IconFileText, label: 'Artikel', href: '/staff/blog' },
+  { icon: IconUsers, label: 'Pengguna', href: '/staff/users' },
+  { icon: IconUserCheck, label: 'PMB', href: '/staff/pmb' },
+  { icon: IconTable, label: 'Google Sheets', href: '/staff/google-sheets' },
+  { icon: IconSpeakerphone, label: 'Banner', href: '/staff/banners' },
+  { icon: IconGlobe, label: 'Situs', href: '/staff/site-settings' },
   { icon: IconUser, label: 'Profil', href: '/staff/profile' },
-  { icon: IconSettings, label: 'Pengaturan', href: '/staff/settings' },
 ];
 
 export default function StaffLayout() {
