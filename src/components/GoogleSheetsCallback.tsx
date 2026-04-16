@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IconLoader2 } from '@tabler/icons-react';
 import { useToast } from '../context/ToastContext';
+import { supabase } from '../lib/supabase';
 
 export default function GoogleSheetsCallback() {
   const navigate = useNavigate();
@@ -25,13 +26,25 @@ export default function GoogleSheetsCallback() {
       return;
     }
 
-    // Send code and state to API via POST
-    fetch('/api/google-sheets/oauth/callback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, state }),
-    })
-      .then((res) => res.json())
+    const exchange = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) {
+        throw new Error('Unauthorized: missing session');
+      }
+      // Send code and state to API via POST
+      const res = await fetch('/api/google-sheets/oauth/callback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ code, state }),
+      });
+      return res.json();
+    };
+
+    exchange()
       .then((data) => {
         if (data.success) {
           toast({ type: 'success', title: 'Berhasil', description: 'Google Sheets berhasil terhubung!' });

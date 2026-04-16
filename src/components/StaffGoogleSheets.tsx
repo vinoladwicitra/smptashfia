@@ -13,6 +13,23 @@ export default function StaffGoogleSheets() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'data' | 'mapping' | 'settings'>('data');
 
+  const toFieldLabel = (fieldName: string) =>
+    fieldName
+      .split('_')
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+
+  const colIndexToLetter = (n: number): string => {
+    let letters = '';
+    while (n > 0) {
+      n -= 1;
+      letters = String.fromCharCode(65 + (n % 26)) + letters;
+      n = Math.floor(n / 26);
+    }
+    return letters;
+  };
+
   // Settings state
   const [authUrl, setAuthUrl] = useState('');
   const [redirectUri, setRedirectUri] = useState('');
@@ -36,8 +53,9 @@ export default function StaffGoogleSheets() {
 
   // Mapping state
   const [mappings, setMappings] = useState<Array<{ field_name: string; column_letter: string; column_label: string }>>([]);
+  const [mappingDrafts, setMappingDrafts] = useState<Record<string, string>>({});
   const [sheetHeaders, setSheetHeaders] = useState<string[]>([]);
-  const [savingMapping, setSavingMapping] = useState<string | null>(null);
+  const [savingAllMappings, setSavingAllMappings] = useState(false);
 
   // Data state
   const [sheetData, setSheetData] = useState<{ headers: string[]; rows: Array<Record<string, string>>; total: number; lastSync: string | null; notConfigured?: boolean } | null>(null);
@@ -67,7 +85,9 @@ export default function StaffGoogleSheets() {
       const token = await getAuthToken();
 
       // Get auth URL and credentials
-      const authRes = await fetch(`${API_BASE}/google-sheets/auth-url`);
+      const authRes = await fetch(`${API_BASE}/google-sheets/auth-url`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
       const authData = await authRes.json();
       if (authData.success) {
         setAuthUrl(authData.data.authUrl);
@@ -80,7 +100,7 @@ export default function StaffGoogleSheets() {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const configData = await configRes.json();
-      if (configData.success && configData.data?.access_token) {
+      if (configData.success && configData.data?.connected) {
         setConnected(true);
         setUserEmail(configData.data.user_email || '');
         setSelectedSpreadsheet(configData.data.spreadsheet_id || '');
@@ -107,6 +127,8 @@ export default function StaffGoogleSheets() {
             // ignore
           }
         }
+      } else {
+        setConnected(false);
       }
     } catch {
       // Silently fail
@@ -305,34 +327,80 @@ export default function StaffGoogleSheets() {
 
   const fetchMappings = async () => {
     try {
-      const res = await fetch(`${API_BASE}/google-sheets/mappings`);
+      const token = await getAuthToken();
+      const res = await fetch(`${API_BASE}/google-sheets/mappings`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
       const data = await res.json();
       if (data.success) {
-        setMappings(data.data.mappings);
+        const nextMappings = data.data.mappings as Array<{ field_name: string; column_letter: string; column_label: string }>;
+        setMappings(nextMappings);
+        setMappingDrafts(
+          nextMappings.reduce<Record<string, string>>((acc, m) => {
+            const selectedHeader = m.column_label || m.column_letter || '';
+            acc[m.field_name] = selectedHeader;
+            return acc;
+          }, {})
+        );
       }
     } catch {
       toast({ type: 'error', title: 'Gagal', description: 'Gagal memuat mapping' });
     }
   };
 
-  const handleMappingChange = async (fieldName: string, headerName: string) => {
-    setSavingMapping(fieldName);
+  const handleMappingChange = (fieldName: string, headerName: string) => {
+    setMappingDrafts((prev) => ({ ...prev, [fieldName]: headerName }));
+  };
+
+  const handleSaveMappings = async () => {
+    const changedMappings = mappings.filter((m) => {
+      const currentHeader = m.column_label || m.column_letter || '';
+      const draftHeader = mappingDrafts[m.field_name] ?? '';
+      return draftHeader !== currentHeader;
+    });
+    if (changedMappings.length === 0) {
+      toast({ type: 'info', title: 'Info', description: 'Tidak ada perubahan mapping' });
+      return;
+    }
+
+    setSavingAllMappings(true);
     try {
       const token = await getAuthToken();
-      const res = await fetch(`${API_BASE}/google-sheets/mappings/${fieldName}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ column_letter: headerName, column_label: headerName }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setMappings((prev) => prev.map((m) =>
-          m.field_name === fieldName ? { ...m, column_letter: headerName, column_label: headerName } : m
-        ));
+      for (const mapping of changedMappings) {
+        const headerName = mappingDrafts[mapping.field_name] ?? '';
+        const headerIndex = sheetHeaders.findIndex((h) => h === headerName);
+        const columnLetter = headerIndex >= 0 ? colIndexToLetter(headerIndex + 1) : '';
+        const res = await fetch(`${API_BASE}/google-sheets/mappings/${mapping.field_name}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            column_letter: columnLetter,
+            column_label: headerName,
+          }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          throw new Error(data.error || `Gagal menyimpan mapping ${mapping.field_name}`);
+        }
       }
+
+      setMappings((prev) =>
+        prev.map((m) => ({
+          ...m,
+          column_label: mappingDrafts[m.field_name] ?? '',
+          column_letter: (() => {
+            const selected = mappingDrafts[m.field_name] ?? '';
+            const idx = sheetHeaders.findIndex((h) => h === selected);
+            return idx >= 0 ? colIndexToLetter(idx + 1) : '';
+          })(),
+        }))
+      );
+      toast({ type: 'success', title: 'Berhasil', description: 'Mapping berhasil disimpan' });
     } catch {
       toast({ type: 'error', title: 'Gagal', description: 'Gagal menyimpan mapping' });
-    } finally { setSavingMapping(null); }
+    } finally {
+      setSavingAllMappings(false);
+    }
   };
 
   const fetchData = async () => {
@@ -624,6 +692,13 @@ export default function StaffGoogleSheets() {
               <h2 className="text-lg font-semibold text-text">Mapping Kolom</h2>
               <p className="text-sm text-text-light mt-0.5">Tentukan kolom Google Sheets untuk setiap field form</p>
             </div>
+            <button
+              onClick={handleSaveMappings}
+              disabled={savingAllMappings}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-60 cursor-pointer"
+            >
+              {savingAllMappings ? <><IconLoader2 size={16} className="animate-spin" /> Menyimpan...</> : <><IconCheck size={16} /> Simpan Mapping</>}
+            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -637,27 +712,26 @@ export default function StaffGoogleSheets() {
                 {mappings.map((m) => (
                   <tr key={m.field_name} className="hover:bg-gray-50/50">
                     <td className="px-4 py-3">
-                      <p className="text-sm font-medium text-text">{m.column_label}</p>
-                      <p className="text-xs text-text-light font-mono">{m.field_name}</p>
+                      <p className="text-sm font-medium text-text">{toFieldLabel(m.field_name)}</p>
                     </td>
                     <td className="px-4 py-3">
                       <select
-                        value={m.column_letter}
+                        value={sheetHeaders.includes(mappingDrafts[m.field_name] || '') ? (mappingDrafts[m.field_name] || '') : ''}
                         onChange={(e) => handleMappingChange(m.field_name, e.target.value)}
-                        disabled={savingMapping === m.field_name}
+                        disabled={savingAllMappings}
                         className="px-3 py-2 border border-border rounded-lg outline-none focus:border-primary transition-colors text-sm text-text cursor-pointer disabled:opacity-60"
                       >
                         {sheetHeaders.length > 0 ? (
-                          sheetHeaders.map((h) => (
-                            <option key={h} value={h}>{h}</option>
-                          ))
+                          <>
+                            <option value="">Pilih header...</option>
+                            {sheetHeaders.map((h) => (
+                              <option key={h} value={h}>{h}</option>
+                            ))}
+                          </>
                         ) : (
                           <option value="">Pilih sheet terlebih dahulu</option>
                         )}
                       </select>
-                      {savingMapping === m.field_name && (
-                        <IconLoader2 size={14} className="animate-spin ml-2 inline text-primary" />
-                      )}
                     </td>
                   </tr>
                 ))}

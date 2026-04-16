@@ -642,6 +642,16 @@ googleSheets.put(
       }
       const existingData = await existing.json() as Array<Record<string, unknown>>;
 
+      const rawColumnLetter = (data.column_letter || '').trim();
+      const rawColumnLabel = (data.column_label || '').trim();
+      const isShortExcelRef = /^[A-Z]{1,3}$/.test(rawColumnLetter.toUpperCase());
+      const normalizedColumnLetter = isShortExcelRef ? rawColumnLetter.toUpperCase() : '';
+      const normalizedColumnLabel = rawColumnLabel || (!isShortExcelRef ? rawColumnLetter : '');
+      const payload = {
+        ...(normalizedColumnLetter ? { column_letter: normalizedColumnLetter } : {}),
+        ...(normalizedColumnLabel ? { column_label: normalizedColumnLabel } : {}),
+      };
+
       if (existingData.length > 0) {
         // Update existing
         const patchRes = await fetch(
@@ -654,7 +664,7 @@ googleSheets.put(
               'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
               'Prefer': 'return=representation',
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify(payload),
           }
         );
         if (!patchRes.ok) throw new Error(`Patch failed: ${await patchRes.text()}`);
@@ -668,14 +678,17 @@ googleSheets.put(
             'Authorization': `Bearer ${c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY}`,
             'Prefer': 'return=representation',
           },
-          body: JSON.stringify({ field_name: fieldName, ...data }),
+          body: JSON.stringify({ field_name: fieldName, ...payload }),
         });
         if (!postRes.ok) throw new Error(`Post failed: ${await postRes.text()}`);
       }
 
       return c.json({ success: true, message: 'Mapping updated' });
     } catch (error) {
-      return c.json({ success: false, error: 'Failed to update mapping' }, 500);
+      return c.json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to update mapping',
+      }, 500);
     }
   }
 );
@@ -729,8 +742,16 @@ googleSheets.post(
       }
       const ppdbData = await ppdbRes.json() as Array<Record<string, unknown>>;
 
-      // Build header row from mappings (column_letter now stores the actual header name)
-      const headerRow = mappings.map((m) => (m.column_letter as string) || (m.column_label as string) || '');
+      // Build header row from mappings.
+      // Backward compatibility: older mappings may still store Excel letters (A, B, C) in column_letter.
+      const isExcelColumnRef = (v: string) => /^[A-Z]{1,3}$/.test(v.trim());
+      const headerRow = mappings.map((m) => {
+        const mappedValue = ((m.column_letter as string) || '').trim();
+        const fallbackLabel = ((m.column_label as string) || '').trim();
+        if (mappedValue && !isExcelColumnRef(mappedValue)) return mappedValue;
+        if (fallbackLabel) return fallbackLabel;
+        return mappedValue;
+      });
 
       // Build data rows - map fields to columns using the order in mappings
       const rows = ppdbData.map((reg) => {
