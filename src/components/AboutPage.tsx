@@ -85,10 +85,10 @@ const misiItems = [
 function AccordionItem({ item, isOpen, onToggle }: { item: typeof accordionItems[0]; isOpen: boolean; onToggle: () => void }) {
   const Icon = item.icon;
   return (
-    <div className="border border-border rounded-xl overflow-hidden mb-3 transition-all">
+    <div className="border border-border rounded-xl overflow-hidden mb-3 transition-all dark:border-gray-700">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 text-left bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+        className="w-full flex items-center justify-between p-4 text-left bg-surface hover:bg-gray-50 transition-colors cursor-pointer dark:bg-surface-dark dark:hover:bg-gray-800"
       >
         <div className="flex items-center gap-3">
           <Icon size={20} className="text-primary" />
@@ -97,7 +97,7 @@ function AccordionItem({ item, isOpen, onToggle }: { item: typeof accordionItems
         {isOpen ? <IconChevronUp size={20} className="text-text-light" /> : <IconChevronRight size={20} className="text-text-light" />}
       </button>
       {isOpen && (
-        <div className="px-4 pt-4 pb-4 text-sm text-text-light bg-white leading-relaxed">
+        <div className="px-4 pt-4 pb-4 text-sm text-text-light bg-surface leading-relaxed dark:bg-surface-dark">
           {item.content}
         </div>
       )}
@@ -113,9 +113,9 @@ export default function AboutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 lg:pb-0">
+    <div className="min-h-screen bg-background pb-20 lg:pb-0 dark:bg-background">
       {/* Hero Section */}
-      <section className="relative bg-primary text-white py-20">
+      <section className="relative bg-primary text-white py-20 dark:bg-primary-dark">
         <div className="max-w-5xl mx-auto px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Tentang Kami</h1>
           <p className="text-lg text-white/80 max-w-2xl mx-auto">Mengenal lebih dekat Yayasan Tashfia dan perjalanan kami dalam mendidik generasi muslimah terbaik.</p>
@@ -127,7 +127,7 @@ export default function AboutPage() {
         <div className="max-w-5xl mx-auto px-8">
           <div className="max-w-3xl mx-auto">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center dark:bg-primary/20">
                 <IconBuilding size={24} className="text-primary" />
               </div>
               <h2 className="text-3xl font-bold text-text">Yayasan Tashfia</h2>
@@ -152,10 +152,10 @@ export default function AboutPage() {
       </section>
 
       {/* Visi Section */}
-      <section className="py-16 bg-primary/5">
+      <section className="py-16 bg-primary/5 dark:bg-primary/10">
         <div className="max-w-5xl mx-auto px-8">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6 dark:bg-primary/20">
               <IconTarget size={32} className="text-primary" />
             </div>
             <h2 className="text-3xl font-bold text-text mb-6">Visi</h2>
@@ -167,11 +167,11 @@ export default function AboutPage() {
       </section>
 
       {/* Misi Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-surface dark:bg-surface-dark">
         <div className="max-w-5xl mx-auto px-8">
           <div className="max-w-3xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center dark:bg-primary/20">
                 <IconListCheck size={24} className="text-primary" />
               </div>
               <h2 className="text-3xl font-bold text-text">Misi</h2>
@@ -179,7 +179,7 @@ export default function AboutPage() {
             <ul className="space-y-4">
               {misiItems.map((item, index) => (
                 <li key={index} className="flex gap-3 items-start">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold mt-0.5">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold mt-0.5 dark:bg-primary/20">
                     {index + 1}
                   </span>
                   <span className="text-text-light leading-relaxed">{item}</span>

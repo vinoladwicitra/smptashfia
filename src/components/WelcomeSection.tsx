@@ -1,6 +1,6 @@
 export default function WelcomeSection() {
   return (
-    <section className="bg-background">
+    <section className="bg-background dark:bg-background">
       {/* Hero Banner - Full Width Desktop & Mobile */}
       <div className="w-full">
         <img src="/header-mobile.webp" alt="SMP Tashfia" className="w-full" />
@@ -60,10 +60,10 @@ export default function WelcomeSection() {
         </div>
         
         {/* Video 1: Boarding School */}
-        <div className="py-6 bg-primary/5">
+        <div className="py-6 bg-primary/5 dark:bg-primary/10">
           <div className="max-w-7xl mx-auto px-5">
             <h3 className="text-base font-bold text-center text-text mb-4">Tashfia Boarding School</h3>
-            <div className="bg-white rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-surface rounded-xl overflow-hidden shadow-sm dark:bg-surface-dark">
               <div className="aspect-video bg-black">
                 <iframe
                   src="https://www.youtube.com/embed/Y51Zpt37BJ8"
@@ -78,10 +78,10 @@ export default function WelcomeSection() {
         </div>
 
         {/* Video 2: Full Day School */}
-        <div className="py-6 bg-background">
+        <div className="py-6 bg-background dark:bg-background">
           <div className="max-w-7xl mx-auto px-5">
             <h3 className="text-base font-bold text-center text-text mb-4">Tashfia Full Day School</h3>
-            <div className="bg-white rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-surface rounded-xl overflow-hidden shadow-sm dark:bg-surface-dark">
               <div className="aspect-video bg-black">
                 <iframe
                   src="https://www.youtube.com/embed/OPfF_OUWke4"

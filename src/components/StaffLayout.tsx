@@ -40,7 +40,7 @@ export default function StaffLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-background">
       <CollapsibleSidebar
         items={staffMenuItems}
         activePath={location.pathname}

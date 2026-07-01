@@ -5,10 +5,10 @@ export default function NotFoundPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-5">
+    <div className="min-h-screen bg-background flex items-center justify-center px-5 dark:bg-background">
       <div className="max-w-md mx-auto text-center">
         {/* Icon */}
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-6">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-6 dark:bg-primary/20">
           <IconAlertCircle size={40} className="text-primary" />
         </div>
 
@@ -42,7 +42,7 @@ export default function NotFoundPage() {
           <Link
             to="/hubungi-kami"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-text font-semibold border border-border rounded-xl hover:border-primary hover:text-primary transition-all text-sm cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-surface text-text font-semibold border border-border rounded-xl hover:border-primary hover:text-primary transition-all text-sm cursor-pointer dark:bg-surface-dark"
           >
             <IconHeadset size={18} />
             Hubungi Kami

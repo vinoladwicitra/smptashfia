@@ -49,12 +49,13 @@
 }
 
 @theme {
-  /* Colors */
+  /* Colors - Light Mode */
   --color-primary: #795c93;
   --color-primary-dark: #6a4f82;
   --color-secondary: #8b6fa3;
   --color-accent: #e74c3c;
   --color-background: #FCFCFC;
+  --color-surface: #ffffff;
   --color-text: #333333;
   --color-text-light: #797979;
   --color-white: #ffffff;
@@ -65,6 +66,18 @@
   --font-sans: 'Plus Jakarta Sans', sans-serif;
 }
 
+/* Dark Mode Variables */
+.dark {
+  --color-background: #0f0f1a;
+  --color-surface: #1a1a2e;
+  --color-surface-alt: #232340;
+  --color-text: #e0e0e0;
+  --color-text-light: #a0a0a0;
+  --color-gray: #2a2a40;
+  --color-border: #3a3a5c;
+  --color-white: #1a1a2e;
+}
+
 @layer base {
   *, ::before, ::after {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
@@ -72,6 +85,20 @@
   
   body {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  /* Smooth transition for dark mode toggle */
+  html {
+    transition: background-color 0.3s ease;
+  }
+  
+  /* Ensure proper dark mode for common elements */
+  .dark img,
+  .dark video {
+    filter: brightness(0.9);
   }
 }
 

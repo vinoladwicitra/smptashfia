@@ -37,9 +37,9 @@ const contactInfo = [
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-background pb-20 lg:pb-0">
+    <div className="min-h-screen bg-background pb-20 lg:pb-0 dark:bg-background">
       {/* Hero Section */}
-      <section className="relative bg-primary text-white py-20">
+      <section className="relative bg-primary text-white py-20 dark:bg-primary-dark">
         <div className="max-w-5xl mx-auto px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Hubungi Kami</h1>
           <p className="text-lg text-white/80 max-w-2xl mx-auto">Kami siap membantu Anda. Silakan hubungi kami melalui salah satu saluran berikut.</p>
@@ -58,9 +58,9 @@ export default function ContactPage() {
                   href={item.href}
                   target={item.href.startsWith('http') ? '_blank' : undefined}
                   rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  className="flex items-start gap-5 bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition-all group cursor-pointer"
+                  className="flex items-start gap-5 bg-surface p-6 rounded-2xl shadow-sm hover:shadow-md transition-all group cursor-pointer dark:bg-surface-dark"
                 >
-                  <div className={`flex-shrink-0 w-14 h-14 rounded-xl ${item.color} flex items-center justify-center`}>
+                  <div className={`flex-shrink-0 w-14 h-14 rounded-xl ${item.color} flex items-center justify-center dark:opacity-90`}>
                     <Icon size={26} />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -79,7 +79,7 @@ export default function ContactPage() {
       </section>
 
       {/* Map Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-surface dark:bg-surface-dark">
         <div className="max-w-5xl mx-auto px-8">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -122,10 +122,10 @@ export default function ContactPage() {
       </section>
 
       {/* Office Hours */}
-      <section className="py-16 bg-primary/5">
+      <section className="py-16 bg-primary/5 dark:bg-primary/10">
         <div className="max-w-5xl mx-auto px-8">
-          <div className="max-w-lg mx-auto bg-white rounded-2xl shadow-sm p-8 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
+          <div className="max-w-lg mx-auto bg-surface rounded-2xl shadow-sm p-8 text-center dark:bg-surface-dark">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6 dark:bg-primary/20">
               <IconClock size={32} className="text-primary" />
             </div>
             <h2 className="text-2xl font-bold text-text mb-2">Jam Operasional</h2>
