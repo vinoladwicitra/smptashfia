@@ -13,7 +13,7 @@ export default function StickyMobileBottomBar() {
   const location = useLocation();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-border shadow-lg lg:hidden z-[1000] dark:bg-surface dark:border-gray-700 dark:shadow-gray-900">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border shadow-lg lg:hidden z-[1000]">
       <nav className="flex items-center justify-around py-1.5">
         {items.map((item) => {
           const normalizePath = (path: string) => path === '/' ? '/' : path.replace(/\/+$/, '');
@@ -31,7 +31,7 @@ export default function StickyMobileBottomBar() {
               className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-all duration-150 active:scale-90 cursor-pointer ${
                 isActive
                   ? 'text-primary'
-                  : 'text-gray-400 hover:text-text dark:text-gray-500 dark:hover:text-gray-300'
+                  : 'text-gray-400 hover:text-text'
               }`}
             >
               <Icon size={22} />

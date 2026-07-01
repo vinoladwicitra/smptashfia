@@ -56,11 +56,11 @@ export default function LoginPage({ role }: { role: keyof typeof roleLabels }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center px-5 dark:from-primary/10 dark:to-primary/20">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center px-5">
       <div className="w-full max-w-md">
         {/* Logo & Title */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4 dark:bg-primary/20">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
             <IconSchool size={32} className="text-primary" />
           </div>
           <h1 className="text-2xl font-bold text-text">Login {roleLabels[role]}</h1>
@@ -68,7 +68,7 @@ export default function LoginPage({ role }: { role: keyof typeof roleLabels }) {
         </div>
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="bg-surface rounded-2xl shadow-lg p-8 space-y-6 dark:bg-surface-dark">
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
           {/* Email */}
           <div>
             <label htmlFor="email" className="block text-sm font-semibold text-text mb-2">
@@ -84,7 +84,7 @@ export default function LoginPage({ role }: { role: keyof typeof roleLabels }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nama@smptashfia.sch.id"
-                className="w-full pl-10 pr-4 py-3 border border-border rounded-xl outline-none focus:border-primary transition-colors text-text placeholder:text-text-light bg-transparent dark:border-gray-600"
+                className="w-full pl-10 pr-4 py-3 border border-border rounded-xl outline-none focus:border-primary transition-colors text-text placeholder:text-text-light"
                 required
                 disabled={isLoading}
               />
@@ -106,7 +106,7 @@ export default function LoginPage({ role }: { role: keyof typeof roleLabels }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Masukkan password"
-                className="w-full pl-10 pr-12 py-3 border border-border rounded-xl outline-none focus:border-primary transition-colors text-text placeholder:text-text-light bg-transparent dark:border-gray-600"
+                className="w-full pl-10 pr-12 py-3 border border-border rounded-xl outline-none focus:border-primary transition-colors text-text placeholder:text-text-light"
                 required
                 disabled={isLoading}
               />

@@ -19,7 +19,7 @@ function IconBoxItem({ title, to, icon: Icon, bg, color, external }: { title: st
   const content = (
     <div className="flex flex-col items-center gap-1.5 py-3 active:scale-95 transition-transform cursor-pointer">
       <div
-        className="w-12 h-12 rounded-xl flex items-center justify-center dark:opacity-90"
+        className="w-12 h-12 rounded-xl flex items-center justify-center"
         style={{ backgroundColor: bg, color }}
       >
         <Icon size={22} />
@@ -37,7 +37,7 @@ function IconBoxItem({ title, to, icon: Icon, bg, color, external }: { title: st
 
 export default function QuickAccessSection() {
   return (
-    <section className="lg:hidden bg-surface border-b border-border pt-4 dark:bg-surface dark:border-gray-700">
+    <section className="lg:hidden bg-white border-b border-border pt-4">
       <div className="max-w-7xl mx-auto px-5">
         <div className="grid grid-cols-4">
           {quickAccessItems.map((item) => (

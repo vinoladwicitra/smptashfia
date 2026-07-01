@@ -46,7 +46,7 @@ export default function Footer() {
     : 'https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d15863.614022201797!2d106.9516837!3d-6.2764164!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e698d730bca8f7f%3A0xa7c63c7cbe29afe3!2sSMP%20Tashfia!5e0!3m2!1sid!2sid!4v1775721806664!5m2!1sid!2sid';
 
   return (
-    <footer className="bg-primary text-white lg:pb-0 dark:bg-primary-dark">
+    <footer className="bg-primary text-white lg:pb-0">
       {/* Desktop Footer */}
       <div className="hidden lg:block">
         <div className="max-w-5xl mx-auto px-8 pt-16 pb-8">

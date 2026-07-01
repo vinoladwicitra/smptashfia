@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { IconHome, IconHomeFilled, IconBriefcase, IconBriefcaseFilled, IconBulb, IconBulbFilled, IconBook, IconBookFilled, IconHeadset, IconHeadsetFilled, IconX, IconPhone, IconClock, IconMapPin, IconUser, IconUserCheck, IconUsersGroup, IconUsers, IconPencil, IconPencilFilled, IconSun, IconMoon } from '@tabler/icons-react';
+import { IconHome, IconHomeFilled, IconBriefcase, IconBriefcaseFilled, IconBulb, IconBulbFilled, IconBook, IconBookFilled, IconHeadset, IconHeadsetFilled, IconX, IconPhone, IconClock, IconMapPin, IconUser, IconUserCheck, IconUsersGroup, IconUsers, IconPencil, IconPencilFilled } from '@tabler/icons-react';
 import { useSiteSettings } from '../context/SiteSettingsContext';
-import { useDarkMode } from '../context/DarkModeContext';
 
 const API_BASE = '/api';
 
@@ -25,7 +24,6 @@ const loginItems = [
 
 export default function Header() {
   const { settings } = useSiteSettings();
-  const { isDark, toggleDarkMode } = useDarkMode();
   const [promoVisible, setPromoVisible] = useState(false);
   const [promoText, setPromoText] = useState('');
   const [loginDropdown, setLoginDropdown] = useState(false);
@@ -61,7 +59,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="relative bg-surface shadow-sm z-[1000] dark:bg-surface dark:shadow-gray-800">
+    <header className="relative bg-white shadow-sm z-[1000]">
       {/* Promo Bar */}
       {promoVisible && (
         <div className="bg-primary text-white py-3 relative">
@@ -79,7 +77,7 @@ export default function Header() {
       )}
 
       {/* Top Bar - Desktop: Logo + Info + Login */}
-      <div className="bg-surface border-b border-border py-4 hidden lg:block dark:bg-surface dark:border-gray-700">
+      <div className="bg-white border-b border-border py-4 hidden lg:block">
         <div className="max-w-5xl mx-auto px-8 flex items-center justify-between">
           {/* Logo + Text */}
           <Link to="/" className="flex items-center gap-3">
@@ -115,52 +113,42 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Dark Mode Toggle + Login Dropdown */}
-          <div className="flex items-center gap-4 pl-8">
+          {/* Login Dropdown */}
+          <div className="relative pl-8">
             <button
-              onClick={toggleDarkMode}
-              className="p-2.5 rounded-full border-2 border-border hover:border-primary text-text-light hover:text-primary transition-all cursor-pointer dark:border-gray-600 dark:hover:border-primary dark:text-gray-400 dark:hover:text-primary"
-              aria-label="Toggle dark mode"
+              onClick={() => setLoginDropdown(!loginDropdown)}
+              className="flex items-center gap-2 px-5 py-2.5 border-2 border-primary text-primary text-sm font-semibold rounded-full hover:bg-primary hover:text-white transition-all cursor-pointer"
             >
-              {isDark ? <IconSun size={18} /> : <IconMoon size={18} />}
+              <IconUser size={18} />
+              Masuk
             </button>
-            
-            <div className="relative">
-              <button
-                onClick={() => setLoginDropdown(!loginDropdown)}
-                className="flex items-center gap-2 px-5 py-2.5 border-2 border-primary text-primary text-sm font-semibold rounded-full hover:bg-primary hover:text-white transition-all cursor-pointer"
-              >
-                <IconUser size={18} />
-                Masuk
-              </button>
-              {loginDropdown && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setLoginDropdown(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-44 bg-white rounded-lg shadow-lg border border-border overflow-hidden z-20 dark:bg-surface-dark dark:border-gray-700">
-                    {loginItems.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <Link
-                          key={item.label}
-                          to={item.href}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-text hover:bg-gray-100 hover:text-primary transition-colors cursor-pointer dark:hover:bg-gray-700"
-                          onClick={() => setLoginDropdown(false)}
-                        >
-                          <Icon size={16} className="text-text-light" />
-                          {item.label}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
+            {loginDropdown && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setLoginDropdown(false)} />
+                <div className="absolute right-0 top-full mt-2 w-44 bg-white rounded-lg shadow-lg border border-border overflow-hidden z-20">
+                  {loginItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.label}
+                        to={item.href}
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-text hover:bg-gray-100 hover:text-primary transition-colors cursor-pointer"
+                        onClick={() => setLoginDropdown(false)}
+                      >
+                        <Icon size={16} className="text-text-light" />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
 
       {/* Main Header - Navigation Full Width */}
-      <div className="bg-surface border-b border-border hidden lg:block dark:bg-surface dark:border-gray-700">
+      <div className="bg-white border-b border-border hidden lg:block">
         <div className="max-w-5xl mx-auto px-8">
           <nav className="flex items-center justify-center gap-2">
             {menuItems.map((item) => {
@@ -178,7 +166,7 @@ export default function Header() {
                   className={`flex items-center gap-2 px-4 py-3 text-[15px] font-medium rounded transition-colors cursor-pointer ${
                     isActive
                       ? 'text-primary relative after:absolute after:bottom-0 after:left-4 after:right-4 after:h-0.5 after:bg-primary bg-primary/5'
-                      : 'text-text hover:text-primary hover:bg-gray-100 dark:hover:bg-gray-700'
+                      : 'text-text hover:text-primary hover:bg-gray-100'
                   }`}
                 >
                   <Icon size={24} />

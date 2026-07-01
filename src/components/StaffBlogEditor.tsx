@@ -57,7 +57,7 @@ function ToolbarButton({ onClick, active, children, title, disabled }: {
       disabled={disabled}
       title={title}
       className={`p-2 rounded-lg transition-colors flex-shrink-0
-        ${active ? 'bg-primary text-white' : 'text-text-light hover:bg-gray-100 hover:text-text dark:hover:bg-gray-700'}
+        ${active ? 'bg-primary text-white' : 'text-text-light hover:bg-gray-100 hover:text-text'}
         ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
       `}
     >
@@ -295,7 +295,7 @@ export default function StaffBlogEditor() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/staff/blog')} className="p-2 rounded-lg hover:bg-gray-100 transition-colors dark:hover:bg-gray-700">
+          <button onClick={() => navigate('/staff/blog')} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
             <IconArrowLeft size={20} className="text-text" />
           </button>
           <div>
@@ -309,7 +309,7 @@ export default function StaffBlogEditor() {
           <button
             onClick={() => handleSave('draft')}
             disabled={isSaving}
-            className="flex items-center gap-2 px-4 py-2.5 border border-border text-text font-medium rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-60 text-sm dark:hover:bg-gray-700"
+            className="flex items-center gap-2 px-4 py-2.5 border border-border text-text font-medium rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-60 text-sm"
           >
             <IconDeviceFloppy size={18} />
             <span className="hidden sm:inline">Draft</span>
@@ -348,7 +348,7 @@ export default function StaffBlogEditor() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Masukkan judul artikel yang menarik..."
-              className="w-full px-4 py-3 border border-border rounded-xl outline-none focus:border-primary transition-colors text-text text-lg font-medium bg-transparent dark:border-gray-600"
+              className="w-full px-4 py-3 border border-border rounded-xl outline-none focus:border-primary transition-colors text-text text-lg font-medium"
             />
           </div>
 
@@ -370,20 +370,20 @@ export default function StaffBlogEditor() {
                 onChange={(e) => { setSlug(e.target.value); setAutoSlug(false); }}
                 onBlur={() => setIsEditingSlug(false)}
                 placeholder="judul-artikel-anda"
-                className="w-full px-4 py-3 border border-border rounded-xl outline-none focus:border-primary transition-colors text-text font-mono text-sm bg-transparent dark:border-gray-600"
+                className="w-full px-4 py-3 border border-border rounded-xl outline-none focus:border-primary transition-colors text-text font-mono text-sm"
                 autoFocus
               />
             ) : (
-              <div className="px-4 py-3 bg-gray-50 border border-border rounded-xl text-text-light font-mono text-sm dark:bg-gray-800 dark:border-gray-600">
+              <div className="px-4 py-3 bg-gray-50 border border-border rounded-xl text-text-light font-mono text-sm">
                 {slug || <span className="text-gray-400">slug-akan-dibuat-otomatis</span>}
               </div>
             )}
           </div>
 
           {/* Editor */}
-          <div className="bg-surface rounded-xl shadow-sm border border-border overflow-hidden dark:bg-surface-dark dark:border-gray-700">
+          <div className="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
             {/* Desktop Toolbar */}
-            <div className="hidden lg:flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-border bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+            <div className="hidden lg:flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-border bg-gray-50">
               <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="Tebal (Ctrl+B)"><IconBold size={18} /></ToolbarButton>
               <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')} title="Miring (Ctrl+I)"><IconItalic size={18} /></ToolbarButton>
               <ToolbarButton onClick={() => editor.chain().focus().toggleUnderline().run()} active={editor.isActive('underline')} title="Garis Bawah (Ctrl+U)"><IconUnderline size={18} /></ToolbarButton>
@@ -415,7 +415,7 @@ export default function StaffBlogEditor() {
             <EditorContent editor={editor} className="min-h-[400px]" />
 
             {/* Mobile Quick Toolbar */}
-            <div className="lg:hidden flex items-center gap-1 px-2 py-2 border-t border-border bg-gray-50 overflow-x-auto dark:bg-gray-800 dark:border-gray-700">
+            <div className="lg:hidden flex items-center gap-1 px-2 py-2 border-t border-border bg-gray-50 overflow-x-auto">
               <button type="button" onClick={() => editor.chain().focus().toggleBold().run()} className={`p-2 rounded-lg flex-shrink-0 ${editor.isActive('bold') ? 'bg-primary text-white' : 'text-text-light'}`}><IconBold size={18} /></button>
               <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()} className={`p-2 rounded-lg flex-shrink-0 ${editor.isActive('italic') ? 'bg-primary text-white' : 'text-text-light'}`}><IconItalic size={18} /></button>
               <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={`p-2 rounded-lg flex-shrink-0 ${editor.isActive('heading', { level: 2 }) ? 'bg-primary text-white' : 'text-text-light'}`}><IconHeading size={18} /></button>
@@ -434,7 +434,7 @@ export default function StaffBlogEditor() {
         {/* Sidebar: Featured Image + Category */}
         <div className="space-y-4">
           {/* Featured Image */}
-          <div className="bg-surface rounded-xl shadow-sm border border-border p-4 dark:bg-surface-dark dark:border-gray-700">
+          <div className="bg-white rounded-xl shadow-sm border border-border p-4">
             <h3 className="text-sm font-semibold text-text mb-3">Gambar Sampul</h3>
             {featuredImageUrl ? (
               <div className="relative group">
@@ -458,7 +458,7 @@ export default function StaffBlogEditor() {
               <button
                 onClick={() => featuredInputRef.current?.click()}
                 disabled={uploadingFeatured}
-                className="w-full h-40 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center gap-2 text-text-light hover:border-primary hover:text-primary transition-colors disabled:opacity-60 dark:border-gray-600"
+                className="w-full h-40 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center gap-2 text-text-light hover:border-primary hover:text-primary transition-colors disabled:opacity-60"
               >
                 {uploadingFeatured ? (
                   <svg className="animate-spin h-6 w-6" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
@@ -475,7 +475,7 @@ export default function StaffBlogEditor() {
           </div>
 
           {/* Publish Date */}
-          <div className="bg-surface rounded-xl shadow-sm border border-border p-4 dark:bg-surface-dark dark:border-gray-700">
+          <div className="bg-white rounded-xl shadow-sm border border-border p-4">
             <h3 className="text-sm font-semibold text-text mb-3 flex items-center gap-2">
               <IconCalendar size={16} className="text-primary" />
               Tanggal Publish
@@ -484,18 +484,18 @@ export default function StaffBlogEditor() {
               type="datetime-local"
               value={publishDate}
               onChange={(e) => setPublishDate(e.target.value)}
-              className="w-full px-4 py-3 border border-border rounded-xl outline-none focus:border-primary transition-colors text-text bg-transparent text-sm dark:border-gray-600"
+              className="w-full px-4 py-3 border border-border rounded-xl outline-none focus:border-primary transition-colors text-text bg-white text-sm"
             />
             <p className="text-xs text-text-light mt-2">Biarkan default untuk tanggal saat ini. Ubah untuk artikel lama (migrasi).</p>
           </div>
 
           {/* Category */}
-          <div className="bg-surface rounded-xl shadow-sm border border-border p-4 dark:bg-surface-dark dark:border-gray-700">
+          <div className="bg-white rounded-xl shadow-sm border border-border p-4">
             <h3 className="text-sm font-semibold text-text mb-3">Kategori <span className="text-red-500">*</span></h3>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-4 py-3 border border-border rounded-xl outline-none focus:border-primary transition-colors text-text bg-transparent text-sm dark:border-gray-600"
+              className="w-full px-4 py-3 border border-border rounded-xl outline-none focus:border-primary transition-colors text-text bg-white text-sm"
             >
               <option value="">Pilih kategori...</option>
               {categories.map((cat) => (

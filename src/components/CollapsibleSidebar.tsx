@@ -65,11 +65,11 @@ export default function CollapsibleSidebar({
   return (
     <>
       {/* Mobile Header Bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 bg-surface border-b border-border px-4 py-3 flex items-center justify-between z-40 dark:bg-surface dark:border-gray-700">
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-border px-4 py-3 flex items-center justify-between z-40">
         <button
           onClick={() => setMobileOpen(true)}
           aria-label="Buka menu navigasi"
-          className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer dark:hover:bg-gray-700"
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
         >
           <IconMenu2 size={22} className="text-text" />
         </button>
@@ -88,13 +88,13 @@ export default function CollapsibleSidebar({
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-surface border-r border-border z-50 transition-all duration-300 flex flex-col dark:bg-surface dark:border-gray-700
+        className={`fixed top-0 left-0 h-full w-64 bg-white border-r border-border z-50 transition-all duration-300 flex flex-col
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           ${effectiveCollapsed ? 'lg:w-[72px]' : 'lg:w-64'}
         `}
       >
         {/* Logo / Brand */}
-        <div className={`flex items-center border-b border-border dark:border-gray-700 ${effectiveCollapsed ? 'lg:justify-center px-3' : 'px-5'} h-16 flex-shrink-0`}>
+        <div className={`flex items-center border-b border-border ${effectiveCollapsed ? 'lg:justify-center px-3' : 'px-5'} h-16 flex-shrink-0`}>
           <div className={`w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0`}>
             <span className="text-white font-bold text-sm">S</span>
           </div>
@@ -104,7 +104,7 @@ export default function CollapsibleSidebar({
         </div>
 
         {/* Avatar + User Info */}
-        <div className={`border-b border-border dark:border-gray-700 ${effectiveCollapsed ? 'lg:justify-center lg:px-3' : 'px-5'} py-4 flex-shrink-0`}>
+        <div className={`border-b border-border ${effectiveCollapsed ? 'lg:justify-center lg:px-3' : 'px-5'} py-4 flex-shrink-0`}>
           <div className={`flex items-center gap-3 ${effectiveCollapsed ? 'lg:justify-center lg:flex-col lg:gap-2' : ''}`}>
             {displayAvatar ? (
               <img src={displayAvatar} alt="Avatar" className="w-10 h-10 rounded-full object-cover flex-shrink-0 border-2 border-primary/20" />
@@ -154,7 +154,7 @@ export default function CollapsibleSidebar({
                   className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer
                     ${isActive
                       ? 'bg-primary text-white'
-                      : 'text-text hover:bg-gray-100 dark:hover:bg-gray-700'
+                      : 'text-text hover:bg-gray-100'
                     }
                     ${effectiveCollapsed ? 'lg:justify-center lg:px-2' : ''}
                   `}
@@ -173,11 +173,11 @@ export default function CollapsibleSidebar({
         </nav>
 
         {/* Collapse Toggle + Logout */}
-        <div className="border-t border-border dark:border-gray-700 p-2 flex-shrink-0">
+        <div className="border-t border-border p-2 flex-shrink-0">
           <button
             onClick={() => { setCollapsed(!collapsed); setTooltipPos(null); }}
             aria-label={effectiveCollapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'}
-            className="hidden lg:flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text hover:bg-gray-100 transition-colors cursor-pointer dark:hover:bg-gray-700"
+            className="hidden lg:flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text hover:bg-gray-100 transition-colors cursor-pointer"
           >
             {effectiveCollapsed ? <IconChevronsRight size={20} /> : <IconChevronsLeft size={20} />}
             {!effectiveCollapsed && <span>Collapse</span>}
@@ -190,7 +190,7 @@ export default function CollapsibleSidebar({
             onMouseLeave={() => setHoveredItem(null)}
             onFocus={() => effectiveCollapsed && setHoveredItem('logout')}
             onBlur={() => setHoveredItem(null)}
-            className={`relative w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer dark:hover:bg-red-900/20
+            className={`relative w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer
               ${effectiveCollapsed ? 'lg:justify-center lg:px-2' : ''}
             `}
           >

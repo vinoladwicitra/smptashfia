@@ -70,7 +70,7 @@ export default function BlogSection() {
   const display = posts.slice(0, 5);
 
   return (
-    <section className="py-8 bg-background lg:py-16 lg:bg-surface dark:bg-background dark:lg:bg-surface">
+    <section className="py-8 bg-background lg:py-16 lg:bg-white">
       <div className="max-w-5xl mx-auto px-8">
         {/* Title */}
         <h2 className="text-[22px] font-bold text-text mb-4 lg:hidden">Artikel & Berita</h2>
@@ -82,8 +82,8 @@ export default function BlogSection() {
         {/* Desktop Grid */}
         {loading ? (
           <div className="hidden lg:grid lg:grid-cols-4 lg:gap-4 lg:mb-10">
-            <div className="col-span-2 row-span-2 rounded-xl bg-gray-200 animate-pulse aspect-square dark:bg-gray-700" />
-            {[1, 2, 3, 4].map((i) => <div key={i} className="rounded-xl bg-gray-200 animate-pulse aspect-square dark:bg-gray-700" />)}
+            <div className="col-span-2 row-span-2 rounded-xl bg-gray-200 animate-pulse aspect-square" />
+            {[1, 2, 3, 4].map((i) => <div key={i} className="rounded-xl bg-gray-200 animate-pulse aspect-square" />)}
           </div>
         ) : display.length > 0 && (
           <div className="hidden lg:grid lg:grid-cols-4 lg:gap-4 lg:mb-10">
@@ -115,13 +115,13 @@ export default function BlogSection() {
         {loading ? (
           <div className="lg:hidden space-y-3 mb-5">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex h-28 bg-surface rounded-xl overflow-hidden shadow-sm animate-pulse dark:bg-surface-dark">
-                <div className="flex-shrink-0 w-28 h-28 bg-gray-200 dark:bg-gray-700" />
+              <div key={i} className="flex h-28 bg-white rounded-xl overflow-hidden shadow-sm animate-pulse">
+                <div className="flex-shrink-0 w-28 h-28 bg-gray-200" />
                 <div className="flex-1 h-28 p-2.5 flex flex-col gap-1.5">
-                  <div className="h-4 bg-gray-200 rounded w-16 dark:bg-gray-700" />
-                  <div className="h-4 bg-gray-200 rounded w-full dark:bg-gray-700" />
-                  <div className="h-3 bg-gray-200 rounded w-3/4 dark:bg-gray-700" />
-                  <div className="flex items-center justify-between mt-auto pt-1"><div className="h-3 bg-gray-200 rounded w-12 dark:bg-gray-700" /><div className="h-3 bg-gray-200 rounded w-16 dark:bg-gray-700" /></div>
+                  <div className="h-4 bg-gray-200 rounded w-16" />
+                  <div className="h-4 bg-gray-200 rounded w-full" />
+                  <div className="h-3 bg-gray-200 rounded w-3/4" />
+                  <div className="flex items-center justify-between mt-auto pt-1"><div className="h-3 bg-gray-200 rounded w-12" /><div className="h-3 bg-gray-200 rounded w-16" /></div>
                 </div>
               </div>
             ))}
@@ -129,13 +129,13 @@ export default function BlogSection() {
         ) : display.length > 0 && (
           <div className="lg:hidden space-y-3 mb-5">
             {display.map((post: any) => (
-              <div key={post.id} onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate(`/blog/${post.slug}`); }} className="flex h-28 bg-surface rounded-xl overflow-hidden shadow-sm active:scale-[0.98] transition-transform cursor-pointer dark:bg-surface-dark">
+              <div key={post.id} onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); navigate(`/blog/${post.slug}`); }} className="flex h-28 bg-white rounded-xl overflow-hidden shadow-sm active:scale-[0.98] transition-transform cursor-pointer">
                 <div className="flex-shrink-0 w-28 h-28 cursor-pointer">
                   {post.featured_image ? <img src={post.featured_image} alt={post.title} loading="lazy" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-primary/10" />}
                 </div>
                 <div className="flex-1 h-28 p-2.5 flex flex-col overflow-hidden">
                   <div>
-                    <div className="mb-1"><span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded cursor-pointer ${categoryStyles[post.category] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>{post.category}</span></div>
+                    <div className="mb-1"><span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded cursor-pointer ${categoryStyles[post.category] || 'bg-gray-100 text-gray-700'}`}>{post.category}</span></div>
                     <h3 className="text-xs font-semibold text-text leading-tight line-clamp-2 mb-0.5 cursor-pointer">{post.title}</h3>
                     {post.excerpt && <p className="text-[10px] text-text-light line-clamp-1 cursor-pointer">{post.excerpt}</p>}
                   </div>

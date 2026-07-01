@@ -122,7 +122,7 @@ export default function StaffBlogList() {
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-surface rounded-xl shadow-sm border border-border p-4 mb-6 dark:bg-surface-dark dark:border-gray-700">
+      <div className="bg-white rounded-xl shadow-sm border border-border p-4 mb-6">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1 relative">
             <IconSearch size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
@@ -131,7 +131,7 @@ export default function StaffBlogList() {
               placeholder="Cari artikel..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-sm text-text bg-transparent dark:border-gray-600"
+              className="w-full pl-10 pr-4 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-sm text-text"
             />
           </div>
           <div className="relative">
@@ -139,7 +139,7 @@ export default function StaffBlogList() {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="pl-10 pr-8 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-sm text-text bg-surface appearance-none cursor-pointer dark:bg-surface-dark dark:border-gray-600"
+              className="pl-10 pr-8 py-2.5 border border-border rounded-lg outline-none focus:border-primary transition-colors text-sm text-text bg-white appearance-none cursor-pointer"
             >
               <option value="all">Semua Status</option>
               <option value="published">Terbit</option>
@@ -162,7 +162,7 @@ export default function StaffBlogList() {
 
       {/* Articles List */}
       {!loading && filteredArticles.length === 0 && (
-        <div className="bg-surface rounded-xl shadow-sm border border-border p-12 text-center dark:bg-surface-dark dark:border-gray-700">
+        <div className="bg-white rounded-xl shadow-sm border border-border p-12 text-center">
           <IconFileText size={48} className="mx-auto text-text-light/30 mb-4" />
           <h3 className="text-lg font-semibold text-text mb-2">
             {searchQuery || filterStatus !== 'all' ? 'Tidak ada artikel ditemukan' : 'Belum ada artikel'}
@@ -189,7 +189,7 @@ export default function StaffBlogList() {
           {filteredArticles.map((article) => (
             <div
               key={article.id}
-              className="bg-surface rounded-xl shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow dark:bg-surface-dark dark:border-gray-700"
+              className="bg-white rounded-xl shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow"
             >
               <div className="flex flex-col sm:flex-row">
                 {/* Featured Image - Clickable */}
@@ -200,7 +200,7 @@ export default function StaffBlogList() {
                   {article.featured_image ? (
                     <img src={article.featured_image} alt={article.title} className="w-full h-32 sm:h-full object-cover" />
                   ) : (
-                    <div className="w-full h-32 sm:h-full bg-primary/5 flex items-center justify-center dark:bg-primary/10">
+                    <div className="w-full h-32 sm:h-full bg-primary/5 flex items-center justify-center">
                       <IconFileText size={32} className="text-text-light/20" />
                     </div>
                   )}
@@ -215,7 +215,7 @@ export default function StaffBlogList() {
                         {statusLabels[article.status]}
                       </span>
                       {article.category && (
-                        <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-medium dark:bg-primary/20">
+                        <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-medium">
                           {article.category.name}
                         </span>
                       )}
@@ -258,14 +258,14 @@ export default function StaffBlogList() {
                 <div className="flex items-center gap-1 px-4 pb-4 sm:py-4 sm:flex-shrink-0">
                   <button
                     onClick={() => navigate(`/staff/blog/edit/${article.id}`)}
-                    className="p-2 rounded-lg text-text-light hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer dark:hover:bg-primary/20"
+                    className="p-2 rounded-lg text-text-light hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
                     title="Edit"
                   >
                     <IconEdit size={18} />
                   </button>
                   <button
                     onClick={() => handleDelete(article.id, article.title)}
-                    className="p-2 rounded-lg text-text-light hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer dark:hover:bg-red-900/20"
+                    className="p-2 rounded-lg text-text-light hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                     title="Hapus"
                   >
                     <IconTrash size={18} />

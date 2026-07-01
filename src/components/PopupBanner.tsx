@@ -73,7 +73,7 @@ export default function PopupBanner() {
       onClick={handleClose}
     >
       <div
-        className="relative bg-surface rounded-2xl overflow-hidden shadow-2xl max-w-sm w-full animate-slideUp dark:bg-surface-dark"
+        className="relative bg-white rounded-2xl overflow-hidden shadow-2xl max-w-sm w-full animate-slideUp"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -105,7 +105,7 @@ export default function PopupBanner() {
         )}
 
         {/* CTA Button */}
-        <div className="p-4 bg-primary/5 dark:bg-primary/10">
+        <div className="p-4 bg-primary/5">
           {isExternalLink ? (
             <a
               href={buttonLink}
