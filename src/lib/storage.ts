@@ -77,3 +77,73 @@ export async function deleteBlogImages(contentHtml: string): Promise<void> {
     }
   }
 }
+
+/**
+ * Upload facility image
+ * Stores in 'facilities' bucket with category folder structure
+ */
+export async function uploadFacilityImage(categoryId: string, file: File): Promise<string> {
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  const allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+  const safeExt = allowedExts.includes(ext) ? ext : 'jpg';
+  const timestamp = Date.now();
+  const key = `facilities/${categoryId}/${timestamp}.${safeExt}`;
+
+  const { error } = await supabase.storage
+    .from('facilities')
+    .upload(key, file, { upsert: true, contentType: file.type });
+
+  if (error) throw error;
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('facilities')
+    .getPublicUrl(key);
+
+  return publicUrl;
+}
+
+/**
+ * Delete a single facility image from storage
+ * Accepts either full public URL or storage key
+ */
+export async function deleteFacilityImage(imageUrlOrKey: string): Promise<void> {
+  let key = imageUrlOrKey;
+
+  // If full URL, extract the key part
+  const match = imageUrlOrKey.match(/\/object\/public\/facilities\/(.+)/);
+  if (match) {
+    key = match[1];
+  } else if (imageUrlOrKey.startsWith('facilities/')) {
+    key = imageUrlOrKey;
+  } else {
+    // Not a facilities image path, skip
+    console.warn('Invalid facility image path:', imageUrlOrKey);
+    return;
+  }
+
+  const { error } = await supabase.storage
+    .from('facilities')
+    .remove([key]);
+
+  // Ignore "not found" errors
+  if (error && !error.message.includes('not found')) {
+    console.warn('Failed to delete facility image:', error.message);
+  }
+}
+
+/**
+ * Delete all images for a facility category
+ */
+export async function deleteFacilityImagesByCategory(categoryId: string): Promise<void> {
+  const { data: files } = await supabase.storage
+    .from('facilities')
+    .list(categoryId);
+
+  if (files && files.length > 0) {
+    const keys = files.map(f => `${categoryId}/${f.name}`);
+    const { error } = await supabase.storage.from('facilities').remove(keys);
+    if (error && !error.message.includes('not found')) {
+      console.warn('Failed to delete facility images:', error.message);
+    }
+  }
+}

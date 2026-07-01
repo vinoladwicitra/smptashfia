@@ -7,6 +7,7 @@ import banners from './routes/banners';
 import siteSettings from './routes/siteSettings';
 import users from './routes/users';
 import googleSheets from './routes/googleSheets';
+import facilities from './routes/facilities';
 import type { Env } from './types';
 
 const app = new Hono<{ Bindings: Env }>();
@@ -31,6 +32,7 @@ app.route('/api/banners', banners);
 app.route('/api/site-settings', siteSettings);
 app.route('/api/users', users);
 app.route('/api/google-sheets', googleSheets);
+app.route('/api/facilities', facilities);
 
 // Fallback for non-API routes (let Cloudflare Pages handle them)
 app.notFound((c) => {

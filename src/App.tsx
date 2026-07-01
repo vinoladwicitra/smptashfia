@@ -34,6 +34,7 @@ const GoogleSheetsCallback = lazy(() => import('./components/GoogleSheetsCallbac
 const StaffLayout = lazy(() => import('./components/StaffLayout'))
 const StaffBlogList = lazy(() => import('./components/StaffBlogList'))
 const StaffBlogEditor = lazy(() => import('./components/StaffBlogEditor'))
+const StaffFacilities = lazy(() => import('./components/StaffFacilities'))
 
 // Loading fallback
 function LoadingFallback() {
@@ -125,6 +126,7 @@ function App() {
             <Route path="blog/new" element={<StaffBlogEditor />} />
             <Route path="blog/edit/:id" element={<StaffBlogEditor />} />
             <Route path="banners" element={<StaffBanners />} />
+            <Route path="facilities" element={<StaffFacilities />} />
             <Route path="site-settings" element={<StaffSiteSettings />} />
             <Route path="users" element={<StaffUsers />} />
             <Route path="pmb" element={<StaffPPDB />} />
